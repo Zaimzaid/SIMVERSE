@@ -36,25 +36,39 @@ export function Modal({
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Hold the latest onClose in a ref so the open effect below does not depend on
+  // its identity. Callers routinely pass a fresh onClose every render (an inline
+  // arrow, or a handler rebuilt from changing form state). If that identity were
+  // an effect dependency, the effect would re-run on every keystroke and move
+  // focus back to the panel — stealing focus from any input inside the dialog.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
     };
     document.addEventListener("keydown", onKey);
 
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Move focus into the dialog.
-    panelRef.current?.focus();
+    // Move focus into the dialog once, when it opens — but don't steal it from an
+    // element that already claimed focus (e.g. an `autoFocus` input in children).
+    const panel = panelRef.current;
+    if (panel && !panel.contains(document.activeElement)) {
+      panel.focus();
+    }
 
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || typeof document === "undefined") return null;
 

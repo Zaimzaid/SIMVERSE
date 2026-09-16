@@ -13,7 +13,8 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonClasses } from "@/components/ui/button";
-import { EntityForm, entityToFormInitial } from "@/components/entities/entity-form";
+import { EntityForm } from "@/components/entities/entity-form";
+import { entityToFormInitial } from "@/components/entities/entity-form-model";
 
 export const metadata: Metadata = { title: "Edit entity" };
 

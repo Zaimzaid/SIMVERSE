@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    include: ["src/**/*.test.ts", "test/**/*.test.ts"],
+    include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
     globalSetup: ["./test/global-setup.ts"],
     // SQLite is single-writer; run test files serially to avoid write contention.
     fileParallelism: false,

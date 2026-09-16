@@ -35,50 +35,21 @@ import { TagInput } from "./tag-input";
 import { AttributeEditor } from "./attribute-editor";
 import { MetadataEditor } from "./metadata-editor";
 import type { AttributeAssignment, MetadataPair } from "./types";
+import type { EntityFormInitial } from "./entity-form-model";
 
-export interface EntityFormInitial {
-  id: string;
-  name: string;
-  shortName: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-  primaryColor: string;
-  secondaryColor: string;
-  attributes: AttributeAssignment[];
-  tags: string[];
-  metadata: MetadataPair[];
-}
+// `EntityFormInitial` and `entityToFormInitial` live in the server-safe
+// `entity-form-model` module so the Server Component Edit page can build the
+// initializer without calling across the client boundary. Only the (erased)
+// type is re-exported here; the function is intentionally NOT re-exported so a
+// Server Component can't import it from this "use client" module by mistake and
+// reintroduce the boundary bug — import it from `entity-form-model` instead.
+export type { EntityFormInitial } from "./entity-form-model";
 
 export interface EntityFormProps {
   mode: "create" | "edit";
   initialDefinitions: AttributeDefinitionView[];
   tagSuggestions: string[];
   initial?: EntityFormInitial;
-}
-
-/** Build the editable form initializer from a persisted entity (edit mode). */
-export function entityToFormInitial(entity: EntityView): EntityFormInitial {
-  return {
-    id: entity.id,
-    name: entity.name,
-    shortName: entity.shortName ?? "",
-    description: entity.description ?? "",
-    category: entity.category,
-    imageUrl: entity.imageUrl ?? "",
-    primaryColor: entity.primaryColor ?? "",
-    secondaryColor: entity.secondaryColor ?? "",
-    attributes: entity.attributes.map((a) => ({
-      attributeDefinitionId: a.attributeDefinitionId,
-      value: a.rawValue,
-    })),
-    tags: entity.tags.map((t) => t.name),
-    metadata: Object.entries(entity.metadata ?? {}).map(([key, val], i) => ({
-      id: `meta-init-${i}`,
-      key,
-      value: typeof val === "string" ? val : JSON.stringify(val),
-    })),
-  };
 }
 
 const BUILT_IN_CHOICES = selectableCategories(false); // excludes the "custom" sentinel
