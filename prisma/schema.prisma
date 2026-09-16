@@ -1,0 +1,102 @@
+// Prisma schema for SIMVERSE — Phase 0 (Platform foundation).
+//
+// DATABASE NOTE:
+//   Phase 0 targets SQLite for zero-setup local development. The schema is
+//   intentionally written to be portable to PostgreSQL:
+//     * No SQLite-only column types are used.
+//     * Role / action values are stored as String and validated in the app
+//       layer (src/lib/permissions) because SQLite has no native enums. On a
+//       Postgres migration these can become native enums with a simple ALTER.
+//     * AuditLog.metadata is a JSON string (portable) rather than a Json column.
+//   To migrate: change datasource `provider` to "postgresql", point
+//   DATABASE_URL at Postgres, then run `prisma migrate dev`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // Connection URL lives in prisma.config.ts (Prisma 7 moved it out of the schema).
+}
+
+/// A platform user (account). Deliberately generic — no simulation/game stats live here.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  displayName  String
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
+  memberships     WorkspaceMember[]
+  sessions        Session[]
+  auditLogs       AuditLog[]        @relation("AuditActor")
+}
+
+/// A workspace: the primary tenant boundary. Users may belong to many workspaces.
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  ownerId   String
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   WorkspaceMember[]
+  auditLogs AuditLog[]
+}
+
+/// Membership linking a user to a workspace with a role. Role governs permissions.
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String // WorkspaceRole (OWNER|ADMIN|CREATOR|OPERATOR|EDITOR|ANALYST|VIEWER) — validated in app layer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+/// Server-side session. The cookie holds an opaque token; only its HMAC hash is stored.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Append-only audit trail of significant platform actions.
+model AuditLog {
+  id          String   @id @default(cuid())
+  workspaceId String?
+  actorUserId String?
+  action      String // e.g. user.registered, user.logged_in, workspace.created, workspace.updated
+  entityType  String?
+  entityId    String?
+  metadata    String? // serialized JSON (portable across SQLite/Postgres)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  actor     User?      @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([actorUserId])
+  @@index([createdAt])
+}

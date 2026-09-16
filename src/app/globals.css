@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+/*
+ * SIMVERSE design tokens.
+ *
+ * Raw values live in :root (dark, the default) and are overridden under
+ * [data-theme="light"]. `@theme inline` aliases them to Tailwind color tokens
+ * using var() references, so utilities like `bg-surface` / `text-secondary`
+ * respond to runtime theme switching. Components must use these tokens, never
+ * hardcoded hex values.
+ */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --color-background: var(--background);
+  --color-background-end: var(--background-end);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-blue: var(--blue);
+  --color-purple: var(--purple);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-ring: var(--ring);
+
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
+  --background: #070a12;
+  --background-end: #0a0f1d;
+  --surface: #0e1420;
+  --surface-elevated: #151d2e;
+  --surface-hover: #1a2333;
+  --border: #1f2838;
+  --border-strong: #2b3648;
+  --text-primary: #eaf0fb;
+  --text-secondary: #98a4bb;
+  --text-muted: #616d83;
+
+  --accent: #22d3ee;
+  --accent-hover: #4fddf3;
+  --accent-strong: #06b6d4;
+  --accent-foreground: #04121a;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.13);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.13);
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+  --danger-foreground: #1a0606;
+  --danger-soft: rgba(248, 113, 113, 0.13);
+
+  --ring: rgba(34, 211, 238, 0.55);
+  color-scheme: dark;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --background: #eef2f9;
+  --background-end: #e6ecf6;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-hover: #f1f5fb;
+  --border: #dbe3ef;
+  --border-strong: #c4cfe0;
+  --text-primary: #0d1526;
+  --text-secondary: #4a5670;
+  --text-muted: #78839c;
+
+  --accent: #0891b2;
+  --accent-hover: #0e7490;
+  --accent-strong: #0e7490;
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(8, 145, 178, 0.1);
+  --blue: #2563eb;
+  --purple: #7c3aed;
+
+  --success: #059669;
+  --success-soft: rgba(5, 150, 105, 0.1);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.1);
+  --danger: #dc2626;
+  --danger-strong: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+
+  --ring: rgba(8, 145, 178, 0.45);
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+    background-clip: content-box;
+  }
+}
+
+/* ---- Reusable visual utilities ---- */
+
+.text-gradient {
+  background: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--blue) 48%,
+    var(--purple) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.glow-accent {
+  box-shadow: 0 0 0 1px var(--accent-soft), 0 8px 40px -12px var(--accent);
+}
+
+/* Ambient cinematic backdrop for public / auth pages */
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.aurora::before,
+.aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.5;
+}
+.aurora::before {
+  width: 45rem;
+  height: 45rem;
+  top: -18rem;
+  left: -10rem;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 68%);
+  opacity: 0.22;
+}
+.aurora::after {
+  width: 38rem;
+  height: 38rem;
+  bottom: -16rem;
+  right: -8rem;
+  background: radial-gradient(circle, var(--purple) 0%, transparent 68%);
+  opacity: 0.2;
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  opacity: 0.4;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-hover) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
