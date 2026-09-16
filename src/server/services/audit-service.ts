@@ -9,7 +9,15 @@ export type AuditAction =
   | "user.logged_out"
   | "user.profile_updated"
   | "workspace.created"
-  | "workspace.updated";
+  | "workspace.updated"
+  | "entity.created"
+  | "entity.updated"
+  | "entity.duplicated"
+  | "entity.archived"
+  | "entity.restored"
+  | "entity.deleted"
+  | "attribute.created"
+  | "attribute.updated";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

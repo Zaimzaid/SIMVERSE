@@ -34,6 +34,7 @@ model User {
   memberships     WorkspaceMember[]
   sessions        Session[]
   auditLogs       AuditLog[]        @relation("AuditActor")
+  createdEntities Entity[]          @relation("EntityCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -49,6 +50,10 @@ model Workspace {
   owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members   WorkspaceMember[]
   auditLogs AuditLog[]
+
+  entities             Entity[]
+  attributeDefinitions AttributeDefinition[]
+  tags                 Tag[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -99,4 +104,121 @@ model AuditLog {
   @@index([workspaceId])
   @@index([actorUserId])
   @@index([createdAt])
+}
+
+// ============================================================================
+// ENTITY SYSTEM (Phase 1 — the generic, extensible object model)
+//
+// One architecture represents every kind of object a simulation might contain —
+// Country, Robot, Animal, Vehicle, City, Farm, Business, Team, Person, Machine,
+// Custom, … — WITHOUT a table per kind. `category` is a plain String key so the
+// set of kinds is open-ended (an app-layer catalog gives labels/icons; the DB
+// never constrains it). Variable, per-kind traits live in the Entity-Attribute-
+// Value tables below, not in columns — so "Speed" or "Soil Fertility" are data,
+// never schema. Everything is workspace-scoped for strict tenant isolation.
+// ============================================================================
+
+/// A generic object that may participate in or exist inside a simulation.
+/// Products may rename this in their own UI (e.g. "Competitor"); the model stays generic.
+model Entity {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  name           String
+  shortName      String?
+  description    String?
+  category       String // open-ended kind key (country|robot|farm|…|custom slug); labelled in app layer
+  imageUrl       String?
+  primaryColor   String? // normalized hex, e.g. #22D3EE
+  secondaryColor String?
+  status         String    @default("ACTIVE") // EntityStatus (ACTIVE|ARCHIVED) — validated in app layer
+  metadata       String? // serialized JSON for flexible secondary data (portable across SQLite/Postgres)
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  archivedAt     DateTime?
+
+  workspace       Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy       User?                 @relation("EntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  attributeValues EntityAttributeValue[]
+  entityTags      EntityTag[]
+
+  // Composite indexes keep list/search/filter/sort fast at scale and always
+  // begin with workspaceId so every query is tenant-scoped by the leading column.
+  @@index([workspaceId, status])
+  @@index([workspaceId, category])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, name])
+  @@index([createdById])
+}
+
+/// Definition of a reusable attribute (trait/stat) within a workspace — the "A" of EAV.
+/// Custom attributes belong to the workspace that created them and are never shared across workspaces.
+model AttributeDefinition {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  name         String // display label, e.g. "Speed"
+  key          String // normalized machine key, e.g. "speed"
+  description  String?
+  dataType     String // AttributeDataType (NUMBER|TEXT|BOOLEAN|SELECT) — validated in app layer
+  unit         String? // optional display unit, e.g. "km/h"
+  minimum      Float? // inclusive lower bound for NUMBER
+  maximum      Float? // inclusive upper bound for NUMBER
+  defaultValue String? // serialized default (per dataType)
+  options      String? // serialized JSON array of allowed values for SELECT
+  isBuiltIn    Boolean  @default(false) // originated from a built-in preset (Speed/Strength/…)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workspace Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  values    EntityAttributeValue[]
+
+  // Key is unique within a workspace — the same "speed" key can exist in other
+  // workspaces, but never twice in one, keeping the workspace catalog clean.
+  @@unique([workspaceId, key])
+  @@index([workspaceId])
+}
+
+/// A single attribute value assigned to one entity — the "V" of EAV.
+/// Typed at the app layer against its AttributeDefinition (e.g. NUMBER respects min/max).
+model EntityAttributeValue {
+  id                    String   @id @default(cuid())
+  entityId              String
+  attributeDefinitionId String
+  value                 String // canonical serialized value (number as decimal string, boolean as "true"/"false", etc.)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  entity              Entity              @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  attributeDefinition AttributeDefinition @relation(fields: [attributeDefinitionId], references: [id], onDelete: Cascade)
+
+  // An entity holds at most one value per attribute (no duplicate assignment).
+  @@unique([entityId, attributeDefinitionId])
+  @@index([attributeDefinitionId])
+}
+
+/// A normalized, workspace-scoped tag. Reused across entities via EntityTag.
+model Tag {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String // display label as first entered
+  slug        String // normalized key for de-duplication + filtering
+  createdAt   DateTime @default(now())
+
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entityTags EntityTag[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+}
+
+/// Join table linking entities to tags (many-to-many).
+model EntityTag {
+  entityId String
+  tagId    String
+
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([entityId, tagId])
+  @@index([tagId])
 }

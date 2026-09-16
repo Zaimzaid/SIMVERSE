@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Boxes, FolderKanban, Globe2, Sparkles, Swords, Wand2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Boxes, FolderKanban, Globe2, Sparkles, Swords, Wand2 } from "lucide-react";
 import { PRODUCTS } from "@/lib/products";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -7,7 +8,15 @@ import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "Create" };
 
-const CREATE_OPTIONS = [
+interface CreateOption {
+  icon: typeof Boxes;
+  title: string;
+  description: string;
+  /** When set, the option is live and links here; otherwise it's a "Soon" placeholder. */
+  href?: string;
+}
+
+const CREATE_OPTIONS: CreateOption[] = [
   {
     icon: Swords,
     title: "New simulation",
@@ -17,6 +26,7 @@ const CREATE_OPTIONS = [
     icon: Boxes,
     title: "New entity",
     description: "Define a thing that lives in your worlds — traits and behaviors.",
+    href: "/entities/new",
   },
   {
     icon: Globe2,
@@ -42,22 +52,41 @@ export default function CreatePage() {
 
       <section>
         <div className="grid gap-4 sm:grid-cols-2">
-          {CREATE_OPTIONS.map((option) => (
-            <Card key={option.title} className="flex items-start gap-4 p-5">
-              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background/50 text-accent">
-                <option.icon className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-foreground">
-                    {option.title}
-                  </h3>
-                  <Badge variant="neutral">Soon</Badge>
+          {CREATE_OPTIONS.map((option) =>
+            option.href ? (
+              <Link key={option.title} href={option.href} className="group block">
+                <Card interactive className="flex h-full items-start gap-4 p-5">
+                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-accent/40 bg-accent/10 text-accent">
+                    <option.icon className="size-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-semibold text-foreground">
+                        {option.title}
+                      </h3>
+                      <ArrowRight className="size-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+                    </div>
+                    <p className="mt-1 text-sm text-secondary">{option.description}</p>
+                  </div>
+                </Card>
+              </Link>
+            ) : (
+              <Card key={option.title} className="flex items-start gap-4 p-5">
+                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background/50 text-accent">
+                  <option.icon className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-foreground">
+                      {option.title}
+                    </h3>
+                    <Badge variant="neutral">Soon</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-secondary">{option.description}</p>
                 </div>
-                <p className="mt-1 text-sm text-secondary">{option.description}</p>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ),
+          )}
         </div>
       </section>
 

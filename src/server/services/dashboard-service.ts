@@ -16,16 +16,19 @@ export interface ActivityItem {
 }
 
 /**
- * Real workspace metrics. Phase 0 has no project/simulation/entity/export
- * tables yet, so these are genuinely zero — never fabricated. When those models
- * land, replace the constants with prisma counts scoped to the workspace.
+ * Real workspace metrics. Projects/simulations/exports have no tables yet, so
+ * they are genuinely zero — never fabricated. Entities are counted live from the
+ * Entity table (ACTIVE only) for the current workspace.
  */
 export async function getWorkspaceStats(
   userId: string,
   workspaceId: string,
 ): Promise<WorkspaceStats> {
   await requireMembership(userId, workspaceId, "workspace.view");
-  return { projects: 0, simulations: 0, entities: 0, exports: 0 };
+  const entities = await prisma.entity.count({
+    where: { workspaceId, status: "ACTIVE" },
+  });
+  return { projects: 0, simulations: 0, entities, exports: 0 };
 }
 
 /** Recent audit activity visible to the user within this workspace. */

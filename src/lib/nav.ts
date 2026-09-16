@@ -49,7 +49,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Projects", href: "/projects", icon: FolderKanban, permission: "project.view" },
       { label: "Simulations", href: "/simulations", icon: Swords, permission: "simulation.view" },
-      { label: "Entities", href: "/entities", icon: Boxes, permission: "simulation.view" },
+      { label: "Entities", href: "/entities", icon: Boxes, permission: "entity.view" },
       { label: "Worlds", href: "/worlds", icon: Globe2, permission: "simulation.view" },
       { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "simulation.view" },
     ],
