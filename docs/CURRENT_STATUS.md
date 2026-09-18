@@ -8,9 +8,91 @@
 - **Version:** 0.1.0
 - **Phase:** Phase 2 — Projects & Simulation Builder — **COMPLETE**
 - **Subphase:** — (all Phase 2 work landed; quality gates green)
-- **Last updated:** 2026-09-18
+- **Committed:** **Yes.** Phase 2 landed in commit `0a6c606`
+  (`feat: complete SIMVERSE Phase 2 projects and simulation builder`); working
+  tree clean at last check.
+- **Next phase:** Phase 3 — **SIMVERSE Core Engine v0.1** (execution).
+  **Defined, NOT started.** Awaiting the Phase 3 implementation prompt.
+- **Last updated:** 2026-09-18 (architecture-update addendum — see
+  "Long-term architecture" and "Phase 3 boundary" below).
+- **Handoff:** This document is the canonical Claude ↔ Codex source of truth.
+  The repository and committed code are authoritative over conversation memory.
 - **Execution boundary:** No runtime. Simulations are *configuration only*.
   SimulationRun / ticks / results / mechanics are **Phase 3** and must not exist.
+
+---
+
+## Long-term architecture (OFFICIAL — future-compatibility constraints)
+
+These are official long-term SIMVERSE requirements (Master Architecture Update).
+They are **not** all Phase 3. Do **not** implement future systems merely because
+they are listed — but every architecture/implementation choice must stay
+compatible with them.
+
+- **Five pillars (OFFICIAL taxonomy).**
+  - **PLATFORM** (cross-cutting systems): Identity/Accounts, Organizations,
+    Workspaces, Memberships/Invitations, Roles/Permissions, Storage,
+    Collaboration, AI Assistant, Marketplace, Billing, Audit/Governance.
+  - **CORE**: Entities, Simulation Definitions, Simulation Runs, State,
+    Time/ticks, RNG, Actions, Rules foundation, Events, Results, Replay
+    foundation.
+  - **SIMULATION MODULES** (reusable simulation *mechanics* packages): Battle,
+    Racing, Tournament, Survival, Economy, Agriculture, Sports, Civilization,
+    future mechanics packages.
+  - **CREATOR / MEDIA PLATFORM** (its own major pillar — *consumes* simulation
+    output and turns it into content): Asset Library, Media Engine, Video Studio,
+    Caption Studio, Audio/Voice, Rendering, Export, Compression, Content tooling.
+  - **PRODUCTS**: Anything Wars, Robot Arena, Farm Empire, Civilization,
+    Sports Lab, future products.
+  - **Not modules:** Creator/Media is NOT a Simulation Module. AI Assistant,
+    Marketplace, Collaboration, Storage and Billing are PLATFORM/cross-cutting
+    systems, NOT Simulation Modules. SIMVERSE is the platform; "Anything Wars" is
+    one PRODUCT, never something the platform hardcodes around.
+- **Ownership hierarchy (future).** Account → **Organization** → Workspace →
+  Resources. The Organization tier slots **above** Workspace via an additive,
+  nullable `Workspace.organizationId` when its dedicated phase arrives.
+- **§24 — do NOT migrate now.** Current workspace-scoped Phase 0–2 resources are
+  acceptable and stay workspace-scoped. Do not migrate data for Organizations
+  now; keep the model additively migratable.
+- **Org membership must NOT auto-imply workspace access.** Workspace access stays
+  gated by an explicit `WorkspaceMember` row (already true today).
+- **Centralized authorization only.** Roles are permission bundles; permissions
+  are the authoritative model. Ask `can(role, permission)` — never scatter role
+  checks. Org roles (OWNER/ADMIN/BILLING_ADMIN/MEMBER) compose with workspace
+  roles later, in the one central place (`src/lib/permissions`).
+- **§25 — stay generic.** No hardcoding around any single product (Anything Wars,
+  battle, race, tournament, countries, robots, marbles, video, agriculture).
+- **Storage.** SIMVERSE's own DB is the primary system. External cloud
+  (Drive/Dropbox/OneDrive/Box) is backup/export/sync only — never the primary DB.
+- **AI Assistant** (future, Levels 1–4) must **never** bypass authorization.
+- **Future-only (do not build now):** Organizations/invitations/billing,
+  Creator/Media & Video-editing platform, captions/voice/audio, collaboration
+  chat, object comments, external cloud sync, onboarding/Academy, monetization,
+  Marketplace, API/Developer platform.
+
+## Phase 3 boundary (defined — NOT started)
+
+**Phase 3 = SIMVERSE Core Engine v0.1** (§26), product-agnostic execution.
+
+- **Phase 3 IS responsible for:** `SimulationRun`; deterministic seeded
+  randomness; simulation state; clock/tick; actions; rules-evaluation foundation;
+  events; run lifecycle; **immutable execution-input snapshots**; results
+  foundation; headless execution; pause/resume where appropriate; deterministic
+  replay preparation.
+- **Phase 3 must NOT implement (§27):** Organizations UI/invitations/billing,
+  Video Studio, Media Engine, Captions, Voiceover, Cloud backups, Chat, Comments,
+  Onboarding, Marketplace, AI Assistant, Battle/Race/Tournament mechanics, World
+  Editor, Content Engine, AI Director.
+- **Standing design constraint (from the §28 analysis):** a `SimulationRun` must
+  **snapshot its execution inputs** (seed + config version + participant inputs)
+  so its correctness never depends on later edits to the live Simulation/Entity.
+  This is what keeps replay, media, and collaboration compatible downstream.
+- **§28 conclusion:** **no blocking** compatibility issues before Phase 3. All
+  deferred, additive, and safe: (1) `Workspace.organizationId` FK; (2) an
+  org-role tier composed into authorization; (3) `AuditLog.organizationId`;
+  (4) the run↔simulation delete policy (a Phase 3 decision, resolved by input
+  snapshots). Runs are workspace-scoped, so they migrate under §24 like every
+  other resource.
 
 ---
 
@@ -164,8 +246,41 @@ mentions running states the execution engine arrives in Phase 3.
 
 ## Exact next action
 
-Phase 2 is functionally complete and all automated gates pass. Remaining before
-declaring the phase closed: (1) optional human walkthrough of the two scenarios
-on the dev server, (2) commit the work (recommended message
-`feat: complete SIMVERSE Phase 2 projects and simulation builder`). Do **not**
-begin Phase 3 (the execution engine) without an explicit new instruction.
+Phase 2 is **complete and committed** (`0a6c606`); all automated gates pass and
+the working tree is clean. No Phase 2 code work is outstanding. The only optional
+Phase 2 item is a human dev-server walkthrough (port 3020) of the two genericity
+scenarios — a QA nicety, not a blocker. **Wait for the explicit Phase 3
+implementation prompt before writing any execution/runtime code.**
+
+---
+
+## Checkpoint (Claude ↔ Codex handoff)
+
+```text
+LAST COMPLETED:
+  Phase 2 — Projects & Simulation Builder. Complete; 146 tests green;
+  tsc / eslint / next build all exit 0. Committed at 0a6c606.
+  §28 architecture-understanding report delivered (read-only; no code changed).
+
+CURRENTLY WORKING ON:
+  Nothing in code. Long-term architecture requirements have been made official
+  and recorded above ("Long-term architecture", "Phase 3 boundary").
+
+NOT YET COMPLETED:
+  - Phase 3 — SIMVERSE Core Engine v0.1 (execution). Defined, not started.
+  - Optional human dev-server walkthrough of the two genericity scenarios (QA).
+
+NEXT STEP:
+  Wait for the explicit Phase 3 implementation prompt, then implement the §26
+  scope ONLY (see "Phase 3 boundary").
+
+DO NOT:
+  - Begin Phase 3 or write any execution/runtime code before that prompt.
+  - Wire anything to `simulation.run` — keep it inert until Phase 3 activates it.
+  - Implement any §27 "must not" system (Orgs UI, Media/Video, Chat/Comments,
+    Marketplace, AI Assistant, product mechanics, World Editor, …).
+  - Migrate Phase 0–2 workspace-scoped data for Organizations (defer, §24).
+  - Add scattered role checks — authorization stays centralized in
+    src/lib/permissions.
+  - Hardcode around any single product — keep generic domain terms.
+```
