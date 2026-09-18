@@ -430,7 +430,9 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
           {step === 3 ? (
             <div className="space-y-6">
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Speed" htmlFor="sim-speed" hint="A stored preference — nothing runs in Phase 2.">
+                <Field label="Speed" htmlFor="sim-speed" hint={simMode === "battle"
+                  ? "A presentation preference; Battle v1 turn order uses Entity Speed attributes."
+                  : "A stored preference for this mode."}>
                   <Select
                     id="sim-speed"
                     value={general.speed}
@@ -465,7 +467,9 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
                 label="Round limit"
                 htmlFor="sim-round-limit"
                 error={errors["configuration.general.roundLimit"]}
-                hint={`Optional cap on rounds/turns. Leave blank for no explicit limit (max ${ROUND_LIMIT_MAX.toLocaleString()}).`}
+                hint={simMode === "battle"
+                  ? "Battle v1 treats this as a tick limit. Blank means 120 ticks; values above 160 execute with a 160-tick cap."
+                  : `Optional cap on rounds/turns. Leave blank for no explicit limit (max ${ROUND_LIMIT_MAX.toLocaleString()}).`}
               >
                 <Input
                   id="sim-round-limit"
@@ -496,7 +500,9 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
                     <label htmlFor="sim-random-events" className="block text-sm font-medium text-foreground">
                       Random events
                     </label>
-                    <span className="block text-xs text-muted">Preference only — no events are generated yet.</span>
+                    <span className="block text-xs text-muted">{simMode === "battle"
+                      ? "Stored preference. Battle v1 still uses seeded combat variation and records combat events."
+                      : "Stored preference for a future execution module."}</span>
                   </div>
                   <Switch
                     id="sim-random-events"
@@ -622,8 +628,9 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
             <div className="space-y-5">
               <p className="flex items-start gap-2 text-sm text-secondary">
                 <Info className="mt-0.5 size-4 shrink-0 text-muted" />
-                A seed is a readable label (SV-XXXXXXXX) stored for reproducibility. It is metadata only — no
-                random-number generation happens in Phase 2.
+                {simMode === "battle"
+                  ? "A seed is a readable label (SV-XXXXXXXX). Battle v1 uses it for deterministic initiative and combat decisions."
+                  : "A seed is a readable label (SV-XXXXXXXX) stored for reproducibility when this mode gains an execution module."}
               </p>
 
               <div className="space-y-2">
@@ -818,12 +825,12 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
 
 const STEP_BLURBS = [
   "Name your simulation and choose the project it belongs to.",
-  "Pick how these entities compete. Modes describe the shape of the contest — no mechanics run yet.",
+  "Pick how these entities compete. Execution availability depends on the mode.",
   "Choose which of the project’s entities take part. They’re referenced, never copied.",
   "Generic, mode-agnostic preferences. These are stored settings, not a rules engine.",
   "Where the simulation takes place — arriving in a later phase.",
   "How the simulation is presented. Stored separately from its logic.",
-  "A reproducibility label for the future engine. Metadata only.",
+  "A reproducibility seed for supported execution modules.",
   "Review everything, then save a draft or mark it ready.",
 ] as const;
 
@@ -833,7 +840,7 @@ interface ModeSettingsProps {
   onChange: (next: Record<string, unknown>) => void;
 }
 
-/** Mode-specific placeholder settings. Config only — carries no mechanics. */
+/** Mode-specific configuration; Battle v1 consumes its format during execution. */
 function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
   const field = modeSettingField(mode);
   if (!field) {
@@ -845,7 +852,9 @@ function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
   }
   const current = typeof value[field.key] === "string" ? (value[field.key] as string) : field.options[0];
   return (
-    <Field label={field.label} htmlFor={`sim-mode-${field.key}`} hint="A stored preference for this mode.">
+    <Field label={field.label} htmlFor={`sim-mode-${field.key}`} hint={mode === "battle"
+      ? "Duel and free-for-all execute in Battle v1. Team execution is a future enhancement."
+      : "A stored preference for this mode."}>
       <Select
         id={`sim-mode-${field.key}`}
         value={current}

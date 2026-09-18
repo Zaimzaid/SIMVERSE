@@ -106,11 +106,12 @@ describe("SimulationRun snapshots and source safety", () => {
   });
 
   it("rejects unavailable production modes with no Run or participant row created", async () => {
-    const { user, workspaceId, simulation } = await makeScenario("battle");
-    expect(productionEngineRegistry.canExecute("battle")).toBe(false);
+    const { user, workspaceId, simulation } = await makeScenario("race");
+    expect(productionEngineRegistry.canExecute("battle")).toBe(true);
+    expect(productionEngineRegistry.canExecute("race")).toBe(false);
     expect(productionEngineRegistry.canExecute("test-sequence")).toBe(false);
     await expect(createSimulationRun(user.id, workspaceId, simulation.id)).rejects.toThrow(
-      "Execution module for mode 'battle' is not available yet.",
+      "Execution module for mode 'race' is not available yet.",
     );
     expect(await prisma.simulationRun.count()).toBe(0);
     expect(await prisma.simulationRunParticipant.count()).toBe(0);

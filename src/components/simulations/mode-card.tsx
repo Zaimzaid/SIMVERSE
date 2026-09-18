@@ -58,7 +58,8 @@ export function ModeCard({ mode, selected, onSelect }: ModeCardProps) {
         <p className="mt-0.5 text-xs text-secondary">{mode.description}</p>
       </div>
       <p className="mt-auto text-xs text-muted">
-        Needs at least {mode.minEntities} entities
+        Configuration {mode.availability === "available" ? "available" : "future"} · Execution {mode.executionAvailability === "available" ? "available" : "future"}
+        <br />Needs at least {mode.minEntities} entities
       </p>
     </button>
   );

@@ -51,7 +51,7 @@ export interface EngineModule {
 
 export class EngineExecutionError extends Error {
   constructor(
-    readonly failureCode: "INVALID_MODULE_OUTPUT" | "MODULE_EXECUTION_FAILED",
+    readonly failureCode: "INVALID_EXECUTION_INPUT" | "INVALID_MODULE_OUTPUT" | "MODULE_EXECUTION_FAILED",
     readonly safeMessage: string,
     options?: ErrorOptions,
   ) {

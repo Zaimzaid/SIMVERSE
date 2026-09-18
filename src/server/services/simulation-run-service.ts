@@ -193,7 +193,10 @@ export async function createSimulationRun(
       let state: EngineStateV1;
       try {
         state = initializeEngine(module, input, DEFAULT_FIXED_STEP_MS);
-      } catch {
+      } catch (error) {
+        if (error instanceof EngineExecutionError && error.failureCode === "INVALID_EXECUTION_INPUT") {
+          throw new ValidationError(error.safeMessage);
+        }
         throw new ConflictError("Execution module could not initialize this simulation.");
       }
       const created = await tx.simulationRun.create({

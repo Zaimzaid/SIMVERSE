@@ -4,7 +4,8 @@
  * IMPORTANT: `mode` on a Simulation is a free-form string key in the database —
  * exactly like Entity.category. This catalog supplies presentation (label, icon,
  * blurb), the minimum participant count, an availability flag for the picker, and
- * a documentation pointer to the module that may execute the mode. It contains
+ * presentation-level execution availability and a documentation pointer to the
+ * module that may execute the mode. It contains
  * NO mechanics: there is no battle/race/tournament logic here.
  *
  * Adding a mode later means adding an entry here and registering its execution
@@ -16,6 +17,7 @@ import { Dices, Flame, Gauge, Swords, Trophy } from "lucide-react";
 
 /** Whether a mode can be selected in the builder yet. Future modes ship as "coming_soon". */
 export type ModeAvailability = "available" | "coming_soon";
+export type ModeExecutionAvailability = "available" | "future";
 
 export interface SimulationMode {
   /** normalized slug key stored in Simulation.mode */
@@ -26,11 +28,13 @@ export interface SimulationMode {
   /** Minimum participants a simulation of this mode must reference to be READY. */
   minEntities: number;
   availability: ModeAvailability;
+  /** Picker label only; the server's Module Registry decides whether a run may start. */
+  executionAvailability: ModeExecutionAvailability;
   /**
    * Documentation pointer only. Execution availability is controlled by the
    * server's Engine Module Registry, not by this catalog entry.
    */
-  futureModuleRef: string;
+  moduleRef: string;
   isBuiltIn: boolean;
 }
 
@@ -48,7 +52,8 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Swords,
     minEntities: 2,
     availability: "available",
-    futureModuleRef: "modules/battle",
+    executionAvailability: "available",
+    moduleRef: "modules/battle",
     isBuiltIn: true,
   },
   {
@@ -58,7 +63,8 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Gauge,
     minEntities: 2,
     availability: "available",
-    futureModuleRef: "modules/race",
+    executionAvailability: "future",
+    moduleRef: "modules/race",
     isBuiltIn: true,
   },
   {
@@ -68,7 +74,8 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Trophy,
     minEntities: 4,
     availability: "available",
-    futureModuleRef: "modules/tournament",
+    executionAvailability: "future",
+    moduleRef: "modules/tournament",
     isBuiltIn: true,
   },
   {
@@ -78,7 +85,8 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Flame,
     minEntities: 2,
     availability: "available",
-    futureModuleRef: "modules/survival",
+    executionAvailability: "future",
+    moduleRef: "modules/survival",
     isBuiltIn: true,
   },
 ] as const;
@@ -123,7 +131,8 @@ export function resolveMode(key: string): SimulationMode {
     icon: FALLBACK_MODE_ICON,
     minEntities: FALLBACK_MODE_MIN_ENTITIES,
     availability: "available",
-    futureModuleRef: `modules/${key}`,
+    executionAvailability: "future",
+    moduleRef: `modules/${key}`,
     isBuiltIn: false,
   };
 }

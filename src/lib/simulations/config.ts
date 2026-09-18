@@ -10,12 +10,12 @@
  *   - and the SERVER-SIDE validation that turns untrusted client JSON into a
  *     known-good, typed object.
  *
- * CRITICAL: nothing here executes anything. These are configuration values only —
- * "speed", "difficulty", "random events" are stored preferences, not mechanics.
- * There is no RNG, no rules engine, no runtime. Raw browser JSON is NEVER written
+ * This file validates configuration; registered modules interpret selected values.
+ * Battle v1 consumes format, roundLimit and allowTies. "speed", "difficulty"
+ * and "random events" remain preferences in Battle v1. Raw browser JSON is NEVER written
  * to the database unvalidated; it always passes through `normalizeConfigInput`.
  *
- * Mode-specific settings are placeholders isolated behind a per-mode schema map
+ * Mode-specific settings are isolated behind a per-mode schema map
  * (`MODE_CONFIG_SCHEMAS`), so a new mode adds an entry here — never a new column.
  */
 
@@ -53,14 +53,14 @@ export interface SimulationGeneralConfig {
   speed: SimulationSpeed;
   /** Optional cap on rounds/turns/duration units. null = no explicit limit. */
   roundLimit: number | null;
-  /** Preference for whether random events are enabled (no events are generated in Phase 2). */
+  /** Preference for optional random events; Battle v1 records combat events independently. */
   randomEvents: boolean;
   allowTies: boolean;
   difficulty: SimulationDifficulty;
 }
 
 // ---------------------------------------------------------------------------
-// Mode-specific placeholder settings. Config only — carry NO mechanics.
+// Mode-specific settings. Mechanics remain in registered execution modules.
 // ---------------------------------------------------------------------------
 
 export const BATTLE_FORMATS = ["free_for_all", "duel", "team"] as const;
@@ -102,7 +102,7 @@ export const SURVIVAL_SCENARIO_LABELS: Record<SurvivalScenario, string> = {
 export interface SimulationConfigV1 {
   version: typeof SIMULATION_CONFIG_VERSION;
   general: SimulationGeneralConfig;
-  /** Mode-specific placeholder settings, validated per mode slug. Empty for unknown modes. */
+  /** Mode-specific settings, validated per mode slug. Empty for unknown modes. */
   mode: Record<string, unknown>;
 }
 
@@ -187,8 +187,8 @@ const presentationSchema = z.object({
 });
 
 /**
- * Per-mode configuration schemas. Each is a placeholder set of preferences — no
- * mechanics. Unknown modes have no entry and validate to an empty object.
+ * Per-mode configuration schemas. Mechanics remain in modules, not this file.
+ * Unknown modes have no entry and validate to an empty object.
  */
 export const MODE_CONFIG_SCHEMAS: Record<string, z.ZodType<Record<string, unknown>>> = {
   battle: z.object({ format: z.enum(BATTLE_FORMATS).default("free_for_all") }),

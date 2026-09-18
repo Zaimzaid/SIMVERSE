@@ -31,7 +31,8 @@ export interface EntityPickerProps {
  * Select which of a project's entities take part in a simulation. Entities are
  * referenced by id — never copied — and the pool is scoped to the chosen project
  * (which the service keeps workspace-scoped, so nothing foreign is reachable).
- * Selection order is the participant order (position); there are no mechanics.
+ * Selection order becomes participant position; registered modules may use it
+ * as a stable tie-break during execution.
  */
 export function EntityPicker({ projectId, value, onChange, minEntities }: EntityPickerProps) {
   const { toast } = useToast();

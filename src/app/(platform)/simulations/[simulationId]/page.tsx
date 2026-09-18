@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
 import { productionEngineRegistry } from "@/lib/engine/registry";
+import { battleExecutionIssue, DEFAULT_BATTLE_MAX_TICKS, MAX_BATTLE_TICKS } from "@/lib/modules/battle/config";
 import { resolveCategory } from "@/lib/entities/categories";
 import { resolveMode } from "@/lib/simulations/modes";
 import { SIMULATION_STATUS_META } from "@/lib/simulations/constants";
@@ -42,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimulationActions } from "@/components/simulations/simulation-actions";
+import { BattleRunControls } from "@/components/battle/battle-run-controls";
 
 interface PageParams {
   params: Promise<{ simulationId: string }>;
@@ -73,20 +75,24 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
 }
 
 /** Human-readable rows for the mode-agnostic general settings. */
-function generalSettingRows(config: SimulationConfigV1): { label: string; value: string }[] {
+function generalSettingRows(config: SimulationConfigV1, mode: string): { label: string; value: string }[] {
   const g = config.general;
-  return [
+  const rows = [
     { label: "Speed", value: SIMULATION_SPEED_LABELS[g.speed] ?? g.speed },
     { label: "Difficulty", value: SIMULATION_DIFFICULTY_META[g.difficulty]?.label ?? g.difficulty },
-    { label: "Round limit", value: g.roundLimit == null ? "No limit" : g.roundLimit.toLocaleString() },
+    { label: "Round limit", value: g.roundLimit == null
+      ? mode === "battle" ? `Default (${DEFAULT_BATTLE_MAX_TICKS} Battle ticks)` : "No limit"
+      : g.roundLimit.toLocaleString() },
     { label: "Random events", value: g.randomEvents ? "Enabled" : "Disabled" },
     { label: "Ties", value: g.allowTies ? "Allowed" : "Not allowed" },
   ];
+  if (mode === "battle") rows.push({ label: "Battle v1 tick limit", value: String(Math.min(g.roundLimit ?? DEFAULT_BATTLE_MAX_TICKS, MAX_BATTLE_TICKS)) });
+  return rows;
 }
 
 /**
- * Human-readable rows for the mode-specific placeholder settings. These are
- * stored preferences only — they carry no mechanics.
+ * Human-readable rows for mode-specific settings. Registered modules decide
+ * which settings affect execution.
  */
 function modeSettingRows(mode: string, config: Record<string, unknown>): { label: string; value: string }[] {
   const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
@@ -131,7 +137,10 @@ export default async function SimulationDetailPage({ params }: PageParams) {
   const executionAvailable = productionEngineRegistry.canExecute(simulation.mode);
   const canEdit = permissions.includes("simulation.edit");
 
-  const generalRows = generalSettingRows(simulation.configuration);
+  const battleIssue = simulation.mode === "battle"
+    ? battleExecutionIssue(simulation.configuration.mode.format, simulation.participants.length) : null;
+  const canRun = isReady && simulation.mode === "battle" && !battleIssue && permissions.includes("simulation.run");
+  const generalRows = generalSettingRows(simulation.configuration, simulation.mode);
   const modeRows = modeSettingRows(simulation.mode, simulation.configuration.mode);
   const presentation = simulation.presentation;
 
@@ -195,16 +204,24 @@ export default async function SimulationDetailPage({ params }: PageParams) {
         <Rocket className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
         <div className="min-w-0 text-sm">
           <p className="font-medium text-foreground">
-            {!isReady ? "This configuration is not ready yet." : executionAvailable
-              ? "This mode supports execution." : `${mode.label} execution is not available yet.`}
+            {!isReady ? "This configuration is not ready yet." : battleIssue
+              ? "Battle execution is not available for this configuration."
+              : executionAvailable ? "This mode supports execution." : `${mode.label} execution is not available yet.`}
           </p>
           <p className="mt-0.5 text-secondary">
             {!isReady
               ? "Set up the mode, participants and settings, then mark this configuration ready."
+              : battleIssue ? battleIssue
               : executionAvailable
-                ? "Run history and execution details appear below."
+                ? simulation.mode === "battle"
+                  ? "Battle v1 uses your saved participants and settings. Runs keep an immutable snapshot."
+                  : "Run history and execution details appear below."
                 : "The Core engine is in place. This mode needs its execution module before you can run it."}
           </p>
+          {canRun ? <div className="mt-3"><BattleRunControls simulationId={simulation.id} /></div> : null}
+          {isReady && simulation.mode === "battle" && !battleIssue && !permissions.includes("simulation.run") ? (
+            <p className="mt-2 text-xs text-muted">Your workspace role can view this Battle but cannot start runs.</p>
+          ) : null}
         </div>
       </div>
 

@@ -3,11 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarClock, Users } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
+import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { formatRelativeTime } from "@/lib/utils";
 import { requirePlatformContext } from "@/server/context";
 import { getSimulationRun, listSimulationRunEvents } from "@/server/services/simulation-run-service";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BattleRunControls } from "@/components/battle/battle-run-controls";
+import { BattleRunSummary, battleEventDescription } from "@/components/battle/battle-run-summary";
 
 interface PageProps {
   params: Promise<{ simulationId: string; runId: string }>;
@@ -20,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SimulationRunPage({ params, searchParams }: PageProps) {
   const { simulationId, runId } = await params;
-  const { user, workspace } = await requirePlatformContext();
+  const { user, workspace, permissions } = await requirePlatformContext();
   let run;
   try {
     run = await getSimulationRun(user.id, workspace.id, runId);
@@ -35,6 +38,9 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
   const events = await listSimulationRunEvents(user.id, workspace.id, runId, after, 50);
   const names = new Map(run.participants.map((participant) => [participant.runParticipantId, participant.name]));
   const statusVariant = run.status === "COMPLETED" ? "success" : run.status === "FAILED" ? "danger" : "neutral";
+  const battleV1 = run.moduleId === BATTLE_MODULE_ID && run.moduleVersion === BATTLE_MODULE_VERSION;
+  const activeStatus = run.status === "CREATED" || run.status === "RUNNING" || run.status === "PAUSED"
+    ? run.status : null;
 
   return (
     <div className="space-y-6">
@@ -59,6 +65,10 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
         <div className="rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           {run.failureMessage}
         </div>
+      ) : null}
+
+      {battleV1 && activeStatus && permissions.includes("simulation.run") ? (
+        <BattleRunControls simulationId={simulationId} runId={run.id} status={activeStatus} />
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -93,7 +103,9 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
         </Card>
       </div>
 
-      {run.result ? (
+      {battleV1 ? <BattleRunSummary run={run} /> : null}
+
+      {run.result && !battleV1 ? (
         <Card as="section">
           <CardHeader><CardTitle>Result</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
@@ -120,7 +132,8 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
               {events.items.map((event) => (
                 <li key={event.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-border bg-background/40 p-3 text-sm">
                   <div>
-                    <p className="font-medium text-foreground">{event.type}</p>
+                    <p className="font-medium text-foreground">{battleV1 ? battleEventDescription(event, names) : event.type}</p>
+                    {battleV1 ? <p className="text-xs text-muted">{event.type}</p> : null}
                     {event.actorRunParticipantId ? <p className="text-xs text-muted">Actor: {names.get(event.actorRunParticipantId) ?? "Participant"}</p> : null}
                   </div>
                   <p className="text-xs text-muted">#{event.sequence} · tick {event.tick} · {event.simulatedTimeMs} ms</p>
