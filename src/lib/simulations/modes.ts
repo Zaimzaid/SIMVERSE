@@ -4,11 +4,11 @@
  * IMPORTANT: `mode` on a Simulation is a free-form string key in the database —
  * exactly like Entity.category. This catalog supplies presentation (label, icon,
  * blurb), the minimum participant count, an availability flag for the picker, and
- * a pointer to the FUTURE module that will execute the mode. It contains NO
- * mechanics: there is no battle/race/tournament logic here, and none in Phase 2.
+ * a documentation pointer to the module that may execute the mode. It contains
+ * NO mechanics: there is no battle/race/tournament logic here.
  *
- * Adding a mode later means adding an entry here (and, in Phase 3+, the module it
- * references) — never a new database table or column. Nothing is battle-hardcoded.
+ * Adding a mode later means adding an entry here and registering its execution
+ * module separately — never a new database table or column.
  */
 
 import type { LucideIcon } from "lucide-react";
@@ -27,9 +27,8 @@ export interface SimulationMode {
   minEntities: number;
   availability: ModeAvailability;
   /**
-   * Reference to the Phase 3+ execution module that WILL run this mode. This is a
-   * documentation pointer only — the module does not exist in Phase 2 and nothing
-   * dereferences it. It marks the config→runtime boundary.
+   * Documentation pointer only. Execution availability is controlled by the
+   * server's Engine Module Registry, not by this catalog entry.
    */
   futureModuleRef: string;
   isBuiltIn: boolean;
@@ -37,7 +36,7 @@ export interface SimulationMode {
 
 /**
  * Built-in modes. The order here is the order shown in the builder's mode step.
- * All four are selectable in Phase 2 because a Simulation is only a configuration;
+ * All four are selectable as configurations;
  * the `availability` field exists so future modes can appear disabled ("coming
  * soon") without any schema change.
  */

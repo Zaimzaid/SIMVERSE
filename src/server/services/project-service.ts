@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { NotFoundError, ValidationError } from "@/lib/errors";
+import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import {
   DEFAULT_PROJECT_SORT,
   PROJECT_MAX_PAGE_SIZE,
@@ -311,7 +311,20 @@ export async function deleteProject(
   });
   if (!existing) throw new NotFoundError("Project not found.");
 
-  await prisma.project.delete({ where: { id: projectId } });
+  const runCount = await prisma.simulationRun.count({ where: { simulation: { projectId } } });
+  if (runCount > 0) {
+    throw new ConflictError("A project with historical runs cannot be deleted. Archive it instead.");
+  }
+
+  try {
+    await prisma.project.delete({ where: { id: projectId } });
+  } catch (error) {
+    // A run created after the count still wins through the FK restriction.
+    if ((error as { code?: unknown } | null)?.code === "P2003") {
+      throw new ConflictError("A project with historical runs cannot be deleted. Archive it instead.");
+    }
+    throw error;
+  }
 
   await recordAudit({
     action: "project.deleted",

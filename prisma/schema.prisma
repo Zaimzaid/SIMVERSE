@@ -40,6 +40,7 @@ model User {
   createdProjects      Project[]       @relation("ProjectCreator")
   addedProjectEntities ProjectEntity[] @relation("ProjectEntityAdder")
   createdSimulations   Simulation[]    @relation("SimulationCreator")
+  createdRuns          SimulationRun[] @relation("RunCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -61,6 +62,7 @@ model Workspace {
   tags                 Tag[]
   projects             Project[]
   simulations          Simulation[]
+  simulationRuns       SimulationRun[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -297,15 +299,14 @@ model ProjectEntity {
 // ============================================================================
 // SIMULATION DEFINITION SYSTEM (Phase 2 — configuration/blueprint only)
 //
-// A Simulation is a SAVED CONFIGURATION (a blueprint), NOT an execution. There is
-// deliberately no runtime here: no runs, ticks, RNG execution, rules, events, or
-// results. Those belong to a future SimulationRun model in Phase 3. `mode` is an
+// A Simulation is a SAVED CONFIGURATION (a blueprint), NOT an execution. Runtime
+// data belongs to SimulationRun below. `mode` is an
 // open-ended slug (battle|race|tournament|survival|…) resolved by an app-layer
 // Mode Catalog — there is no table or column per mode. Participants are generic
 // (SimulationEntity), never fighter1Id/car1Id, and reference live Entities.
 // ============================================================================
 
-/// A saved simulation configuration/blueprint owned by a Project. NOT executable in Phase 2.
+/// A saved simulation configuration/blueprint owned by a Project.
 model Simulation {
   id            String    @id @default(cuid())
   workspaceId   String
@@ -314,7 +315,7 @@ model Simulation {
   description   String?
   mode          String // open-ended mode slug (battle|race|tournament|survival|…); labelled in app layer
   status        String    @default("DRAFT") // SimulationStatus (DRAFT|READY|ARCHIVED) — validated in app layer
-  seed          String? // metadata only (SV-XXXXXXXX); NOT executed in Phase 2
+  seed          String? // SV-XXXXXXXX label; resolved into a permanent run seed at execution
   configVersion Int       @default(1) // schema version of `configuration` (SimulationConfigV1)
   configuration String? // serialized JSON (SimulationConfigV1) — validated server-side, never trusted raw
   presentation  String? // serialized JSON (SimulationPresentationConfig) — stored separately from logic config
@@ -328,6 +329,7 @@ model Simulation {
   project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdBy   User?              @relation("SimulationCreator", fields: [createdById], references: [id], onDelete: SetNull)
   entityLinks SimulationEntity[]
+  runs        SimulationRun[]
 
   @@index([workspaceId, projectId])
   @@index([workspaceId, mode])
@@ -338,9 +340,8 @@ model Simulation {
 }
 
 /// Generic participant link between a Simulation and an existing Entity.
-/// Ordering/role/overrides are configuration only — they carry NO mechanics in
-/// Phase 2. Cascade removes only the LINK, never the shared Entity. In Phase 3+,
-/// participants will be snapshotted at run time; Phase 2 references the live Entity.
+/// Ordering/role/overrides are configuration only. A run copies the participant's
+/// complete execution input at creation; this link continues to reference the live Entity.
 model SimulationEntity {
   simulationId String
   entityId     String
@@ -356,4 +357,115 @@ model SimulationEntity {
   @@id([simulationId, entityId])
   @@index([entityId])
   @@index([simulationId, position])
+}
+
+// ============================================================================
+// CORE EXECUTION (Phase 3 — generic runs, no product or mode mechanics)
+//
+// All JSON payloads are versioned, validated in Core, and stored as strings for
+// SQLite/PostgreSQL portability. A Simulation with runs cannot be deleted: the
+// Restrict relation preserves provenance even through Project deletion. Source
+// Entity IDs on run participants are historical scalar values, not live FKs.
+// ============================================================================
+
+model SimulationRun {
+  id                       String    @id @default(cuid())
+  workspaceId              String
+  simulationId             String
+  status                   String    @default("CREATED")
+  mode                     String
+  resolvedSeed             String
+  coreEngineVersion        String
+  moduleId                 String
+  moduleVersion            String
+  rngAlgorithmVersion      String
+  configVersion            Int
+  configurationSnapshot    String
+  presentationSnapshot     String
+  inputSnapshotVersion     Int
+  inputSnapshot            String
+  stateVersion             Int
+  state                    String
+  fixedStepMs              Int
+  currentTick              Int       @default(0)
+  elapsedSimulationMs      Int       @default(0)
+  lastActionSequence       Int       @default(0)
+  lastEventSequence        Int       @default(0)
+  resultVersion            Int       @default(1)
+  result                   String?
+  failureCode              String?
+  failureMessage           String?
+  createdById              String?
+  createdAt                DateTime  @default(now())
+  startedAt                DateTime?
+  pausedAt                 DateTime?
+  completedAt              DateTime?
+  failedAt                 DateTime?
+  cancelledAt              DateTime?
+  updatedAt                DateTime  @updatedAt
+
+  workspace   Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  simulation  Simulation                 @relation(fields: [simulationId], references: [id], onDelete: Restrict)
+  createdBy   User?                      @relation("RunCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  participants SimulationRunParticipant[]
+  actions      SimulationRunAction[]
+  events       SimulationRunEvent[]
+
+  @@index([workspaceId, simulationId, createdAt])
+  @@index([workspaceId, status, createdAt])
+  @@index([simulationId])
+  @@index([createdById])
+}
+
+model SimulationRunParticipant {
+  id             String   @id @default(cuid())
+  runId          String
+  sourceEntityId String // historical ID, deliberately not a FK to the editable Entity
+  position       Int
+  role           String?
+  snapshotVersion Int    @default(1)
+  snapshot       String
+  createdAt      DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, position])
+  @@index([runId, sourceEntityId])
+}
+
+model SimulationRunAction {
+  id                    String   @id @default(cuid())
+  runId                 String
+  sequence              Int
+  tick                  Int
+  type                  String
+  actorRunParticipantId String?
+  targetRunParticipantId String?
+  payloadVersion        Int
+  payload               String
+  createdAt             DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sequence])
+  @@index([runId, tick])
+}
+
+model SimulationRunEvent {
+  id                    String   @id @default(cuid())
+  runId                 String
+  sequence              Int
+  tick                  Int
+  simulatedTimeMs       Int
+  type                  String
+  actorRunParticipantId String?
+  targetRunParticipantId String?
+  payloadVersion        Int
+  payload               String
+  createdAt             DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sequence])
+  @@index([runId, tick])
 }

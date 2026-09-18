@@ -7,8 +7,8 @@ import { dataResponse, errorResponse } from "@/server/api/response";
 /**
  * POST /api/simulations/:simulationId/ready — mark a simulation READY. Requires
  * simulation.edit. Runs READY validation and returns structured field issues on
- * failure. READY means the CONFIGURATION is complete and valid — it does NOT mean
- * the simulation can run now (the execution engine arrives in Phase 3).
+ * failure. READY means the CONFIGURATION is complete and valid; execution
+ * additionally requires a registered module for this mode.
  */
 export async function POST(
   _req: NextRequest,

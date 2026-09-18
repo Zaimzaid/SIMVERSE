@@ -1,334 +1,216 @@
 # SIMVERSE — Current Status
 
-> Living handoff document. Update at every meaningful checkpoint. This is the
-> source of truth for Claude ↔ Codex handoff. Long-form vision lives in
-> [vision/VISION.md](vision/VISION.md); project rules live in
-> [../AGENTS.md](../AGENTS.md).
+> Canonical Claude ↔ Codex handoff. The repository is authoritative. Long-form
+> vision: [vision/VISION.md](vision/VISION.md). Rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0
-- **Phase:** Phase 2 — Projects & Simulation Builder — **COMPLETE**
-- **Subphase:** — (all Phase 2 work landed; quality gates green)
-- **Committed:** **Yes.** Phase 2 landed in commit `0a6c606`
-  (`feat: complete SIMVERSE Phase 2 projects and simulation builder`). The
-  pre-Phase-3 housekeeping below is uncommitted and awaiting review.
-- **Next phase:** Phase 3 — **SIMVERSE Core Engine v0.1** (execution).
-  **Defined, NOT started.** Awaiting the Phase 3 implementation prompt.
-- **Last updated:** 2026-09-18 (pre-Phase-3 test setup repair and vision taxonomy
-  alignment; Phase 3 remains unstarted).
-- **Handoff:** This document is the canonical Claude ↔ Codex source of truth.
-  The repository and committed code are authoritative over conversation memory.
-- **Execution boundary:** No runtime. Simulations are *configuration only*.
-  SimulationRun / ticks / results / mechanics are **Phase 3** and must not exist.
+- **Phase:** Phase 3 — SIMVERSE Core Engine v0.1 implemented and verified;
+  **uncommitted, awaiting review**.
+- **Baseline:** clean repository at `0509ce4` (`chore: prepare SIMVERSE baseline
+  for Phase 3`), following Phase 2 commit `0a6c606`. Direct baseline
+  `npx vitest run` passed all 146 tests before Phase 3 edits.
+- **Last updated:** 2026-09-18.
+- **Commit status:** No Phase 3 commit or staging. Recommended eventual message:
+  `feat: complete SIMVERSE Phase 3 core simulation engine`.
+- **Execution boundary:** Core executes only through a registered Engine Module.
+  The production registry is **empty**. Current catalog modes remain
+  configuration choices without execution. Unsupported creation returns a
+  conflict and creates no run.
 
----
+## Official architecture and standing constraints
 
-## Long-term architecture (OFFICIAL — future-compatibility constraints)
+SIMVERSE is a simulation, creation, and content platform, not a single game.
+Its five pillars are:
 
-These are official long-term SIMVERSE requirements (Master Architecture Update).
-They are **not** all Phase 3. Do **not** implement future systems merely because
-they are listed — but every architecture/implementation choice must stay
-compatible with them.
+1. **PLATFORM:** Identity, Organizations, Workspaces, Memberships, Permissions,
+   Storage, Collaboration, AI Assistant, Marketplace, Billing, Audit/Governance.
+2. **CORE:** Entities, Simulation Definitions and Runs, State, Time/ticks,
+   seeded RNG, Actions, Rules foundation, Events, Results, Replay foundation.
+3. **SIMULATION MODULES:** reusable mechanics packages such as Battle, Racing,
+   Tournament, Survival, Economy, Agriculture, Sports and Civilization.
+4. **CREATOR / MEDIA PLATFORM:** Asset Library, Media Engine, Video Studio,
+   Animation Studio, Caption Studio, Audio/Voice, Image/Graphics, Rendering,
+   Export, Compression and content tools.
+5. **PRODUCTS:** Anything Wars, Robot Arena, Farm Empire, Civilization,
+   Sports Lab and future products.
 
-- **Five pillars (OFFICIAL taxonomy).**
-  - **PLATFORM** (cross-cutting systems): Identity/Accounts, Organizations,
-    Workspaces, Memberships/Invitations, Roles/Permissions, Storage,
-    Collaboration, AI Assistant, Marketplace, Billing, Audit/Governance.
-  - **CORE**: Entities, Simulation Definitions, Simulation Runs, State,
-    Time/ticks, RNG, Actions, Rules foundation, Events, Results, Replay
-    foundation.
-  - **SIMULATION MODULES** (reusable simulation *mechanics* packages): Battle,
-    Racing, Tournament, Survival, Economy, Agriculture, Sports, Civilization,
-    future mechanics packages.
-  - **CREATOR / MEDIA PLATFORM** (its own major pillar — *consumes* simulation
-    output and turns it into content): Asset Library, Media Engine, Video Studio,
-    Animation Studio, Caption Studio, Audio/Voice, Image/Graphics tools,
-    Rendering, Export, Compression, Content tooling.
-  - **PRODUCTS**: Anything Wars, Robot Arena, Farm Empire, Civilization,
-    Sports Lab, future products.
-  - **Not modules:** Creator/Media is NOT a Simulation Module. AI Assistant,
-    Marketplace, Collaboration, Storage and Billing are PLATFORM/cross-cutting
-    systems, NOT Simulation Modules. SIMVERSE is the platform; "Anything Wars" is
-    one PRODUCT, never something the platform hardcodes around.
-- **Ownership hierarchy (future).** Account → **Organization** → Workspace →
-  Resources. The Organization tier slots **above** Workspace via an additive,
-  nullable `Workspace.organizationId` when its dedicated phase arrives.
-- **§24 — do NOT migrate now.** Current workspace-scoped Phase 0–2 resources are
-  acceptable and stay workspace-scoped. Do not migrate data for Organizations
-  now; keep the model additively migratable.
-- **Org membership must NOT auto-imply workspace access.** Workspace access stays
-  gated by an explicit `WorkspaceMember` row (already true today).
-- **Centralized authorization only.** Roles are permission bundles; permissions
-  are the authoritative model. Ask `can(role, permission)` — never scatter role
-  checks. Org roles (OWNER/ADMIN/BILLING_ADMIN/MEMBER) compose with workspace
-  roles later, in the one central place (`src/lib/permissions`).
-- **§25 — stay generic.** No hardcoding around any single product (Anything Wars,
-  battle, race, tournament, countries, robots, marbles, video, agriculture).
-- **Storage.** SIMVERSE's own DB is the primary system. External cloud
-  (Drive/Dropbox/OneDrive/Box) is backup/export/sync only — never the primary DB.
-- **AI Assistant** (future, Levels 1–4) must **never** bypass authorization.
-- **Future-only (do not build now):** Organizations/invitations/billing,
-  Creator/Media & Video-editing platform, captions/voice/audio, collaboration
-  chat, object comments, external cloud sync, onboarding/Academy, monetization,
-  Marketplace, API/Developer platform.
+Creator/Media is **not** a Simulation Module. AI Assistant, Marketplace,
+Collaboration, Storage and Billing are Platform systems. Anything Wars is one
+Product, never Core itself. Core and its payloads stay generic.
 
-### SIMVERSE Animation Studio (official direction — Creator/Media Platform)
+**Animation Studio** is an official Creator/Media capability, separate from
+World Creation, Simulation execution and Video Studio. It must eventually
+support standalone content creation without any Simulation, Run, World or
+Product. Phase 3 only supplies serializable run output for future consumers;
+it implements no animation or media features.
 
-Animation Studio is an official part of the **CREATOR / MEDIA PLATFORM**. It is
-**separate** from World Creation, Simulation execution, and Video Studio — these
-may integrate, but they are not the same subsystem:
+Future ownership is Account → Organization → Workspace → resources. Do not
+migrate workspace-scoped Phase 0–2 data now. An eventual nullable
+`Workspace.organizationId` and organization role tier must be additive;
+organization membership never implies workspace access. Central workspace
+permissions remain authoritative. SIMVERSE's own DB is primary; external
+cloud is backup/export/sync only. Future AI must honor authorization.
 
-- **World Creation** = creating environments/worlds that may exist and operate
-  inside SIMVERSE.
-- **Animation Studio** = creating directed animated content and scenes.
-- **Video Studio** = editing, assembling, polishing and exporting video/media.
+## Completed implementation
 
-Future Animation Studio capabilities (official direction — do **not** build now):
-2D animation; 3D animation; character creation/import; object/prop
-creation/import; scene composition; backgrounds/environments; animation timeline;
-keyframes; position/rotation/scale animation; camera animation; character
-animation; facial animation; lip-sync; text animation; motion graphics; logo
-animation; audio/music/voice tracks; recorded voice; AI voice integration;
-reusable animation templates; AI-assisted animation (later phases); rendering;
-multiple output qualities; integration with the Asset Library and Video Studio;
-and integration with SIMVERSE Entities/Worlds where appropriate.
+### Data and immutable inputs
 
-- **CRITICAL — standalone content creation.** Animation Studio must also support
-  STANDALONE content creation. A user must be able to: New Animation →
-  define/create a character or object → create a scene → animate → add
-  dialogue/voice/music → render/export — **without** requiring a Simulation, a
-  SimulationRun, a World, a game, Anything Wars, or any other SIMVERSE Product.
-- **Phase 3:** Do **not** implement Animation Studio during Phase 3. The Phase 3
-  Core Engine should only remain **compatible** with future downstream
-  animation/media consumption (clean, serializable run output).
+- `prisma/schema.prisma` adds `SimulationRun`, `SimulationRunParticipant`,
+  `SimulationRunAction` and `SimulationRunEvent`, plus User/Workspace/Simulation
+  relations. Runs record source Simulation/workspace, lifecycle, seed, versions,
+  serialized input/state/result, tick/time/sequence counters, failure details
+  and timestamps. Actions/events have unique per-run sequence and tick indexes;
+  runs have workspace/simulation/status indexes.
+- One creation transaction snapshots a READY Simulation, configuration,
+  presentation, seed, participant order/roles/overrides and relevant Entity
+  data: name, short name, category, colors, image reference, metadata, tags,
+  attribute definitions and values. Versioned input and stable run-participant
+  rows are stored with initialized state. Ticks read only that snapshot, never
+  live Entity/Simulation values. Later edits/deletion cannot change history.
+- Run participants keep `sourceEntityId` as a historical scalar, not an Entity
+  FK. A Simulation with runs cannot be permanently deleted: service checks
+  plus `onDelete: Restrict` protect it, including Project deletion and races.
+  Both sources can still be archived; shared Entities are not cascade-deleted.
+- This repo historically uses Prisma `db push`. Phase 3 has additive schema
+  changes and no migration file. `npx prisma db push` applied them to local
+  `dev.db` without reset. Vitest prepares its isolated test DB automatically.
 
-## Phase 3 boundary (defined — NOT started)
+### Pure Core and lifecycle
 
-**Phase 3 = SIMVERSE Core Engine v0.1** (§26), product-agnostic execution.
+- `src/lib/engine/` holds the headless engine, central lifecycle map,
+  fixed-step clock, seeded RNG, validated snapshot/state/action/event/result
+  schemas, Engine Module contract and registry. It has no HTTP, UI or Prisma
+  dependency. Module hooks run in order: initialize, plan actions, evaluate
+  rules, check completion, build result.
+- Run creation copies the Simulation's validated `SV-XXXXXXXX` seed. FNV-1a
+  hashes it into Mulberry32; RNG version `mulberry32-v1` and 32-bit state are
+  serialized. Core never uses `Math.random` for execution. Simulation time is
+  integer tick × fixed 100 ms; wall time is lifecycle metadata only.
+- Persisted versions: Core `core-v0.1`, input snapshot `1`, state `1`, result
+  `1`, RNG `mulberry32-v1`, config `1`, plus module ID/version. State stores
+  tick/time, RNG, global/participant states and validated module state as
+  serializable JSON. Incompatible module versions are rejected.
+- Actions/events have increasing per-run sequence, tick, type, stable run
+  participant actor/target IDs, payload schema version and validated module
+  payload. Events include simulated time. A module rule callback returns next
+  state and ordered events for each action. Bounded serialization limits output.
+  Results use a generic versioned type/summary/metrics/module-payload envelope.
+- CREATED → RUNNING ↔ PAUSED, with permitted transitions to COMPLETED, FAILED
+  or CANCELLED. Terminal states cannot resume. Pause/resume preserves state and
+  RNG. Each tick atomically commits state, actions, events and result. A module
+  exception or invalid/oversized output rolls back its tick and marks the Run
+  FAILED with a safe code/message; prior history survives. Compare-and-set
+  updates protect transitions and ticks from concurrent changes. Headless
+  advancement is bounded per batch and reusable by future workers.
+- Replay preparation consists of immutable inputs, recorded versions, ordered
+  action/event history, fixed clock and serializable RNG/state. There is no
+  full replay API, worker or distributed queue in v0.1.
 
-- **Phase 3 IS responsible for:** `SimulationRun`; deterministic seeded
-  randomness; simulation state; clock/tick; actions; rules-evaluation foundation;
-  events; run lifecycle; **immutable execution-input snapshots**; results
-  foundation; headless execution; pause/resume where appropriate; deterministic
-  replay preparation.
-- **Phase 3 must NOT implement (§27):** Organizations UI/invitations/billing,
-  Video Studio, Media Engine, Captions, Voiceover, Cloud backups, Chat, Comments,
-  Onboarding, Marketplace, AI Assistant, Battle/Race/Tournament mechanics, World
-  Editor, Content Engine, AI Director.
-- **Standing design constraint (from the §28 analysis):** a `SimulationRun` must
-  **snapshot its execution inputs** (seed + config version + participant inputs)
-  so its correctness never depends on later edits to the live Simulation/Entity.
-  This is what keeps replay, media, and collaboration compatible downstream.
-- **§28 conclusion:** **no blocking** compatibility issues before Phase 3. All
-  deferred, additive, and safe: (1) `Workspace.organizationId` FK; (2) an
-  org-role tier composed into authorization; (3) `AuditLog.organizationId`;
-  (4) the run↔simulation delete policy (a Phase 3 decision, resolved by input
-  snapshots). Runs are workspace-scoped, so they migrate under §24 like every
-  other resource.
+### Services, API, permissions and UI
 
----
+- `simulation-run-snapshot-service.ts` builds input in the create transaction.
+  `simulation-run-service.ts` owns creation, list/detail, lifecycle, bounded
+  advancement, headless completion helper and cursor-paged action/event queries.
+  API clients cannot submit state, events or results.
+- Routes: `GET/POST /api/simulations/[simulationId]/runs`,
+  `GET /api/simulation-runs/[runId]`, `GET .../actions`, `GET .../events`,
+  `POST .../start`, `.../pause`, `.../resume`, `.../cancel`, `.../advance`.
+  Advance accepts only a validated tick bound. Routes use the existing
+  `requireApiContext` → service → response convention.
+- Reads require workspace membership and `simulation.view`; run creation and
+  lifecycle/advance require `simulation.run`. The central role map grants run
+  to OWNER, ADMIN, CREATOR and OPERATOR. VIEWER can read but cannot run.
+  Source/run lookups are workspace-scoped with safe NotFound for foreign IDs.
+  Audit records created, started, paused, resumed, completed, failed, cancelled.
+- Simulation detail separates configuration readiness from mode execution
+  availability, shows a clear unsupported message and read-only run history.
+  A generic Run detail page shows status, snapshot participants, seed, tick,
+  time, result and cursor-paged events. Existing surfaces no longer promise
+  that execution arrives in Phase 3. No fake run button appears for unsupported
+  production modes.
 
-## Pre-Phase-3 housekeeping (uncommitted; awaiting review)
+### Verification (2026-09-18)
 
-- `test/global-setup.ts` now creates an empty `test.db` after removing the old
-  isolated test database and before `prisma db push`. Prisma 7 was returning
-  `P1003` because the file was missing. Each run still gets a fresh test-only
-  database; the development database is never used.
-- `docs/vision/VISION.md` now names the official five pillars and places
-  Creator/Media, Animation Studio, cross-cutting Platform systems, Simulation
-  Modules, and Anything Wars in their correct architectural roles.
-- Verified on 2026-09-18: direct `npx vitest run` — **146 passed (10 files)**;
-  `npx tsc --noEmit`, `npx eslint .`, and `npx prisma validate` — exit 0.
-  Phase 3 remains unstarted. Changed files: `test/global-setup.ts`,
-  `docs/vision/VISION.md`, and this status document.
+- `npx vitest run`: **167 passed, 12 files**, directly from normal repo state;
+  all **146 Phase 0–2 baseline tests** remain. New tests cover same/different
+  seed output, RNG continuation, deterministic actions/events/results, clock,
+  lifecycle, snapshots after Entity edits/deletion, source deletion safety,
+  pause/resume equivalence, failure rollback including oversized output,
+  cursor paging, concurrent starts, permissions and workspace isolation.
+- `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx next build`
+  and `git diff --check`: all exit 0.
+- Manual browser QA: Next dev/Turbopack on port 3020 and authenticated
+  headless Chrome loaded Dashboard, Projects, Entities, Simulations and a READY
+  Simulation detail. API creation of two Entities, a Project and a Simulation,
+  plus READY transition, worked. Production Battle run creation returned HTTP
+  409 with the unsupported message and created zero runs. A temporary visual
+  Run record exercised history/detail, snapshot, result and event rendering at
+  desktop and 390 px mobile sizes; it was deleted. Screenshots showed usable
+  mobile layouts; Chrome reported no page exceptions. The three disposable QA
+  users/workspaces were removed afterward.
 
----
+## Files in this uncommitted change
 
-## Scope of Phase 2
+**Created:** `src/lib/engine/{constants,clock,rng,schemas,module,registry,engine}.ts`,
+`src/lib/engine/engine.test.ts`,
+`src/server/services/simulation-run-{snapshot-service,service}.ts`,
+`src/server/services/simulation-run-service.test.ts`,
+`test/fixtures/deterministic-engine-module.ts`,
+`src/app/api/simulations/[simulationId]/runs/route.ts`,
+`src/app/api/simulation-runs/[runId]/{route,actions/route,events/route,start/route,pause/route,resume/route,cancel/route,advance/route}.ts`,
+`src/app/(platform)/simulations/[simulationId]/runs/[runId]/page.tsx`.
 
-A real Project System, a reusable Simulation Definition + Builder, Project↔Entity
-organization, and Simulation drafts. The journey is:
+**Modified (tracked):** `prisma/schema.prisma`, this document,
+`test/helpers/db.ts`, `src/server/services/{audit,project,simulation,simulation-validation}-service.ts`,
+`src/lib/simulations/{constants,modes,seed}.ts`, `src/lib/validation/schemas.ts`,
+`src/components/simulations/{simulation-actions,simulation-builder,simulation-card}.tsx`,
+`src/app/(platform)/create/page.tsx`,
+`src/app/(platform)/projects/[projectId]/page.tsx`,
+`src/app/(platform)/simulations/{page,new/page,[simulationId]/page,[simulationId]/edit/page}.tsx`,
+`src/app/api/simulations/[simulationId]/ready/route.ts`.
 
-Login → Create Project → Add existing Entities → Open Project → Create Simulation
-→ Choose mode → Select Entities → Configure settings / seed / environment
-placeholder → Review → Save as Draft → reopen / Edit / Duplicate / Archive /
-Restore.
+The local `AGENTS.md` phase guidance was aligned with this status. That file is
+ignored by `.gitignore` and therefore does not appear in `git status` or the
+uncommitted diff; this tracked document is the durable handoff.
 
-**The user must NOT be able to run a simulation.** "READY" means the
-configuration is complete, not that anything executes. Every surface that
-mentions running states the execution engine arrives in Phase 3.
+## Known limits
 
----
-
-## Completed
-
-### Data & services
-- `prisma/schema.prisma` — Project, Simulation, join models, status columns.
-- `src/server/services/project-service.ts` — CRUD + archive/restore/delete,
-  `addProjectEntities` / `removeProjectEntity` (workspace-scoped, rejects
-  foreign entities, skips duplicates), `listProjects` with filters/paging.
-- `src/server/services/simulation-service.ts` — CRUD, `listSimulations`,
-  `getSimulation` → `SimulationView`, duplicate/archive/restore/draft,
-  `createSimulation` (config v1 + presentation normalization, resolveParticipants,
-  seed generation).
-- `src/server/services/simulation-validation-service.ts` — READY validation.
-- `src/server/services/serialization.ts` — JSON string column (de)serialization.
-- `src/lib/simulations/` — `config.ts` (SimulationConfigV1, general/mode/
-  presentation, normalizers), `modes.ts` (Mode Catalog + availability),
-  `seed.ts` (client-safe seed generate/normalize), `constants.ts`.
-- `src/lib/projects/constants.ts`.
-- Permissions: `simulation.run` exists in the role map but is **inert** (no run
-  UI, no run endpoint, no runtime).
-
-### API routes
-- `api/projects` + `[projectId]` (route, archive, restore, entities,
-  entities/[entityId]).
-- `api/simulations` + `[simulationId]` (route, ready, draft, duplicate, archive,
-  restore).
-- All use `requireApiContext` → `dataResponse` / `errorResponse`; server-side
-  Zod validation; safe-NotFound for foreign workspace IDs.
-
-### Components
-- Projects: `project-form`, `project-card`, `project-actions`,
-  `project-entities-manager`, `project-library-controls`, `project-pagination`.
-- Simulations: `simulation-builder` (8-step wizard, create + edit),
-  `simulation-builder-model` (server-safe form model), `entity-picker`,
-  `mode-card`, `simulation-card`, `simulation-actions`,
-  `simulation-library-controls`, `simulation-pagination`.
-
-### Pages (all built)
-- `projects/page.tsx` — project library (list/filter/paginate + CTA).
-- `projects/new/page.tsx` — create project.
-- `projects/[projectId]/edit/page.tsx` — edit project.
-- `projects/[projectId]/page.tsx` — detail (Overview / Entities / Simulations
-  tabs; entities manager; project-scoped simulations + "Create Simulation" →
-  `/simulations/new?projectId=…`).
-- `simulations/new/page.tsx` — gates `simulation.create`; reads `?projectId=`;
-  lists active projects; safe-resolves the preselected project;
-  `<SimulationBuilder mode="create" …>`.
-- `simulations/page.tsx` — real library (reads `q/status/mode/project/sort/page`;
-  controls + card grid + pagination; CTA when empty).
-- `simulations/[simulationId]/page.tsx` — detail (config / participants / seed /
-  presentation; **no run button**, execution-engine notice for Phase 3;
-  actions with `showView={false}`).
-- `simulations/[simulationId]/edit/page.tsx` — `simulationToBuilderInitial` →
-  `<SimulationBuilder mode="edit" …>`; blocks ARCHIVED; keeps current project in
-  the list.
-
-### Integration
-- `/create` hub — `New simulation` → `/simulations/new` and `New project` →
-  `/projects/new` are live (no "Soon" badge).
-- `/dashboard` — real Projects (ACTIVE) / Simulations (non-archived) / Entities
-  (ACTIVE) counts via `getWorkspaceStats`; Exports stays 0.
-
-### Tests (Phase 2 — written & green)
-- `src/server/services/project-service.test.ts` — 22 tests: create (slug, ACTIVE,
-  audit, empty-name ValidationError, VIEWER AuthorizationError), update + re-slug,
-  archive/restore (entities untouched), delete (cascades links + owned sims,
-  entities preserved; CREATOR forbidden), workspace isolation & safe-NotFound,
-  project↔entity links (count, dedupe, **foreign-workspace entity rejected with 0
-  links**, all-or-nothing batch, foreign project NotFound, VIEWER forbidden,
-  remove link keeps entity, no-op remove), list search/filter/sort/paginate,
-  dashboard ACTIVE count.
-- `src/server/services/simulation-service.test.ts` — 38 tests: create (DRAFT,
-  config v1 defaults, battle mode default, presentation defaults, seed format,
-  ordered participants, config/presentation normalization incl. themeColor
-  uppercasing, explicit seed, mode slugification, duplicate-participant collapse,
-  invalid mode config / bad seed / empty name → ValidationError, foreign project →
-  ValidationError, foreign participant → ValidationError, VIEWER →
-  AuthorizationError, audit), workspace isolation, update (scalars, READY→DRAFT on
-  validity change, name-only keeps READY, participant replace, mode-change resets
-  mode config keeps general), duplicate (new seed, DRAFT, copy name), archive/
-  restore (restore re-derives READY vs DRAFT), delete (cascades participant links,
-  entities preserved; CREATOR forbidden), markReady/markDraft (min-participant
-  ValidationError, status unchanged on failure), list filter/mode/project/status/
-  search/sort/paginate, dashboard non-archived count.
-- Phase 0 / Phase 1 suites (8 files) preserved and green.
-
-### Quality gates — all green (2026-09-18)
-- `npx vitest run` — **146 passed** (10 files; +60 over Phase 1's 86).
-- `npx tsc --noEmit` — **exit 0** (authoritative type check).
-- `npx eslint .` — **exit 0**.
-- `npx next build` — **exit 0**; all Phase 2 routes compiled.
-
----
-
-## Architecture decisions
-
-- **Config versioning:** `SimulationConfigV1 { version, general, mode }`;
-  presentation stored separately; both serialized to JSON string columns; status
-  stored as a validated string. New versions can be added without migration.
-- **Server-safe form model split:** the builder's shape + pure mapper live in a
-  non-`"use client"` model module so Server Components can build initial state;
-  the client form re-exports only the erased type.
-- **Participants reference entities by id** (never copied); selection order is
-  participant position. No mechanics attached.
-- **Mode Catalog** drives availability — unavailable modes render disabled
-  ("Soon"), so new modes are data, not new code paths.
-- **Next 16:** route `params` and page `searchParams` are Promises — always await.
-
-## Known problems / watch-outs
-
-- `simulation.run` must stay inert — do not wire any execution.
-- `Switch` renders its own `<label>` when given a `label` prop; pair it with an
-  external `<label htmlFor>` instead to avoid nested labels.
-- typescript-eslint doesn't support TS 7.0, so `.ts/.tsx` are typechecked (tsc)
-  but not lint-typed; `tsc --noEmit` is authoritative.
-- `next dev` re-writes the agent-files block in `AGENTS.md`; commit it with the
-  work to keep the tree clean (SIMVERSE rules live outside that marker block).
-
-## Tests
-
-- Phase 0 / Phase 1 suites: present and green (8 files).
-- Phase 2 suites: **written and green** (project-service, simulation-service).
-
----
-
-## Not done (deferred, by design)
-
-- **Manual dev-server walkthrough** (port 3020) of the two genericity scenarios —
-  "African Nations Battle" and "Greenheart Farm Experiments" — is a human QA step;
-  the automated gates above stand in for it in CI. No blocking issues expected:
-  the platform uses generic Entity/Simulation/Mode/Project terms throughout.
-- **Phase 3 execution engine** — not started, by mandate.
-
-## Exact next action
-
-Phase 2 is **complete and committed** (`0a6c606`). Pre-Phase-3 housekeeping is
-verified but uncommitted; stop for review and approval. The only optional Phase 2
-item is a human dev-server walkthrough (port 3020) of the two genericity
-scenarios — a QA nicety, not a blocker. **Wait for the explicit Phase 3
-implementation prompt before writing any execution/runtime code.**
-
----
+- No production module is registered; all current modes reject run creation.
+  The deterministic numeric executor is test-only and never imported by
+  production. Future modules must explicitly register and preserve historical
+  versions if replay is needed.
+- Run UI is read-only while no production modes execute. Job scheduling,
+  workers, full replay, visualization, media output and product mechanics are
+  future work. Service run lists are paged; the simple UI shows the first page.
+  Events/actions use cursor pagination.
+- No Organization migration, AI Assistant, Marketplace, Creator/Media, Video
+  Studio, Animation Studio, collaboration, Battle, Racing, Tournament,
+  Survival or other product mechanics were implemented in Phase 3.
+- TypeScript 7 is the authoritative type check; typescript-eslint does not yet
+  support typed lint for it. `next dev` may rewrite only the marked Next.js
+  section of `AGENTS.md`; project guidance is outside that marker.
 
 ## Checkpoint (Claude ↔ Codex handoff)
 
 ```text
 LAST COMPLETED:
-  Phase 2 — Projects & Simulation Builder. Complete; 146 tests green;
-  tsc / eslint / next build all exit 0. Committed at 0a6c606.
-  §28 architecture-understanding report delivered (read-only; no code changed).
-  Pre-Phase-3 housekeeping verified: direct Vitest 146/146, tsc, eslint,
-  Prisma validate. Test setup and VISION terminology changes remain uncommitted.
+  Phase 3 Core Engine v0.1 implementation and automated/manual verification.
+  Clean 0509ce4 baseline had 146 tests; current uncommitted tree has 167 green.
+  Local dev Prisma schema applied with db push; no migration file added.
 
 CURRENTLY WORKING ON:
-  Awaiting review of the pre-Phase-3 housekeeping diff. Phase 3 has not started.
+  None. Awaiting review/approval of complete uncommitted Phase 3 diff.
 
 NOT YET COMPLETED:
-  - Phase 3 — SIMVERSE Core Engine v0.1 (execution). Defined, not started.
-  - Optional human dev-server walkthrough of the two genericity scenarios (QA).
+  Phase 3 commit (explicit approval required). Production mechanics modules,
+  worker orchestration, full replay and Creator/Media are future phases.
 
 NEXT STEP:
-  Stop for housekeeping approval. Wait for the explicit Phase 3 implementation
-  prompt before implementing the §26 scope (see "Phase 3 boundary").
+  Review the Phase 3 diff. If approved, commit at the requested checkpoint.
+  Add a production mechanics module only under separately approved scope.
 
 DO NOT:
-  - Begin Phase 3 or write any execution/runtime code before that prompt.
-  - Wire anything to `simulation.run` — keep it inert until Phase 3 activates it.
-  - Implement any §27 "must not" system (Orgs UI, Media/Video, Chat/Comments,
-    Marketplace, AI Assistant, product mechanics, World Editor, …).
-  - Migrate Phase 0–2 workspace-scoped data for Organizations (defer, §24).
-  - Add scattered role checks — authorization stays centralized in
-    src/lib/permissions.
-  - Hardcode around any single product — keep generic domain terms.
+  Commit automatically. Do not register fake Battle/Race/Tournament/Survival
+  modules, hardcode Anything Wars, migrate Organizations, or build Creator/Media
+  or other deferred systems as part of this checkpoint.
 ```

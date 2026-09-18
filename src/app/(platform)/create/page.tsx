@@ -20,7 +20,7 @@ const CREATE_OPTIONS: CreateOption[] = [
   {
     icon: Swords,
     title: "New simulation",
-    description: "Choose a mode, pick entities from a project, and configure the rules. Running arrives in Phase 3.",
+    description: "Choose a mode, pick entities from a project, and configure the settings. Execution becomes available as mode modules arrive.",
     href: "/simulations/new",
   },
   {

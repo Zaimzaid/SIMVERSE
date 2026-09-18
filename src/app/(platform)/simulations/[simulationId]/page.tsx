@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
+import { productionEngineRegistry } from "@/lib/engine/registry";
 import { resolveCategory } from "@/lib/entities/categories";
 import { resolveMode } from "@/lib/simulations/modes";
 import { SIMULATION_STATUS_META } from "@/lib/simulations/constants";
@@ -36,6 +37,7 @@ import {
   type SimulationParticipantView,
   type SimulationView,
 } from "@/server/services/simulation-service";
+import { listSimulationRuns } from "@/server/services/simulation-run-service";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,7 +86,7 @@ function generalSettingRows(config: SimulationConfigV1): { label: string; value:
 
 /**
  * Human-readable rows for the mode-specific placeholder settings. These are
- * stored preferences only — they carry no mechanics (execution is Phase 3).
+ * stored preferences only — they carry no mechanics.
  */
 function modeSettingRows(mode: string, config: Record<string, unknown>): { label: string; value: string }[] {
   const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
@@ -119,12 +121,14 @@ export default async function SimulationDetailPage({ params }: PageParams) {
   const { user, workspace, permissions } = await requirePlatformContext();
 
   const simulation = await loadSimulation(user.id, workspace.id, simulationId);
+  const runs = await listSimulationRuns(user.id, workspace.id, simulationId);
 
   const mode = resolveMode(simulation.mode);
   const ModeIcon = mode.icon;
   const statusMeta = SIMULATION_STATUS_META[simulation.status];
   const isArchived = simulation.status === "ARCHIVED";
   const isReady = simulation.status === "READY";
+  const executionAvailable = productionEngineRegistry.canExecute(simulation.mode);
   const canEdit = permissions.includes("simulation.edit");
 
   const generalRows = generalSettingRows(simulation.configuration);
@@ -186,20 +190,57 @@ export default async function SimulationDetailPage({ params }: PageParams) {
         </div>
       </div>
 
-      {/* Execution boundary notice — a simulation is configuration only; it cannot be run yet. */}
+      {/* Configuration readiness and execution availability are separate. */}
       <div className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent-soft p-4">
         <Rocket className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
         <div className="min-w-0 text-sm">
           <p className="font-medium text-foreground">
-            {isReady ? "This blueprint is ready to run — later." : "This is a configuration, not a run."}
+            {!isReady ? "This configuration is not ready yet." : executionAvailable
+              ? "This mode supports execution." : `${mode.label} execution is not available yet.`}
           </p>
           <p className="mt-0.5 text-secondary">
-            {isReady
-              ? "“Ready” means the configuration is complete. The execution engine that actually runs simulations arrives in Phase 3 — there is nothing to run yet."
-              : "Set up the mode, participants and rules, then save. Running simulations arrives with the execution engine in Phase 3."}
+            {!isReady
+              ? "Set up the mode, participants and settings, then mark this configuration ready."
+              : executionAvailable
+                ? "Run history and execution details appear below."
+                : "The Core engine is in place. This mode needs its execution module before you can run it."}
           </p>
         </div>
       </div>
+
+      <Card as="section">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarClock className="size-4 text-muted" />
+            Run history
+            <span className="text-sm font-normal text-muted">({runs.total})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {runs.items.length === 0 ? (
+            <p className="text-sm text-muted">No runs have been recorded for this simulation.</p>
+          ) : (
+            <ol className="space-y-2">
+              {runs.items.map((run) => (
+                <li key={run.id}>
+                  <Link
+                    href={`/simulations/${simulation.id}/runs/${run.id}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background/40 p-3 transition-colors hover:border-accent/40"
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Badge variant={run.status === "COMPLETED" ? "success" : run.status === "FAILED" ? "danger" : "neutral"}>
+                        {run.status}
+                      </Badge>
+                      <span className="truncate text-sm font-medium text-foreground">Run {run.id.slice(-8)}</span>
+                    </span>
+                    <span className="text-xs text-muted">Tick {run.currentTick} · {formatRelativeTime(run.createdAt)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main column */}

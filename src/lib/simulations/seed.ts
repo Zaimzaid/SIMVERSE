@@ -1,10 +1,9 @@
 /**
  * Simulation seed helpers.
  *
- * A seed is metadata ONLY in Phase 2 — a stable label of the form `SV-XXXXXXXX`.
- * It is NOT consumed by any random-number generator here: there is no execution
- * engine, no seeded RNG, no runtime. Generating a seed string is just producing a
- * readable identifier the future engine (Phase 3) will use for reproducibility.
+ * A Simulation stores a stable `SV-XXXXXXXX` seed label. A SimulationRun copies
+ * that exact label before execution; Core hashes it into versioned RNG state.
+ * This client-safe helper only creates and validates labels.
  */
 
 export const SEED_PREFIX = "SV-";

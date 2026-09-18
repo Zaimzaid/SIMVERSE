@@ -19,7 +19,7 @@ export interface SimulationCardProps {
 /**
  * A single simulation blueprint in a library grid. The whole card links to the
  * detail view. There is deliberately no "run" affordance — a simulation is a
- * configuration only; execution arrives in Phase 3.
+ * configuration only; execution availability is separate from the blueprint.
  */
 export function SimulationCard({ simulation, permissions, hideProject = false }: SimulationCardProps) {
   const mode = resolveMode(simulation.mode);

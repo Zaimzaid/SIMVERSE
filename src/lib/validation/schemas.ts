@@ -253,7 +253,7 @@ export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type AddProjectEntitiesInput = z.infer<typeof addProjectEntitiesSchema>;
 
 // ============================================================================
-// SIMULATION DEFINITION SYSTEM (Phase 2) — configuration only, never execution.
+// SIMULATION DEFINITION SYSTEM — configuration is distinct from execution.
 // ============================================================================
 
 const simulationName = z

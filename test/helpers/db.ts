@@ -2,6 +2,12 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Core runs and their history (Phase 3). The Simulation FK is Restrict, so
+  // test-only cleanup explicitly removes run children before source definitions.
+  await prisma.simulationRunEvent.deleteMany();
+  await prisma.simulationRunAction.deleteMany();
+  await prisma.simulationRunParticipant.deleteMany();
+  await prisma.simulationRun.deleteMany();
   // Simulation system (Phase 2): participant links, then simulations.
   await prisma.simulationEntity.deleteMany();
   await prisma.simulation.deleteMany();

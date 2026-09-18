@@ -34,8 +34,7 @@ export interface SimulationActionsProps {
 
 /**
  * Permission-gated action menu for a simulation: edit, duplicate, archive/restore,
- * delete. There is deliberately NO "run" action — the execution engine arrives in
- * Phase 3, so a simulation blueprint can be configured but never run here.
+ * delete. There is no generic Run action while production mode executors are absent.
  */
 export function SimulationActions({
   simulation,

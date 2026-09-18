@@ -98,7 +98,7 @@ export default async function NewSimulationPage({
         <PageHeader
           icon={Swords}
           title="New simulation"
-          description="Configure a simulation blueprint — mode, participants, rules and presentation. Save a draft any time. Running it arrives with the execution engine in Phase 3."
+          description="Configure a simulation blueprint — mode, participants, settings and presentation. Save a draft any time; execution depends on mode availability."
         />
       </div>
 

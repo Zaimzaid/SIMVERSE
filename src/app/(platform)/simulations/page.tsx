@@ -123,7 +123,7 @@ export default async function SimulationsPage({
       <PageHeader
         icon={Swords}
         title="Simulations"
-        description="A simulation is a reusable blueprint: a mode, the entities that take part, and the rules around them. Running blueprints arrives with the execution engine in Phase 3."
+        description="A simulation is a reusable blueprint: a mode, the entities that take part, and the settings around them. Execution availability depends on the mode module."
         actions={createAction}
       />
 

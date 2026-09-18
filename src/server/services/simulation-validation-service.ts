@@ -9,7 +9,7 @@ import { isValidSeed } from "@/lib/simulations/seed";
  *
  * This answers one question only: "is this blueprint complete and internally
  * consistent enough to be marked READY?" READY is a configuration state — it does
- * NOT mean the simulation can run now (the execution engine arrives in Phase 3).
+ * does not by itself imply that an execution module is registered for the mode.
  *
  * The check is pure: it operates on an already-loaded, workspace-scoped
  * SimulationView and performs NO database access and NO execution. Participants

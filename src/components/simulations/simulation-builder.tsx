@@ -92,7 +92,7 @@ export interface SimulationBuilderProps {
 /**
  * The Simulation Builder — an 8-step wizard that produces a CONFIGURATION only.
  * Nothing here runs a simulation: "Ready" means the blueprint is complete and
- * valid, and the UI says plainly that execution arrives in Phase 3.
+ * valid; execution availability is determined separately by the engine registry.
  */
 export function SimulationBuilder({ mode, initial, projects, projectName }: SimulationBuilderProps) {
   const router = useRouter();
@@ -530,7 +530,7 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
               futurePhase
               icon={Globe2}
               title="Environment selection is coming later"
-              description="World selection becomes available in the World System phase. For now, simulations run in a default, unconfigured environment placeholder — there’s nothing to set here yet."
+              description="World selection becomes available in the World System phase. There is nothing to set here yet."
             />
           ) : null}
 
@@ -752,8 +752,8 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
                 <Sparkles className="mt-0.5 size-4 shrink-0" />
                 <span>
                   {isReady
-                    ? "This blueprint is complete. Marking it ready records that its configuration is valid — the execution engine arrives in Phase 3."
-                    : "Save your progress any time. You can mark it ready once the checklist is complete. Running simulations arrives in Phase 3."}
+                    ? "This blueprint is complete. Marking it ready records that its configuration is valid; execution depends on mode support."
+                    : "Save your progress any time. You can mark it ready once the checklist is complete; execution depends on mode support."}
                 </span>
               </div>
             </div>

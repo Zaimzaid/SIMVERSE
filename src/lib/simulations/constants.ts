@@ -4,8 +4,8 @@
  * A Simulation is a saved CONFIGURATION, not an execution. Status therefore
  * describes the blueprint's readiness, never a run:
  *   DRAFT    — being configured; may be incomplete.
- *   READY    — passes validation. NOTE: "READY" does NOT mean runnable now.
- *              The execution engine arrives in Phase 3.
+ *   READY    — passes configuration validation. Execution additionally needs
+ *              a registered module for this mode.
  *   ARCHIVED — soft-archived (reversible), hidden from the default library view.
  */
 
@@ -28,7 +28,7 @@ export const SIMULATION_STATUS_META: Record<
   },
   READY: {
     label: "Ready",
-    description: "Configuration is complete and valid. Execution arrives in Phase 3.",
+    description: "Configuration is complete and valid. Execution depends on mode support.",
     badge: "success",
   },
   ARCHIVED: {

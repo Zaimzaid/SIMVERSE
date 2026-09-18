@@ -160,7 +160,7 @@ export default async function ProjectDetailPage({ params }: PageParams) {
         <EmptyState
           icon={Swords}
           title="No simulations in this project yet"
-          description="A simulation draws its participants from this project’s entities. Configure one to get started — running it arrives with the execution engine in Phase 3."
+          description="A simulation draws its participants from this project’s entities. Configure one to get started; execution becomes available as mode modules arrive."
           action={
             canCreateSimulation && !isArchived ? (
               <Link href={createSimulationHref} className={buttonClasses()}>

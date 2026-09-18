@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { NotFoundError, ValidationError } from "@/lib/errors";
+import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import {
   SimulationConfigV1,
   SimulationPresentationConfig,
@@ -594,7 +594,20 @@ export async function deleteSimulation(
   });
   if (!existing) throw new NotFoundError("Simulation not found.");
 
-  await prisma.simulation.delete({ where: { id: simulationId } });
+  const runCount = await prisma.simulationRun.count({ where: { simulationId } });
+  if (runCount > 0) {
+    throw new ConflictError("A simulation with historical runs cannot be deleted. Archive it instead.");
+  }
+
+  try {
+    await prisma.simulation.delete({ where: { id: simulationId } });
+  } catch (error) {
+    // A run created after the count still wins through the FK restriction.
+    if ((error as { code?: unknown } | null)?.code === "P2003") {
+      throw new ConflictError("A simulation with historical runs cannot be deleted. Archive it instead.");
+    }
+    throw error;
+  }
 
   await recordAudit({
     action: "simulation.deleted",
@@ -616,7 +629,7 @@ export async function deleteSimulation(
  * Mark a simulation READY. Requires simulation.edit. Runs the READY validation
  * service; on failure it throws a ValidationError carrying the structured issues
  * so the builder can point at the offending step. READY reflects a complete,
- * valid CONFIGURATION — it does not mean the simulation can run (Phase 3).
+ * valid CONFIGURATION — execution also needs a registered mode module.
  */
 export async function markSimulationReady(
   userId: string,

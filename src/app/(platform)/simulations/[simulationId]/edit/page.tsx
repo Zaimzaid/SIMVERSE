@@ -109,7 +109,7 @@ export default async function EditSimulationPage({ params }: PageParams) {
         <PageHeader
           icon={Swords}
           title="Edit simulation"
-          description="Update this simulation’s mode, participants, rules and presentation. Running it arrives with the execution engine in Phase 3."
+          description="Update this simulation’s mode, participants, settings and presentation. Execution depends on mode availability."
         />
       </div>
 
