@@ -13,8 +13,8 @@
   tree clean at last check.
 - **Next phase:** Phase 3 — **SIMVERSE Core Engine v0.1** (execution).
   **Defined, NOT started.** Awaiting the Phase 3 implementation prompt.
-- **Last updated:** 2026-09-18 (architecture-update addendum — see
-  "Long-term architecture" and "Phase 3 boundary" below).
+- **Last updated:** 2026-09-18 (taxonomy alignment + Animation Studio direction
+  added to the Creator/Media pillar — see "Long-term architecture" below).
 - **Handoff:** This document is the canonical Claude ↔ Codex source of truth.
   The repository and committed code are authoritative over conversation memory.
 - **Execution boundary:** No runtime. Simulations are *configuration only*.
@@ -41,7 +41,8 @@ compatible with them.
     future mechanics packages.
   - **CREATOR / MEDIA PLATFORM** (its own major pillar — *consumes* simulation
     output and turns it into content): Asset Library, Media Engine, Video Studio,
-    Caption Studio, Audio/Voice, Rendering, Export, Compression, Content tooling.
+    Animation Studio, Caption Studio, Audio/Voice, Image/Graphics tools,
+    Rendering, Export, Compression, Content tooling.
   - **PRODUCTS**: Anything Wars, Robot Arena, Farm Empire, Civilization,
     Sports Lab, future products.
   - **Not modules:** Creator/Media is NOT a Simulation Module. AI Assistant,
@@ -69,6 +70,36 @@ compatible with them.
   Creator/Media & Video-editing platform, captions/voice/audio, collaboration
   chat, object comments, external cloud sync, onboarding/Academy, monetization,
   Marketplace, API/Developer platform.
+
+### SIMVERSE Animation Studio (official direction — Creator/Media Platform)
+
+Animation Studio is an official part of the **CREATOR / MEDIA PLATFORM**. It is
+**separate** from World Creation, Simulation execution, and Video Studio — these
+may integrate, but they are not the same subsystem:
+
+- **World Creation** = creating environments/worlds that may exist and operate
+  inside SIMVERSE.
+- **Animation Studio** = creating directed animated content and scenes.
+- **Video Studio** = editing, assembling, polishing and exporting video/media.
+
+Future Animation Studio capabilities (official direction — do **not** build now):
+2D animation; 3D animation; character creation/import; object/prop
+creation/import; scene composition; backgrounds/environments; animation timeline;
+keyframes; position/rotation/scale animation; camera animation; character
+animation; facial animation; lip-sync; text animation; motion graphics; logo
+animation; audio/music/voice tracks; recorded voice; AI voice integration;
+reusable animation templates; AI-assisted animation (later phases); rendering;
+multiple output qualities; integration with the Asset Library and Video Studio;
+and integration with SIMVERSE Entities/Worlds where appropriate.
+
+- **CRITICAL — standalone content creation.** Animation Studio must also support
+  STANDALONE content creation. A user must be able to: New Animation →
+  define/create a character or object → create a scene → animate → add
+  dialogue/voice/music → render/export — **without** requiring a Simulation, a
+  SimulationRun, a World, a game, Anything Wars, or any other SIMVERSE Product.
+- **Phase 3:** Do **not** implement Animation Studio during Phase 3. The Phase 3
+  Core Engine should only remain **compatible** with future downstream
+  animation/media consumption (clean, serializable run output).
 
 ## Phase 3 boundary (defined — NOT started)
 
