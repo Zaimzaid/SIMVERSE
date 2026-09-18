@@ -36,6 +36,35 @@ describe("permissions matrix", () => {
     expect(can("CREATOR", "workspace.edit")).toBe(false);
   });
 
+  it("CREATOR can edit/duplicate/archive projects and simulations, but not delete them", () => {
+    // Write access to the Phase 2 systems…
+    expect(can("CREATOR", "project.edit")).toBe(true);
+    expect(can("CREATOR", "project.archive")).toBe(true);
+    expect(can("CREATOR", "project.entity.manage")).toBe(true);
+    expect(can("CREATOR", "simulation.edit")).toBe(true);
+    expect(can("CREATOR", "simulation.duplicate")).toBe(true);
+    expect(can("CREATOR", "simulation.archive")).toBe(true);
+    // …but permanent deletion is reserved for OWNER/ADMIN.
+    expect(can("CREATOR", "project.delete")).toBe(false);
+    expect(can("CREATOR", "simulation.delete")).toBe(false);
+  });
+
+  it("ADMIN inherits the new project/simulation permissions (including delete)", () => {
+    expect(can("ADMIN", "project.edit")).toBe(true);
+    expect(can("ADMIN", "project.delete")).toBe(true);
+    expect(can("ADMIN", "project.entity.manage")).toBe(true);
+    expect(can("ADMIN", "simulation.duplicate")).toBe(true);
+    expect(can("ADMIN", "simulation.delete")).toBe(true);
+  });
+
+  it("VIEWER cannot edit projects or simulations", () => {
+    expect(can("VIEWER", "project.edit")).toBe(false);
+    expect(can("VIEWER", "project.entity.manage")).toBe(false);
+    expect(can("VIEWER", "simulation.edit")).toBe(false);
+    expect(can("VIEWER", "simulation.duplicate")).toBe(false);
+    expect(can("VIEWER", "simulation.archive")).toBe(false);
+  });
+
   it("ANALYST can view analytics but not edit content", () => {
     expect(can("ANALYST", "analytics.view")).toBe(true);
     expect(can("ANALYST", "content.edit")).toBe(false);

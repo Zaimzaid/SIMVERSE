@@ -20,7 +20,8 @@ const CREATE_OPTIONS: CreateOption[] = [
   {
     icon: Swords,
     title: "New simulation",
-    description: "Set up a scenario, add entities, and run it to an outcome.",
+    description: "Choose a mode, pick entities from a project, and configure the rules. Running arrives in Phase 3.",
+    href: "/simulations/new",
   },
   {
     icon: Boxes,
@@ -29,14 +30,15 @@ const CREATE_OPTIONS: CreateOption[] = [
     href: "/entities/new",
   },
   {
-    icon: Globe2,
-    title: "New world",
-    description: "Compose an environment and the rules that govern it.",
-  },
-  {
     icon: FolderKanban,
     title: "New project",
     description: "Organize related worlds, entities, and simulations together.",
+    href: "/projects/new",
+  },
+  {
+    icon: Globe2,
+    title: "New world",
+    description: "Compose an environment and the rules that govern it.",
   },
 ];
 
@@ -46,7 +48,7 @@ export default function CreatePage() {
       <PageHeader
         eyebrow="Creation hub"
         title="Create something new"
-        description="Everything you build starts here. Creation tools arrive in a future phase — here’s what you’ll be able to make."
+        description="Everything you build starts here. Projects, entities, and simulations are ready now — more creation tools arrive in future phases."
         icon={Sparkles}
       />
 

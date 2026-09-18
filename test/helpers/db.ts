@@ -2,6 +2,13 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Simulation system (Phase 2): participant links, then simulations.
+  await prisma.simulationEntity.deleteMany();
+  await prisma.simulation.deleteMany();
+  // Project system (Phase 2): entity links, then projects. Deleted BEFORE
+  // entities so the link rows never dangle.
+  await prisma.projectEntity.deleteMany();
+  await prisma.project.deleteMany();
   // Entity system (children first): values + tag links, then entities, then the
   // workspace-scoped catalogs (tags, attribute definitions).
   await prisma.entityAttributeValue.deleteMany();

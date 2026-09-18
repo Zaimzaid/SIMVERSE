@@ -17,7 +17,22 @@ export type AuditAction =
   | "entity.restored"
   | "entity.deleted"
   | "attribute.created"
-  | "attribute.updated";
+  | "attribute.updated"
+  | "project.created"
+  | "project.updated"
+  | "project.archived"
+  | "project.restored"
+  | "project.deleted"
+  | "project.entity_added"
+  | "project.entity_removed"
+  | "simulation.created"
+  | "simulation.updated"
+  | "simulation.duplicated"
+  | "simulation.archived"
+  | "simulation.restored"
+  | "simulation.deleted"
+  | "simulation.ready"
+  | "simulation.draft";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

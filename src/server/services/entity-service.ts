@@ -78,6 +78,10 @@ export interface ListEntitiesParams {
   sort?: EntitySort;
   page?: number;
   pageSize?: number;
+  /** Only entities linked to this project (used by the Project detail Entities tab). */
+  projectId?: string;
+  /** Only entities NOT linked to this project (used by the add-to-project picker). */
+  notInProjectId?: string;
 }
 
 export interface ListEntitiesResult {
@@ -172,6 +176,15 @@ export async function listEntities(
   if (params.tag) {
     const slug = slugify(params.tag);
     if (slug) where.entityTags = { some: { tag: { slug } } };
+  }
+
+  // Project-relation filters (Phase 2). These stay workspace-scoped because the
+  // leading `workspaceId` in `where` is always applied; a foreign projectId simply
+  // matches nothing rather than leaking cross-workspace rows.
+  if (params.projectId) {
+    where.projectLinks = { some: { projectId: params.projectId } };
+  } else if (params.notInProjectId) {
+    where.projectLinks = { none: { projectId: params.notInProjectId } };
   }
 
   const search = params.search?.trim();

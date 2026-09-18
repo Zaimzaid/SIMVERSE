@@ -3,6 +3,7 @@ import { z } from "zod";
 import { slugify } from "@/lib/utils";
 import { ATTRIBUTE_DATA_TYPES } from "@/lib/entities/constants";
 import { ENTITY_STATUSES } from "@/lib/entities/constants";
+import { SEED_REGEX } from "@/lib/simulations/seed";
 
 /**
  * Shared validation schemas. The server layer treats these as authoritative;
@@ -217,3 +218,108 @@ export type DuplicateEntityInput = z.infer<typeof duplicateEntitySchema>;
 export type EntityAttributeInput = z.infer<typeof entityAttributeInputSchema>;
 export type CreateAttributeDefinitionInput = z.infer<typeof createAttributeDefinitionSchema>;
 export type UpdateAttributeDefinitionInput = z.infer<typeof updateAttributeDefinitionSchema>;
+
+// ============================================================================
+// PROJECT SYSTEM (Phase 2)
+// ============================================================================
+
+const projectName = z
+  .string()
+  .trim()
+  .min(1, "Enter a project name.")
+  .max(80, "Name must be at most 80 characters.");
+
+export const createProjectSchema = z.object({
+  name: projectName,
+  description: optionalDescription,
+  imageUrl: optionalImageUrl,
+  coverUrl: optionalImageUrl,
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+/** Update accepts any subset of the create fields. */
+export const updateProjectSchema = createProjectSchema.partial();
+
+/** Add one or more existing entities to a project (entity ids validated in the service). */
+export const addProjectEntitiesSchema = z.object({
+  entityIds: z
+    .array(z.string().trim().min(1, "Missing entity."))
+    .min(1, "Choose at least one entity.")
+    .max(200, "Too many entities at once."),
+});
+
+export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+export type AddProjectEntitiesInput = z.infer<typeof addProjectEntitiesSchema>;
+
+// ============================================================================
+// SIMULATION DEFINITION SYSTEM (Phase 2) — configuration only, never execution.
+// ============================================================================
+
+const simulationName = z
+  .string()
+  .trim()
+  .min(1, "Enter a simulation name.")
+  .max(80, "Name must be at most 80 characters.");
+
+/** A mode key. Accepts a built-in or custom slug; always normalized. The service checks the catalog. */
+const modeKey = z
+  .string()
+  .trim()
+  .min(1, "Choose a mode.")
+  .max(60, "Mode is too long.")
+  .transform((value) => slugify(value))
+  .refine((value) => value.length > 0, "Choose a valid mode.");
+
+/** Optional seed: empty becomes undefined (the service generates one). Must match SV-XXXXXXXX. */
+const optionalSeed = z
+  .union([
+    z.literal(""),
+    z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(SEED_REGEX, "Seed must look like SV-XXXXXXXX (8 letters or digits)."),
+  ])
+  .optional()
+  .transform((value) => (value ? value : undefined));
+
+const optionalRole = z
+  .union([z.string().trim().max(40, "Role must be at most 40 characters."), z.literal("")])
+  .optional()
+  .transform((value) => (value ? value : undefined));
+
+/** A single participant selection. Ordering/role/overrides are configuration only (no mechanics). */
+const simulationParticipantSchema = z.object({
+  entityId: z.string().trim().min(1, "Missing entity."),
+  position: z.number().int().min(0).max(10_000).optional(),
+  role: optionalRole,
+  overrides: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const createSimulationSchema = z.object({
+  projectId: z.string().trim().min(1, "Choose a project."),
+  name: simulationName,
+  description: optionalDescription,
+  mode: modeKey,
+  seed: optionalSeed,
+  participants: z.array(simulationParticipantSchema).max(500, "Too many participants.").optional(),
+  // Raw config/presentation objects are validated by the simulation config module
+  // (server-side) — never trusted or persisted as-is from here.
+  configuration: z.record(z.string(), z.unknown()).optional(),
+  presentation: z.record(z.string(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+/** Update accepts any subset of the create fields. Status transitions use dedicated actions. */
+export const updateSimulationSchema = createSimulationSchema.partial();
+
+/** Optional new name when duplicating; defaults to "<name> Copy" in the service. */
+export const duplicateSimulationSchema = z.object({
+  name: simulationName.optional(),
+});
+
+export type SimulationParticipantInput = z.infer<typeof simulationParticipantSchema>;
+export type CreateSimulationInput = z.infer<typeof createSimulationSchema>;
+export type UpdateSimulationInput = z.infer<typeof updateSimulationSchema>;
+export type DuplicateSimulationInput = z.infer<typeof duplicateSimulationSchema>;

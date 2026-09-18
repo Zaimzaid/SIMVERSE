@@ -37,6 +37,14 @@ function parseListParams(searchParams: URLSearchParams): ListEntitiesParams {
     params.sort = sort as EntitySort;
   }
 
+  // Project-scoped filters for the "add entities to a project" picker. Both stay
+  // workspace-scoped inside the service, so a foreign projectId reveals nothing.
+  const projectId = searchParams.get("projectId")?.trim();
+  if (projectId) params.projectId = projectId;
+
+  const notInProjectId = searchParams.get("notInProjectId")?.trim();
+  if (notInProjectId) params.notInProjectId = notInProjectId;
+
   const page = Number(searchParams.get("page"));
   if (Number.isFinite(page) && page >= 1) params.page = Math.floor(page);
 
