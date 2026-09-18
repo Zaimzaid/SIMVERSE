@@ -87,14 +87,22 @@ Content-creation capabilities that can consume simulation output and also suppor
 
 Examples:
 
+- Real-Time 3D Viewer
+- Visual Asset System
+- Standard Animation System
+- Camera System
+- Lighting System
+- VFX System
+- sound presentation layer
 - Asset Library
 - Media Engine
 - Video Studio
 - Animation Studio
-- captions, audio, voice, and graphics tools
-- rendering and export
+- Caption Studio, Audio/Voice, and graphics tools
+- rendering, export, and compression
 
 Animation Studio creates directed animated content and scenes. It can work without a Simulation, Simulation Run, World, or Product; it is separate from World Creation and Video Studio.
+The Viewer and these presentation systems consume Core and Simulation Module truth downstream; they do not replace simulation logic.
 
 ### PRODUCTS
 
@@ -152,6 +160,23 @@ The real web application should feel:
 
 The application should **feel related to the references**, not become a pixel-for-pixel poster recreation.
 
+### Official simulation playback target
+
+The previous lightweight Canvas 2D / 2.5D Viewer direction is superseded as
+the primary destination. SIMVERSE's target is **premium real-time 3D game-like
+simulation playback**. A full-screen-capable Watch experience should eventually
+include real spatial environments, high-quality stylized 3D visuals, visible
+characters/animals/robots/vehicles/objects, movement through the scene,
+professional animation, perspective camera work, cinematic lighting, depth and
+shadows, VFX, sound, a premium HUD, and cinematic introductions and outcomes.
+2D and image representations may remain fallbacks. They are not the premium
+default visual experience.
+
+The owner's uploaded gaming images define the **target quality class and
+presentation direction**. They are references, not source assets. SIMVERSE must
+use original branding, UI, environments, models, characters, logos and visual
+identity. Do not copy proprietary game assets or exact branded scenes.
+
 ---
 
 ## 5. Platform terminology
@@ -186,10 +211,48 @@ The broad intended workflow is:
 2. **Build or choose a World** — an arena, track, city, farm, island, stadium, planet, factory, or another simulation environment.
 3. **Set Rules & Attributes** — define stats, parameters, behaviors, environmental rules, and win/outcome conditions.
 4. **Run Simulation** — execute a deterministic or stochastic simulation through SIMVERSE Core and relevant Simulation Modules.
-5. **Watch Events & Results** — visualize the simulation, receive events, statistics, outcomes, and history.
+5. **Watch Events & Results** — watch authoritative simulation events as real-time 3D presentation, then inspect statistics, outcomes, and history.
 6. **Generate Content** — use the Creator/Media Platform to convert important moments into replays, graphics, commentary, clips, thumbnails, captions, or other creator outputs.
 
 Not all of this belongs in the first release. The phase plan controls when each part is implemented.
+
+The intended Watch journey is **Create → Configure → Run & Watch → real-time 3D
+visualization → visible actions → cinematic outcome → Replay → future Edit /
+Export**. A Lion vs Tiger run should eventually show a 3D lion and tiger with
+physical placement, movement, attacks, dodges, hit reactions, health changes,
+elimination and the true winner. Core and the Battle Module determine what
+happened. The Viewer only visualizes their persisted events and result.
+
+### Real-Time 3D Viewer and reusable presentation systems
+
+The SIMVERSE Real-Time 3D Viewer requires a browser 3D renderer, perspective
+camera, 3D scene/environment, lighting, shadows, model loading, animation
+system, camera system, VFX, sound, HUD, playback/replay controls and fullscreen
+presentation. Its Viewer Core and adapters map SimulationRun truth into visual
+cues. Browser rendering may be real-time even when the Run completed before
+playback; do not call that live simulation streaming.
+
+The **Standard Animation System** is a first-class professional system. Its
+shared state vocabulary includes IDLE, WALK, RUN, TURN, ATTACK, DEFEND, DODGE,
+HIT/REACTION, DEFEATED/ELIMINATED, VICTORY and INTRO. It should support clips,
+state machines, transition logic, crossfades/blending, loop and non-loop states,
+interruption rules, completion, fallbacks and event-to-animation mapping. The
+long-term architecture must not be limited to crude CSS/transform-only motion.
+
+Entity **simulation data** (attributes, metadata and behavior inputs) is
+distinct from **visual identity** (thumbnail/portrait, image fallback, 3D
+model, materials, scale, orientation, archetype, rig/skeleton profile,
+animation profile, and future sound/VFX profiles). Candidate archetypes are
+HUMANOID, QUADRUPED, CREATURE, ROBOT, VEHICLE_GROUND, VEHICLE_AIR,
+VEHICLE_WATER, OBJECT, ABSTRACT and CUSTOM. This is a direction for a reusable
+Visual Asset System, not a requirement to infer a production model from an
+Entity name.
+
+Animation Studio is a separate future professional creator tool for manually
+directed scenes and standalone content unrelated to a SimulationRun. The
+automatic Viewer and Animation Studio may eventually share models, rigs,
+clips, environments, camera primitives, VFX and audio without becoming the
+same product capability.
 
 ---
 
@@ -313,6 +376,25 @@ Before implementing a phase:
 5. Use later-phase visuals only to preserve architectural compatibility and visual direction.
 
 Never justify scope creep by saying a future feature appeared in a concept image.
+
+### Revised visual roadmap
+
+1. **Phase 5 — Real-Time 3D Viewer Foundation v1:** real browser 3D renderer,
+   Viewer Core and adapters including Battle, Watch and Run & Watch, an original
+   SIMVERSE Arena, model-loading and procedural 3D fallback foundations,
+   animation-controller, camera, lighting, VFX and sound foundations, HUD,
+   playback controls and fullscreen. It does not require automatically
+   generating custom production-quality Lion/Tiger models from their names.
+2. **Phase 6 — Entity Visual Asset + Standard Animation System:** asset
+   assignment/import, archetypes, rigs, animation profiles, model validation
+   and reusable standard animation sets.
+3. **Phase 7 — 3D Environments / Worlds.**
+4. **Phase 8 — Cinematic Camera + Lighting + VFX + Sound.**
+5. **Phase 9 — Animation Studio / Video Studio preparation.**
+
+Later work may include AI Director, advanced cinematic rendering, Animation
+Studio, Video Studio and the media export pipeline. This roadmap supersedes any
+earlier one that defines Phase 5 primarily as a Canvas 2D Viewer.
 
 ---
 

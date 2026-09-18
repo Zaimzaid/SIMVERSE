@@ -21,7 +21,7 @@ Shows a single platform spanning battle, racing, farming, sports, and world/civi
 ---
 
 ### `references/02-platform-architecture.png`
-**Purpose:** Visual explanation of the four-layer concept.
+**Purpose:** Historical visual explanation of an earlier four-layer concept.
 
 Shows:
 - Platform
@@ -31,7 +31,10 @@ Shows:
 
 **Most relevant:** Architectural decisions throughout the project.
 
-Do not implement every pictured system at once.
+The image predates the canonical five-pillar architecture in `VISION.md`:
+Platform, Core, Simulation Modules, Creator / Media Platform and Products. Use
+that current model for implementation. Do not implement every pictured system
+at once.
 
 ---
 
