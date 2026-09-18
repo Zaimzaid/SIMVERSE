@@ -13,12 +13,15 @@ export default function setup() {
   const projectRoot = path.join(here, "..");
   const dbPath = path.join(projectRoot, "test.db");
 
-  // Delete any prior test DB so `db push` applies the schema to a fresh, empty
-  // file. Because the file is removed first, no data is ever destroyed and we
-  // avoid the (correct) Prisma guard against `--force-reset` under automation.
+  // Discard the previous isolated test DB so every run starts with a clean schema.
+  // This never touches the development database.
   for (const file of [dbPath, `${dbPath}-journal`, `${dbPath}-wal`, `${dbPath}-shm`]) {
     if (fs.existsSync(file)) fs.rmSync(file);
   }
+
+  // Prisma 7 checks that the SQLite file exists before `db push` creates its
+  // tables. Give it a fresh empty file to initialize.
+  fs.writeFileSync(dbPath, "");
 
   execSync("npx prisma db push", {
     cwd: projectRoot,

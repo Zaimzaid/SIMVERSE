@@ -28,11 +28,11 @@ SIMVERSE is the universe/platform. Individual products live on top of that platf
 
 ## 3. Architecture vocabulary
 
-Keep these four conceptual layers distinct throughout the codebase.
+Keep these five pillars distinct throughout the codebase.
 
 ### PLATFORM
 
-Shared application and business infrastructure.
+Shared application and business infrastructure, including cross-cutting systems.
 
 Examples:
 
@@ -41,11 +41,12 @@ Examples:
 - workspaces
 - teams
 - permissions
-- assets
-- studio
-- analytics
-- billing
+- storage
+- collaboration
+- AI Assistant
 - marketplace infrastructure
+- billing
+- analytics
 
 ### CORE
 
@@ -64,11 +65,10 @@ Examples:
 - snapshots
 - replay
 - results
-- reusable AI runtime foundations
 
-### MODULES
+### SIMULATION MODULES
 
-Reusable domain mechanics that run on Core.
+Reusable simulation-mechanics packages that run on Core. Creator/Media is not a Simulation Module.
 
 Examples:
 
@@ -79,10 +79,26 @@ Examples:
 - economy
 - sports
 - survival
+- civilization
+
+### CREATOR / MEDIA PLATFORM
+
+Content-creation capabilities that can consume simulation output and also support standalone creation.
+
+Examples:
+
+- Asset Library
+- Media Engine
+- Video Studio
+- Animation Studio
+- captions, audio, voice, and graphics tools
+- rendering and export
+
+Animation Studio creates directed animated content and scenes. It can work without a Simulation, Simulation Run, World, or Product; it is separate from World Creation and Video Studio.
 
 ### PRODUCTS
 
-Specific user-facing experiences built from Platform + Core + Modules.
+Specific user-facing experiences built from Platform + Core + Simulation Modules + Creator/Media capabilities.
 
 Examples:
 
@@ -93,7 +109,7 @@ Examples:
 - SIMVERSE: Survival
 - SIMVERSE: Sports Lab
 
-Anything Wars is intended to be the first flagship SIMVERSE product, but SIMVERSE itself must never be architected as if Anything Wars is the only future product.
+Anything Wars is intended to be the first flagship SIMVERSE Product, not SIMVERSE Core. SIMVERSE itself must never be architected as if Anything Wars is the only future product.
 
 ---
 
@@ -152,7 +168,7 @@ Use:
 - Asset
 - Event
 - Result
-- Module
+- Simulation Module
 - Product
 - Workspace
 
@@ -169,9 +185,9 @@ The broad intended workflow is:
 1. **Create Entities** — people, robots, countries, cities, animals, vehicles, teams, farms, businesses, or custom objects.
 2. **Build or choose a World** — an arena, track, city, farm, island, stadium, planet, factory, or another simulation environment.
 3. **Set Rules & Attributes** — define stats, parameters, behaviors, environmental rules, and win/outcome conditions.
-4. **Run Simulation** — execute a deterministic or stochastic simulation through SIMVERSE Core and relevant Modules.
+4. **Run Simulation** — execute a deterministic or stochastic simulation through SIMVERSE Core and relevant Simulation Modules.
 5. **Watch Events & Results** — visualize the simulation, receive events, statistics, outcomes, and history.
-6. **Generate Content** — convert important moments into replays, graphics, commentary, clips, thumbnails, captions, or other creator outputs.
+6. **Generate Content** — use the Creator/Media Platform to convert important moments into replays, graphics, commentary, clips, thumbnails, captions, or other creator outputs.
 
 Not all of this belongs in the first release. The phase plan controls when each part is implemented.
 
@@ -223,7 +239,7 @@ Possible outputs include:
 - summaries
 - hashtags
 
-This is a long-term platform capability. It must not be prematurely implemented in a phase that only calls for foundations.
+This is a long-term Creator/Media Platform capability. It must not be prematurely implemented in a phase that only calls for foundations.
 
 ---
 
@@ -317,7 +333,7 @@ The goal is to progressively make the real SIMVERSE application approach the vis
 For Phase 0, the most useful references are:
 
 - `01-cover-vision.png` — overall brand mood
-- `02-platform-architecture.png` — Platform/Core/Modules/Products mental model
+- `02-platform-architecture.png` — early architecture concept; use the five-pillar model in Section 3 for current terminology
 - `05-creator-dashboard.png` — dashboard information architecture and UI direction
 
 Other images are mainly long-term references and must not expand Phase 0 scope.

@@ -9,12 +9,12 @@
 - **Phase:** Phase 2 — Projects & Simulation Builder — **COMPLETE**
 - **Subphase:** — (all Phase 2 work landed; quality gates green)
 - **Committed:** **Yes.** Phase 2 landed in commit `0a6c606`
-  (`feat: complete SIMVERSE Phase 2 projects and simulation builder`); working
-  tree clean at last check.
+  (`feat: complete SIMVERSE Phase 2 projects and simulation builder`). The
+  pre-Phase-3 housekeeping below is uncommitted and awaiting review.
 - **Next phase:** Phase 3 — **SIMVERSE Core Engine v0.1** (execution).
   **Defined, NOT started.** Awaiting the Phase 3 implementation prompt.
-- **Last updated:** 2026-09-18 (taxonomy alignment + Animation Studio direction
-  added to the Creator/Media pillar — see "Long-term architecture" below).
+- **Last updated:** 2026-09-18 (pre-Phase-3 test setup repair and vision taxonomy
+  alignment; Phase 3 remains unstarted).
 - **Handoff:** This document is the canonical Claude ↔ Codex source of truth.
   The repository and committed code are authoritative over conversation memory.
 - **Execution boundary:** No runtime. Simulations are *configuration only*.
@@ -124,6 +124,22 @@ and integration with SIMVERSE Entities/Worlds where appropriate.
   (4) the run↔simulation delete policy (a Phase 3 decision, resolved by input
   snapshots). Runs are workspace-scoped, so they migrate under §24 like every
   other resource.
+
+---
+
+## Pre-Phase-3 housekeeping (uncommitted; awaiting review)
+
+- `test/global-setup.ts` now creates an empty `test.db` after removing the old
+  isolated test database and before `prisma db push`. Prisma 7 was returning
+  `P1003` because the file was missing. Each run still gets a fresh test-only
+  database; the development database is never used.
+- `docs/vision/VISION.md` now names the official five pillars and places
+  Creator/Media, Animation Studio, cross-cutting Platform systems, Simulation
+  Modules, and Anything Wars in their correct architectural roles.
+- Verified on 2026-09-18: direct `npx vitest run` — **146 passed (10 files)**;
+  `npx tsc --noEmit`, `npx eslint .`, and `npx prisma validate` — exit 0.
+  Phase 3 remains unstarted. Changed files: `test/global-setup.ts`,
+  `docs/vision/VISION.md`, and this status document.
 
 ---
 
@@ -277,9 +293,9 @@ mentions running states the execution engine arrives in Phase 3.
 
 ## Exact next action
 
-Phase 2 is **complete and committed** (`0a6c606`); all automated gates pass and
-the working tree is clean. No Phase 2 code work is outstanding. The only optional
-Phase 2 item is a human dev-server walkthrough (port 3020) of the two genericity
+Phase 2 is **complete and committed** (`0a6c606`). Pre-Phase-3 housekeeping is
+verified but uncommitted; stop for review and approval. The only optional Phase 2
+item is a human dev-server walkthrough (port 3020) of the two genericity
 scenarios — a QA nicety, not a blocker. **Wait for the explicit Phase 3
 implementation prompt before writing any execution/runtime code.**
 
@@ -292,18 +308,19 @@ LAST COMPLETED:
   Phase 2 — Projects & Simulation Builder. Complete; 146 tests green;
   tsc / eslint / next build all exit 0. Committed at 0a6c606.
   §28 architecture-understanding report delivered (read-only; no code changed).
+  Pre-Phase-3 housekeeping verified: direct Vitest 146/146, tsc, eslint,
+  Prisma validate. Test setup and VISION terminology changes remain uncommitted.
 
 CURRENTLY WORKING ON:
-  Nothing in code. Long-term architecture requirements have been made official
-  and recorded above ("Long-term architecture", "Phase 3 boundary").
+  Awaiting review of the pre-Phase-3 housekeeping diff. Phase 3 has not started.
 
 NOT YET COMPLETED:
   - Phase 3 — SIMVERSE Core Engine v0.1 (execution). Defined, not started.
   - Optional human dev-server walkthrough of the two genericity scenarios (QA).
 
 NEXT STEP:
-  Wait for the explicit Phase 3 implementation prompt, then implement the §26
-  scope ONLY (see "Phase 3 boundary").
+  Stop for housekeeping approval. Wait for the explicit Phase 3 implementation
+  prompt before implementing the §26 scope (see "Phase 3 boundary").
 
 DO NOT:
   - Begin Phase 3 or write any execution/runtime code before that prompt.
