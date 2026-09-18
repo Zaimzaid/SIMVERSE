@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ArrowLeft, Expand, Minimize, Pause, Play, RotateCcw, SkipForward, StepBack, StepForward, Volume2, VolumeX } from "lucide-react";
 import type { EngineEvent, ParticipantSnapshotV1 } from "@/lib/engine/schemas";
 import { ViewerClock } from "@/lib/viewer/clock";
-import { Canvas2DViewerRenderer } from "@/lib/viewer/canvas-renderer";
+import { ViewerAudio } from "@/lib/viewer/audio";
 import { productionViewerRegistry } from "@/lib/viewer/registry";
+import type { ThreeViewerRenderer, ViewerQuality } from "@/lib/viewer/three-renderer";
 import type { ViewerFrame, ViewerTimeline, VisualEntityInstance } from "@/lib/viewer/types";
 import { Button } from "@/components/ui/button";
 
@@ -55,33 +56,6 @@ async function fetchEvents(runId: string, expectedCount: number, signal: AbortSi
   return events;
 }
 
-async function preload(scene: VisualEntityInstance[], signal: AbortSignal): Promise<Map<string, HTMLImageElement>> {
-  const entries = await Promise.all(scene.map(async (entity): Promise<[string, HTMLImageElement] | null> => {
-    if (entity.source.kind !== "IMAGE") return null;
-    const imageUrl = entity.source.url;
-    return new Promise((resolve) => {
-      const image = new Image();
-      let settled = false;
-      const finish = (value: [string, HTMLImageElement] | null) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        signal.removeEventListener("abort", onAbort);
-        image.onload = null; image.onerror = null;
-        resolve(value);
-      };
-      const onAbort = () => finish(null);
-      const timer = setTimeout(() => finish(null), 3500);
-      signal.addEventListener("abort", onAbort, { once: true });
-      image.onload = () => finish(image.naturalWidth > 0 ? [entity.id, image] : null);
-      image.onerror = () => finish(null);
-      image.src = imageUrl;
-      if (signal.aborted) finish(null);
-    });
-  }));
-  return new Map(entries.filter((entry): entry is [string, HTMLImageElement] => Boolean(entry)));
-}
-
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -100,11 +74,10 @@ export function SimulationViewer(props: Props) {
   const sceneRef = useRef<VisualEntityInstance[]>([]);
   const timelineRef = useRef<ViewerTimeline | null>(null);
   const clockRef = useRef<ViewerClock | null>(null);
-  const rendererRef = useRef<Canvas2DViewerRenderer | null>(null);
-  const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const rendererRef = useRef<ThreeViewerRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<AudioContext | null>(null);
+  const audioRef = useRef<ViewerAudio | null>(null);
   const lastAudioSequence = useRef(0);
   const reducedMotion = useReducedMotion();
   const [phase, setPhase] = useState("Preparing replay...");
@@ -112,6 +85,8 @@ export function SimulationViewer(props: Props) {
   const [playback, setPlayback] = useState<Playback | null>(null);
   const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(0.4);
+  const [quality, setQuality] = useState<ViewerQuality>("AUTO");
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
 
   const draw = useCallback((notify = true) => {
@@ -119,7 +94,7 @@ export function SimulationViewer(props: Props) {
     const clock = clockRef.current;
     if (!adapter || !timeline || !clock) return;
     const frame = adapter.deriveFrame(timeline, sceneRef.current, result, clock.position, reducedMotion);
-    rendererRef.current?.draw(frame, sceneRef.current, imagesRef.current);
+    rendererRef.current?.draw(frame, sceneRef.current);
     if (notify) setPlayback({ frame, playing: clock.isPlaying, speed: clock.playbackSpeed });
     return frame;
   }, [adapter, result, reducedMotion]);
@@ -134,14 +109,18 @@ export function SimulationViewer(props: Props) {
         if (controller.signal.aborted) return;
         const scene = adapter!.buildScene(participants);
         const timeline = adapter!.buildTimeline({ participants, events, result });
-        setPhase("Loading visuals...");
-        const images = await preload(scene, controller.signal);
-        if (controller.signal.aborted) return;
+        setPhase("Preparing 3D arena...");
+        const { ThreeViewerRenderer } = await import("@/lib/viewer/three-renderer");
+        if (controller.signal.aborted || !canvasRef.current) return;
+        const renderer = new ThreeViewerRenderer(canvasRef.current, scene);
+        rendererRef.current = renderer;
         sceneRef.current = scene;
         timelineRef.current = timeline;
-        imagesRef.current = images;
         clockRef.current = new ViewerClock(timeline.durationMs);
-        if (canvasRef.current) rendererRef.current = new Canvas2DViewerRenderer(canvasRef.current);
+        setPhase(scene.some((entity) => entity.profile.modelUrl) ? "Loading 3D models..." : "Preparing replay...");
+        await renderer.preloadModels(scene);
+        if (controller.signal.aborted) return;
+        setWarnings(renderer.loadWarnings);
         setPhase("");
         clockRef.current.play(performance.now());
         draw();
@@ -155,32 +134,17 @@ export function SimulationViewer(props: Props) {
       clockRef.current?.pause();
       rendererRef.current?.dispose();
       rendererRef.current = null;
-      imagesRef.current.clear();
       const audio = audioRef.current;
       audioRef.current = null;
-      if (audio) void audio.close();
+      audio?.dispose();
     };
     // Initialization is tied to this historical run; playback state is managed separately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId]);
 
-  const sound = useCallback((kind: string) => {
-    const audio = audioRef.current;
-    if (!audio || audio.state !== "running" || muted || volume === 0) return;
-    const frequencies: Record<string, number> = { ATTACK: 210, DODGE: 430, DAMAGE: 130, CRITICAL: 650, ELIMINATE: 90, COMPLETE: 540 };
-    const frequency = frequencies[kind];
-    if (!frequency) return;
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.type = kind === "DAMAGE" || kind === "ELIMINATE" ? "triangle" : "sine";
-    oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(Math.max(45, frequency * 0.55), audio.currentTime + 0.13);
-    gain.gain.setValueAtTime(Math.max(0.001, volume * 0.08), audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.16);
-    oscillator.connect(gain).connect(audio.destination);
-    oscillator.start(); oscillator.stop(audio.currentTime + 0.17);
-    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
-  }, [muted, volume]);
+  useEffect(() => { audioRef.current?.setMuted(muted); }, [muted]);
+  useEffect(() => { audioRef.current?.setVolume(volume); }, [volume]);
+  useEffect(() => { rendererRef.current?.setQuality(quality); draw(false); }, [quality, draw]);
 
   useEffect(() => {
     if (!playback?.playing) return;
@@ -194,7 +158,7 @@ export function SimulationViewer(props: Props) {
       clock.advance(now);
       for (const cue of timeline.cues) {
         if (cue.sequence > lastAudioSequence.current && cue.startMs > previous && cue.startMs <= clock.position) {
-          sound(cue.kind); lastAudioSequence.current = cue.sequence;
+          audioRef.current?.play(cue.kind); lastAudioSequence.current = cue.sequence;
         }
       }
       draw(now - lastUi > 100 || !clock.isPlaying);
@@ -203,12 +167,12 @@ export function SimulationViewer(props: Props) {
     };
     id = requestAnimationFrame(step);
     return () => cancelAnimationFrame(id);
-  }, [playback?.playing, draw, sound]);
+  }, [playback?.playing, draw]);
 
   const ready = Boolean(playback);
   useEffect(() => {
     if (!ready) return;
-    const observer = new ResizeObserver(() => draw(false));
+    const observer = new ResizeObserver(() => { rendererRef.current?.resize(); draw(false); });
     if (canvasRef.current) observer.observe(canvasRef.current);
     return () => observer.disconnect();
   }, [ready, draw]);
@@ -252,13 +216,19 @@ export function SimulationViewer(props: Props) {
   }, [seek]);
   const toggleMute = useCallback(async () => {
     if (muted) {
-      try {
-        audioRef.current ??= new AudioContext();
-        await audioRef.current.resume();
-      } catch { /* Browser audio restrictions leave visual playback unaffected. */ }
+      audioRef.current ??= new ViewerAudio();
+      audioRef.current.setVolume(volume);
+      await audioRef.current.unlock();
     }
     setMuted((current) => !current);
-  }, [muted]);
+  }, [muted, volume]);
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await stageRef.current?.requestFullscreen();
+    } catch { /* Unsupported browser: the viewer remains usable in its normal layout. */ }
+  }, []);
 
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
@@ -269,17 +239,11 @@ export function SimulationViewer(props: Props) {
       else if (event.key === "ArrowLeft") stepMoment(-1);
       else if (event.key === "ArrowRight") stepMoment(1);
       else if (event.key.toLowerCase() === "m") void toggleMute();
+      else if (event.key.toLowerCase() === "f") void toggleFullscreen();
     };
     window.addEventListener("keydown", keydown);
     return () => window.removeEventListener("keydown", keydown);
-  }, [playPause, restart, stepMoment, toggleMute]);
-
-  async function toggleFullscreen() {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await stageRef.current?.requestFullscreen();
-    } catch { /* Unsupported browser: the viewer remains usable in its normal layout. */ }
-  }
+  }, [playPause, restart, stepMoment, toggleMute, toggleFullscreen]);
 
   if (!adapter) return <div className="rounded-2xl border border-border bg-surface p-8 text-center text-secondary">
     <p>Visual playback is not available for this simulation type yet.</p>
@@ -304,8 +268,18 @@ export function SimulationViewer(props: Props) {
         <div className="min-w-0"><h1 className="truncate font-display text-lg font-bold text-white sm:text-xl">{title}</h1><p className="text-xs text-[#9eb3ca]">SIMVERSE Arena · {scene.length > 2 ? "Free for all" : "Duel"} · Historical replay</p></div>
         <span className="rounded-full border border-[#318da8]/40 bg-[#0d2b3a] px-3 py-1 text-xs font-bold text-[#9eeaf8]">{completion ? resultLabel : frame ? `TICK ${frame.tick}` : "LOADING"}</span>
       </div>
-      <div className="relative aspect-[16/11] w-full sm:aspect-auto sm:h-[clamp(340px,48vh,520px)] fullscreen:min-h-0 fullscreen:h-auto fullscreen:flex-1">
-        <canvas ref={canvasRef} role="img" aria-label="Animated SIMVERSE Battle arena showing saved simulation events" className="h-full w-full" />
+      <div className="relative h-[min(58vh,670px)] min-h-[290px] w-full sm:h-[clamp(390px,58vh,670px)] fullscreen:min-h-0 fullscreen:h-auto fullscreen:flex-1">
+        <canvas ref={canvasRef} role="img" aria-label="Real-time 3D SIMVERSE Battle arena replaying saved simulation events" className="h-full w-full" />
+        {frame && frame.timeMs < (timelineRef.current?.introMs ?? 0) && !phase && !error ? <div className="pointer-events-none absolute inset-0 grid place-content-center bg-[#050b19]/65 p-6 text-center text-white">
+          <p className="text-xs font-bold uppercase tracking-[.3em] text-cyan-300">SIMVERSE / BATTLE</p>
+          {scene.length === 2 ? <h2 className="mt-4 font-display text-2xl font-extrabold sm:text-5xl">{scene[0]?.name} <span className="text-cyan-300">VS</span> {scene[1]?.name}</h2>
+            : <><h2 className="mt-4 font-display text-3xl font-extrabold sm:text-5xl">FREE FOR ALL</h2><p className="mt-3 text-sm text-slate-200">{scene.map((entity) => entity.name).join(" · ")}</p></>}
+          <p className="mt-3 text-sm uppercase tracking-[.24em] text-cyan-200">Entering the arena</p>
+        </div> : null}
+        {completion ? <div className="pointer-events-none absolute left-1/2 top-4 w-[min(92%,620px)] -translate-x-1/2 rounded-xl border border-cyan-300/35 bg-[#071325]/85 px-5 py-3 text-center shadow-[0_10px_40px_rgba(0,0,0,.5)]">
+          <p className="text-xs font-bold uppercase tracking-[.27em] text-cyan-300">{frame.timeout ? frame.tiedIds.length > 1 ? "TIME LIMIT / DRAW" : "TIME LIMIT" : "WINNER"}</p>
+          <p className="mt-1 truncate font-display text-xl font-extrabold text-white sm:text-3xl">{frame.tiedIds.length > 1 ? frame.tiedIds.map((id) => scene.find((entity) => entity.id === id)?.name).join(" · ") : scene.find((entity) => entity.id === frame.winnerId)?.name ?? "Battle complete"}</p>
+        </div> : null}
         {phase || error ? <div role="status" className="absolute inset-0 grid place-content-center bg-[#08111f]/95 px-6 text-center text-white">
           <p className="text-lg font-semibold">{error || phase}</p>
           {error ? <Link href={resultsHref} className="mt-3 text-accent hover:underline">View Results</Link> : <p className="mt-2 text-sm text-[#9eb3ca]">Preparing the saved run. No new simulation is created.</p>}
@@ -313,13 +287,21 @@ export function SimulationViewer(props: Props) {
         {frame && frame.timeMs < (timelineRef.current?.introMs ?? 0) ? <button type="button" onClick={() => seek(timelineRef.current?.introMs ?? 0)}
           className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-black/65 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/85"><SkipForward className="size-3.5" />Skip Intro</button> : null}
       </div>
+      {warnings.length > 0 ? <p role="status" className="border-t border-amber-400/20 bg-[#241d15] px-4 py-2 text-xs text-amber-200">{warnings[0]}</p> : null}
       <div className="grid gap-2 border-t border-white/10 bg-[#0b1526] p-3 sm:grid-cols-2 sm:p-4" aria-label="Participant health">
         {scene.map((entity) => {
           const state = frame?.participants[entity.id];
           return <div key={entity.id} className="min-w-0 rounded-lg border border-white/10 bg-[#101d31] p-2.5">
-            <div className="mb-1.5 flex items-center justify-between gap-2 text-xs"><span className="truncate font-semibold text-white">{entity.name}</span><span className="shrink-0 font-mono text-[#b5c9dc]">{state?.eliminated ? "ELIMINATED · " : ""}{state?.health ?? 100}/100</span></div>
+            <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
+              <span className="flex min-w-0 items-center gap-2">
+                <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full border border-white/30 text-[10px] font-black text-white"
+                  style={{ background: entity.profile.primaryColor }}>{entity.shortName.trim().slice(0, 2).toUpperCase()}</span>
+                <span className="min-w-0 truncate font-semibold text-white">{entity.name} <span className="font-normal text-[#8cb0c9]">/ {entity.category}</span></span>
+              </span>
+              <span className="shrink-0 font-mono text-[#b5c9dc]">{state?.eliminated ? "ELIMINATED · " : state?.defending ? "GUARD · " : ""}{state?.health ?? 100}/100</span>
+            </div>
             <div className="h-2 overflow-hidden rounded-full bg-[#283447]" role="progressbar" aria-label={`${entity.name} health`} aria-valuenow={state?.health ?? 100} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${state?.health ?? 100}%`, background: entity.primaryColor }} />
+              <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${state?.health ?? 100}%`, background: entity.profile.primaryColor }} />
             </div>
           </div>;
         })}
@@ -353,11 +335,17 @@ export function SimulationViewer(props: Props) {
             {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}</Button>
           <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(event) => setVolume(Number(event.target.value))}
             aria-label="Replay volume" className="w-16 accent-cyan-400" />
+          <label className="flex items-center gap-1.5 text-xs text-[#b7c9d9]">Quality
+            <select value={quality} onChange={(event) => setQuality(event.target.value as ViewerQuality)} aria-label="3D quality"
+              className="rounded-md border border-white/15 bg-[#17263a] px-2 py-1.5 text-white">
+              <option value="AUTO">Auto</option><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option>
+            </select>
+          </label>
           <Button variant="icon" size="sm" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen replay"}>
             {fullscreen ? <Minimize className="size-4" /> : <Expand className="size-4" />}</Button>
         </div>
       </div>
     </div>
-    <p className="text-xs text-muted">Playback uses this run’s saved events and participant snapshots. Space: play/pause · R: restart · ←/→: step · M: mute.</p>
+    <p className="text-xs text-muted">Playback uses this run’s saved events and participant snapshots. Space: play/pause · R: restart · ←/→: step · M: mute · F: fullscreen.</p>
   </div>;
 }

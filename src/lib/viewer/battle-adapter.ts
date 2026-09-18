@@ -37,6 +37,11 @@ function parseEvents(events: EngineEvent[], ids: Set<string>, result: BattleResu
         event.sequence !== i + 1 || event.tick < lastTick || event.simulatedTimeMs < lastTime ||
         (event.actorRunParticipantId && !ids.has(event.actorRunParticipantId)) ||
         (event.targetRunParticipantId && !ids.has(event.targetRunParticipantId))) invalid();
+    if (["battle.started", "battle.timeout", "battle.completed"].includes(event.type) &&
+        (event.actorRunParticipantId || event.targetRunParticipantId)) invalid();
+    if (event.type === "battle.defend" && (!event.actorRunParticipantId || event.targetRunParticipantId)) invalid();
+    if (["battle.attack", "battle.dodged", "battle.critical_hit", "battle.damage", "battle.eliminated"].includes(event.type) &&
+        (!event.actorRunParticipantId || !event.targetRunParticipantId || event.actorRunParticipantId === event.targetRunParticipantId)) invalid();
     lastTick = event.tick;
     lastTime = event.simulatedTimeMs;
   }
@@ -145,16 +150,20 @@ function deriveFrame(timeline: ViewerTimeline, scene: VisualEntityInstance[], ra
   const progress = activeMoment ? (at - activeMoment.startMs) / activeMoment.durationMs : 0;
   const attack = activeMoment?.cues.find((cue) => cue.kind === "ATTACK");
   const defend = activeMoment?.cues.find((cue) => cue.kind === "DEFEND");
-  const focus = attack ?? defend;
+  const eliminate = activeMoment?.cues.find((cue) => cue.kind === "ELIMINATE");
+  const focus = attack ?? defend ?? eliminate;
   const actorEntity = scene.find((entity) => entity.id === focus?.actorId);
   const targetEntity = scene.find((entity) => entity.id === focus?.targetId);
-  const cameraX = actorEntity && targetEntity ? (actorEntity.x + targetEntity.x) / 2 : actorEntity?.x ?? 0.5;
-  const cameraY = actorEntity && targetEntity ? (actorEntity.y + targetEntity.y) / 2 : actorEntity?.y ?? 0.5;
+  const winnerEntity = completed ? scene.find((entity) => entity.id === result.winnerRunParticipantId) : null;
+  const cameraX = winnerEntity?.x ?? (actorEntity && targetEntity ? (actorEntity.x + targetEntity.x) / 2 : targetEntity?.x ?? actorEntity?.x ?? 0);
+  const cameraZ = winnerEntity?.z ?? (actorEntity && targetEntity ? (actorEntity.z + targetEntity.z) / 2 : targetEntity?.z ?? actorEntity?.z ?? 0);
   const impact = activeMoment?.cues.some((cue) => (cue.kind === "DAMAGE" || cue.kind === "CRITICAL") &&
     at >= cue.startMs && at < cue.startMs + 190) ?? false;
-  const focusStrength = focus && !reducedMotion ? Math.sin(Math.PI * Math.min(1, progress)) : 0;
+  const focusStrength = winnerEntity ? Math.min(1, Math.max(0, (at - (latest?.startMs ?? 0)) / 600))
+    : focus && !reducedMotion ? Math.sin(Math.PI * Math.min(1, progress)) : 0;
   return {
-    timeMs: at, reducedMotion, tick: activeMoment?.tick ?? (at >= timeline.durationMs ? result.totalTicks : 0),
+    timeMs: at, introMs: timeline.introMs, reducedMotion,
+    tick: activeMoment?.tick ?? (at >= timeline.durationMs ? result.totalTicks : 0),
     activeMoment, progress, participants, completed, timeout,
     caption: latest ? caption(latest, scene, result) : "Entering SIMVERSE Arena",
     winnerId: completed ? result.winnerRunParticipantId : null,
@@ -162,10 +171,10 @@ function deriveFrame(timeline: ViewerTimeline, scene: VisualEntityInstance[], ra
     rankingIds: completed ? result.ranking : [],
     completionReason: completed ? result.completionReason : null,
     camera: {
-      x: 0.5 + (cameraX - 0.5) * focusStrength * (scene.length > 2 ? 0.27 : 0.5),
-      y: 0.5 + (cameraY - 0.5) * focusStrength * 0.4,
-      zoom: 1 + focusStrength * (scene.length > 2 ? 0.07 : 0.15),
-      shake: impact && !reducedMotion ? Math.sin(at * 0.26) * 0.005 : 0,
+      x: cameraX * focusStrength * (scene.length > 2 ? 0.4 : 0.67),
+      z: cameraZ * focusStrength * 0.4,
+      zoom: 1 + focusStrength * (winnerEntity ? 0.26 : scene.length > 2 ? 0.1 : 0.18),
+      shake: impact && !reducedMotion ? Math.sin(at * 0.26) * 0.08 : 0,
     },
   };
 }

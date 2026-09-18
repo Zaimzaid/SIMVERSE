@@ -1,19 +1,32 @@
 import type { EngineEvent, ParticipantSnapshotV1 } from "@/lib/engine/schemas";
 
-export type VisualSource =
-  | { kind: "IMAGE"; url: string }
-  | { kind: "FALLBACK"; initials: string };
+/** The source vocabulary is shared with the future Visual Asset system. Phase 5 renders MODEL_3D and PROCEDURAL_3D. */
+export type VisualSourceType = "IMAGE" | "SPRITE" | "ANIMATED_SPRITE" | "MODEL_3D" | "PROCEDURAL_3D" | "CUSTOM";
+export type VisualArchetype = "HUMANOID" | "QUADRUPED" | "CREATURE" | "ROBOT" | "VEHICLE_GROUND" | "VEHICLE_AIR" | "VEHICLE_WATER" | "OBJECT" | "ABSTRACT" | "CUSTOM";
+export type AnimationState = "IDLE" | "WALK" | "RUN" | "ATTACK" | "DEFEND" | "DODGE" | "HIT" | "DEFEATED" | "VICTORY";
+export type AnimationProfile = Partial<Record<AnimationState, string>>;
+
+export interface EntityVisualProfile {
+  sourceType: "MODEL_3D" | "PROCEDURAL_3D";
+  modelUrl: string | null;
+  portraitUrl: string | null;
+  scale: number;
+  orientationDegrees: number;
+  archetype: VisualArchetype;
+  primaryColor: string;
+  secondaryColor: string;
+  animationProfile: AnimationProfile;
+}
 
 export interface VisualEntityInstance {
   id: string;
   name: string;
   shortName: string;
   category: string;
-  source: VisualSource;
-  primaryColor: string;
-  secondaryColor: string;
+  profile: EntityVisualProfile;
+  /** World coordinates on the arena floor; Y is vertical in the renderer. */
   x: number;
-  y: number;
+  z: number;
   facing: -1 | 1;
 }
 
@@ -53,6 +66,7 @@ export interface VisualParticipantState {
 
 export interface ViewerFrame {
   timeMs: number;
+  introMs: number;
   reducedMotion: boolean;
   tick: number;
   activeMoment: ViewerMoment | null;
@@ -65,7 +79,7 @@ export interface ViewerFrame {
   tiedIds: string[];
   rankingIds: string[];
   completionReason: string | null;
-  camera: { x: number; y: number; zoom: number; shake: number };
+  camera: { x: number; z: number; zoom: number; shake: number };
 }
 
 export interface ViewerInput {

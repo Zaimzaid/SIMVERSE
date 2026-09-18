@@ -4,266 +4,207 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Phase:** Phase 5 — **Real-Time 3D Viewer Foundation v1** is the next
-  implementation phase. This docs-only direction correction is awaiting review;
-  do not begin implementation from this document alone.
-- **Repository checkpoint:** clean `master` at `2421c2d` (`feat: add SIMVERSE
-  Visual Simulation Viewer v1`). Phase 4 Battle v1 is committed at `d9be027`.
-  The last recorded full test run at the checkpoint passed 190 tests in 15 files.
+- **Current work:** Phase 5 — Real-Time 3D Viewer Foundation v1, implemented in
+  the working tree for review. **Do not commit without approval.** Phase 6 has
+  not started.
+- **Committed checkpoint:** `25864f1` (`docs: establish SIMVERSE real-time 3D
+  visual direction`), following the earlier Viewer scaffold `2421c2d` and
+  Phase 4 Battle `d9be027`. The working tree was clean before this Phase 5 work.
 - **Last updated:** 2026-09-18.
-- **Commit status:** The earlier Canvas 2D viewer scaffold is committed. This
-  visual architecture correction is documentation-only and uncommitted.
-- **Execution boundary:** Battle remains the only production mechanics module.
-  The Viewer is downstream presentation of authoritative Core/Module outcomes.
-  Real-time 3D refers to browser rendering, not a claim of live Run streaming.
+- **Boundary:** Battle remains the only production mechanics module. The Viewer
+  animates completed, saved Core events and never decides or changes outcomes.
+  Real-time 3D means browser rendering, not live simulation streaming.
 
-## Official architecture
+## Official architecture and visual direction
 
-SIMVERSE is a simulation, creation and content platform, not a single game.
-Its five pillars are:
+SIMVERSE is a simulation, creation and content platform with five pillars:
 
 1. **PLATFORM:** Identity, Organizations, Workspaces, Memberships, Permissions,
-   Storage, Collaboration, AI Assistant, Marketplace, Billing, Audit/Governance.
-2. **CORE:** Entities, Simulation Definitions and Runs, State, Time/ticks,
-   seeded RNG, Actions, Rules foundation, Events, Results, Replay foundation.
-3. **SIMULATION MODULES:** reusable mechanics packages such as Battle, Racing,
-   Tournament, Survival, Economy, Agriculture, Sports and Civilization.
-4. **CREATOR / MEDIA PLATFORM:** Real-Time 3D Viewer, Visual Asset System,
-   Standard Animation System, Camera, Lighting, VFX and Sound presentation
-   systems, Asset Library, Animation Studio, Video Studio, Caption Studio,
-   Audio/Voice, Image/Graphics, Rendering, Export, Compression and content tools.
-5. **PRODUCTS:** Anything Wars, Robot Arena, Farm Empire, Civilization,
-   Sports Lab and future products.
+   Storage, Collaboration, AI Assistant, Marketplace, Billing and governance.
+2. **CORE:** Entities, Simulation Definitions/Runs, State, ticks/time, seeded RNG,
+   Actions, Rules foundation, Events, Results and Replay foundation.
+3. **SIMULATION MODULES:** reusable mechanics such as Battle, Racing, Tournament,
+   Survival, Economy, Agriculture, Sports and Civilization.
+4. **CREATOR / MEDIA PLATFORM:** Real-Time 3D Viewer, Visual Assets, Standard
+   Animation, Camera/Lighting/VFX/Sound presentation, Asset Library, Animation
+   Studio, Video Studio, rendering/export and content tools.
+5. **PRODUCTS:** Anything Wars, Robot Arena, Farm Empire, Civilization, Sports
+   Lab and future products.
 
 Creator/Media is not a Simulation Module. AI Assistant, Marketplace,
-Collaboration, Storage and Billing are Platform systems. Anything Wars is one
-Product, never Core itself. Animation Studio remains an official standalone
-Creator/Media capability; Phase 5 does not implement it. Future ownership is
-Account → Organization → Workspace → resources; no workspace migration yet.
-SIMVERSE's database remains primary; external cloud is backup/export/sync only.
+Collaboration, Storage and Billing are Platform systems. Anything Wars is a
+Product, not Core. Animation Studio remains a separate official creator system
+that must also support standalone work; it is not part of Phase 5. The owner's
+gaming references define a **quality class and presentation direction**, not
+assets to copy. Use original SIMVERSE branding and assets.
 
-## Official corrected visual direction
+The corrected target is premium, full-screen-capable, real-time browser **3D**
+simulation playback with spatial participants, movement, perspective camera,
+lighting/shadows, animation, VFX, sound, HUD and cinematic presentation. The
+earlier Canvas 2D/2.5D direction is superseded as the primary Viewer. A named
+Entity does not automatically imply an accurate production 3D model; Phase 5
+shows a deliberate 3D fallback when no such asset exists.
 
-The previous Canvas 2D / 2.5D Viewer direction is superseded as the primary
-destination. SIMVERSE's target is **premium real-time 3D, game-like simulation
-playback**: a full-screen-capable spatial scene with original environments,
-visible 3D entities, movement, a perspective camera, lighting and shadows,
-professional animation, VFX, sound, a premium HUD, and cinematic introductions
-and outcomes. Image and 2D representations remain useful fallbacks; they do not
-define the default premium experience. The owner's uploaded gaming images set
-the **quality class and presentation direction**, not assets to copy. Use
-original SIMVERSE branding, UI, environments, models, characters and logos;
-do not copy proprietary game assets or exact branded scenes.
+### Visual roadmap
 
-The intended journey is Create → Configure → Run & Watch → real-time 3D
-visualization of saved simulation truth → cinematic outcome → Replay → future
-Edit/Export. For Lion vs Tiger, the eventual scene should show 3D animals,
-positioning, movement, attacks, dodges, hit reactions, health, elimination and
-the true winner. Core and Battle still decide all outcomes; the Viewer only
-presents the persisted events/result.
-
-Entities have separate **simulation data** (attributes, metadata, behavior
-inputs) and **visual identity** (portrait/image fallback, 3D model, materials,
-scale, orientation, archetype, rig/skeleton, animation profile and later sound/
-VFX profiles). Planned archetypes are HUMANOID, QUADRUPED, CREATURE, ROBOT,
-VEHICLE_GROUND, VEHICLE_AIR, VEHICLE_WATER, OBJECT, ABSTRACT and CUSTOM. Phase 5
-needs model-loading and procedural 3D fallback foundations; Phase 6 formalizes
-asset assignment/import, archetypes, rigs, animation profiles, model validation
-and reusable standard animation sets. No automatic production-quality model
-generation from an Entity name is required in Phase 5.
-
-The reusable **Standard Animation System** must support clips, state machines,
-transitions, crossfades/blending, looping/non-looping states, interruption and
-completion rules, fallback animations and event-to-animation mapping. Its state
-vocabulary includes IDLE, WALK, RUN, TURN, ATTACK, DEFEND, DODGE, HIT/REACTION,
-DEFEATED/ELIMINATED, VICTORY and INTRO. Phase 5 establishes an animation-
-controller foundation; Phase 6 develops the formal asset and standard animation
-system. Crude transform-only motion is not the permanent architecture.
-
-Animation Studio remains a separate future professional creator tool. The
-Viewer automatically presents SimulationRun truth; Animation Studio lets a
-creator direct scenes, including standalone work unrelated to a Run. They may
-share models, rigs, clips, environments, camera primitives, VFX and audio.
-Neither system replaces Core or Simulation Modules.
-
-### Revised visual roadmap
-
-1. **Phase 5:** Real-Time 3D Viewer Foundation v1 — browser 3D renderer,
-   generic Viewer Core and adapters, Battle adapter, Watch/Run & Watch, original
-   SIMVERSE Arena, model-loading and procedural fallback foundations, animation
-   controller, camera, lighting, VFX and sound foundations, HUD, controls and
-   fullscreen.
+1. **Phase 5:** Real-Time 3D Viewer Foundation v1 (current review).
 2. **Phase 6:** Entity Visual Asset + Standard Animation System.
 3. **Phase 7:** 3D Environments / Worlds.
 4. **Phase 8:** Cinematic Camera + Lighting + VFX + Sound.
 5. **Phase 9:** Animation Studio / Video Studio preparation.
 
-Later work may include AI Director, advanced cinematic rendering, Animation
-Studio, Video Studio and the media export pipeline. This sequence supersedes
-any roadmap that defines Phase 5 primarily as a Canvas 2D Viewer.
+## Implemented Phase 5 design
 
-## Committed baseline before corrected Phase 5
+### Renderer and scene
 
-- **Phases 0–2:** Platform foundation, Entities, Projects and Simulation Builder.
-  READY means configuration validity, independent of execution support.
-- **Phase 3** (`5fd60ff`): immutable SimulationRun and participant snapshots,
-  Core actions/events/results, fixed 100 ms ticks, seeded RNG, module hooks,
-  atomic persistence, lifecycle, bounded execution, permissions, audit,
-  paginated events and generic Run detail.
-- **Phase 4** (`d9be027`): category and product agnostic Battle v1 (`battle`,
-  `battle-v1`) is the only registered execution module. Duel and free for all
-  consume frozen snapshot stats, apply seeded turn selection, attacks, dodge,
-  critical, defend, damage and elimination, then persist structured ordered
-  events and a ranked result. Team Battle remains configuration only. The
-  existing Core run services and endpoints are authoritative. The Phase 4 Run
-  detail retains metrics and the cursor-paged event feed. Its 184 tests passed.
-- **Earlier viewer scaffold** (`2421c2d`): a Canvas 2D replay, generic cue and
-  adapter concepts, Battle event mapping, Watch/Run & Watch routes, controls
-  and QA were committed before the visual direction was corrected. The code
-  remains in the repository as a functional baseline, not the accepted
-  premium/default Phase 5 destination. The new Phase 5 prompt will govern how
-  it is replaced or extended toward real browser 3D.
+- **One primary renderer: Three.js 0.186.0**, with `@types/three` 0.186.0.
+  Direct Three integration fits the existing React client playback clock and
+  one controlled requestAnimationFrame loop. `GLTFLoader`, `AnimationMixer`,
+  camera, shadows, materials and reusable scene primitives cover this phase;
+  the same asset/animation primitives can serve future Worlds and Animation
+  Studio. React Three Fiber would add a second render lifecycle around the
+  existing clock; Babylon would be a broader engine migration. Neither is
+  included. The old Canvas 2D renderer was removed.
+- `ThreeViewerRenderer` owns a WebGL renderer, scene, perspective camera,
+  resource lifecycle, model preloading, quality settings and drawing. The Watch
+  client loads it dynamically after authenticated events are fetched. An
+  unavailable WebGL context produces a safe replay error and preserves the
+  Results link.
+- `ViewerEnvironment` separates environment creation from the Battle adapter.
+  `simverseArena` supplies an original chamber floor, holographic rings,
+  beacons, a background horizon, fog, fill/key/rim/accent lights and shadows.
+  Duel spawns opposite; FFA uses deterministic radial world positions. Camera
+  framing is rule based: establishing, actor/target focus, FFA wide framing,
+  bounded impact shake and final winner focus. No random camera behavior.
+- The 3D motion layer translates saved cues into approach, strike, dodge, hit
+  recoil, guard, elimination and victory poses. It never uses collisions or
+  physics to decide damage. VFX rings and guard shell are reusable 3D scene
+  primitives, triggered only by saved cues. The HUD supplies semantic health,
+  category, current action, tick, result and final standings.
 
-## Existing Canvas 2D viewer scaffold — factual implementation record
+### Visual assets and animation
 
-This section records what `2421c2d` contains; it does not define the current
-Phase 5 target. The corrected 3D direction and roadmap above are authoritative.
+- `EntityVisualProfile` is derived only from the immutable Run participant
+  snapshot. `metadata.visualProfile` may contain `modelUrl`, `scale`,
+  `orientationDegrees`, `archetype` and `animationProfile`; snapshot image URL
+  remains a future portrait source. Phase 5 accepts same-origin root paths or
+  HTTPS `.gltf`/`.glb` model URLs. Invalid URLs become procedural 3D. No Entity
+  or Prisma schema was changed. Phase 6 owns managed import/assignment and
+  rigorous Visual Asset validation. The vocabulary anticipates IMAGE, SPRITE,
+  ANIMATED_SPRITE, MODEL_3D, PROCEDURAL_3D and CUSTOM; this renderer supports
+  MODEL_3D and PROCEDURAL_3D now.
+- `GLTFLoader` preloads each distinct URL once. Cloned scenes allow multiple
+  entities to share one asset while keeping independent animation controllers.
+  Missing, broken, invalid or timed-out models keep the 3D fallback and show a
+  warning without interrupting replay. Bounding-box normalization prevents
+  extreme imported sizes; profile scale and orientation are bounded. Geometry,
+  materials, textures, mixers and the WebGL context are disposed on unmount.
+- `AnimationController` maps semantic IDLE/WALK/RUN/ATTACK/DEFEND/DODGE/HIT/
+  DEFEATED/VICTORY states through explicit profile names or common clip aliases.
+  It uses Three `AnimationMixer` crossfades, loop/one-shot handling, interruption,
+  completion tracking and reset. A missing state clip uses an idle clip plus
+  procedural pose fallback. **Root motion contract:** model clips should be
+  authored in place; deterministic cue choreography drives world position.
+  Models use Three's Y-up, +Z-forward convention; profile orientation adjusts
+  imported forward direction. Phase 6 will formalize rigs, clips and profiles.
+- The original geometric Sentinel demo at
+  `public/models/simverse-sentinel.gltf` is project-authored, generated by
+  `scripts/generate-viewer-demo-model.mjs`. It has no external/copyrighted
+  source and includes idle, attack and victory clips. Its purpose is to prove
+  the model and clip pipeline, not to represent a real animal or finished
+  production character. Other entities use colored geometric/holographic 3D
+  stand-ins with name and category markers until actual assets are assigned.
 
-### Architecture and source of truth
+### Playback and security
 
-- `src/lib/viewer/` defines a generic `SimulationViewerAdapter`, normalized
-  `VisualEntityInstance`, `VisualSource`, `ViewerCue`, `ViewerMoment`,
-  `ViewerTimeline`, `ViewerFrame`, presentation clock and renderer boundary.
-  `ViewerAdapterRegistry` registers only `battle/battle-v1`. Unsupported module
-  versions show an honest unavailable message. The Viewer never imports Battle
-  mechanics or decides damage, dodge, elimination, winner or ranking.
-- The Battle adapter validates the versioned persisted event stream, participant
-  IDs, sequence/tick/time order, saved Battle result and final participant
-  health/elimination consistency. Invalid or unsupported history displays a
-  safe replay error without changing the Run. Events for one Core tick form one
-  visual moment; `attack → critical/dodge → damage → elimination → completion`
-  cues retain persisted order. Visual times are derived from ordered ticks;
-  simulated timestamps remain in cues. Seeking reconstructs visual state from
-  events. The browser clock only controls presentation at 0.5×, 1×, 1.5× or 2×.
-- `Canvas2DViewerRenderer` implements the replaceable `ViewerRenderer`
-  boundary. One requestAnimationFrame loop runs only during playback; React HUD
-  state updates at about 10 Hz or on a control action. Deterministic camera
-  focus, pan, fit, restrained zoom and bounded impact shake follow the active
-  event. No `Math.random`, database write or mechanics recalculation is used.
-- Frozen `RunParticipant` snapshots supply name, short name, category, image
-  URL and colors. HTTP(S) and allowed inline data images preload with a 3.5 s
-  timeout. Missing, unsupported or broken images use a colored initials avatar.
-  Later live Entity edits do not alter old Run visuals. `VisualSource` currently
-  supports IMAGE and FALLBACK; its type can grow to sprite/model sources later.
-- Duel entities face each other. FFA uses deterministic radial placement by
-  participant position. Both use an honestly generic SIMVERSE Arena, not a
-  fabricated World. A short intro can be skipped. The renderer visibly moves
-  attackers, dodges targets, shows guard, hit/critical feedback, damage numbers,
-  knockback, defeat and winner or time-limit presentation. Participant health
-  and final standings remain available as text, including completion reason.
+- Generic `SimulationViewerAdapter`, registry, Battle adapter, ordered
+  `ViewerTimeline` and `ViewerCue` remain separate from Battle mechanics. The
+  Battle adapter validates persisted event payloads, participant IDs, ordering
+  and exact final result/health before playback. Same-tick attack, dodge or
+  critical, damage and elimination are composed into one visual moment. Invalid
+  history shows a safe warning without changing the Run.
+- Existing Watch, Watch Replay and Run & Watch routes are reused. Run & Watch
+  creates and completes one authorized Core Run, then opens its Watch URL.
+  Watch Replay reads the saved Run without creating another. Event pages load
+  through the existing authorized cursor API. Run and event access remain
+  scoped by active workspace and `simulation.view`; Run creation still requires
+  `simulation.run`.
+- Play/pause, restart, 0.5×/1×/1.5×/2×, scrub, previous/next moment, intro
+  skip, fullscreen and keyboard controls are presentation only. `ViewerAudio`
+  provides original synthesized cues after a user gesture with mute/volume;
+  browser autoplay refusal leaves silent playback functional. Reduced-motion
+  preference suppresses camera shake and limits travel/tilt. AUTO/LOW/MEDIUM/
+  HIGH quality caps device pixel ratio and disables shadows on LOW. Responsive
+  HUD and textual event/result information remain usable without 3D motion.
 
-### Route, controls and security
+## Verification and QA
 
-- Authenticated `/simulations/[simulationId]/runs/[runId]/watch` loads a saved
-  Run through `getSimulationRun`, which enforces `simulation.view`, active
-  workspace and safe NotFound. The route also verifies the simulation ID and
-  requires a completed result. Client event pages use the existing authorized
-  `/api/simulation-runs/[runId]/events?after=&limit=100` API until the saved
-  event count is loaded. Refresh and Replay never create a Run. Loading and
-  route error states are explicit.
-- Completed Battle Run detail links to **Watch Replay**; the Viewer links to
-  **View Results**. READY Battle detail makes **Run & Watch** primary and keeps
-  **Run Battle** for nonvisual operation. A synchronous click guard permits one
-  create/start/advance flow through existing server APIs; navigation to Watch
-  happens only after completion. Errors retain a saved Run recovery link.
-- Controls: play/pause, restart, deterministic scrub/previous/next moment,
-  0.5×/1×/1.5×/2×, Skip Intro, fullscreen, keyboard Space/R/←/→/M, mute and
-  volume. Short original browser-synth tones start only after an audio gesture;
-  autoplay restrictions leave silent playback functional. The Viewer respects
-  reduced motion by minimizing entity travel/tilt and removing camera zoom/
-  shake; text, health and result do not depend on motion. RAF, image listeners/
-  timers, resize/keyboard/fullscreen
-  listeners and AudioContext are released on unmount.
+- Before Phase 5 edits: `npx vitest run` passed **190 tests in 15 files**.
+- Final direct `npx vitest run`: **193 passed in 16 files**, including all 190
+  baseline tests. `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`,
+  `npx next build` and `git diff --check` passed.
+- Viewer tests cover registry/version lookup, snapshot VisualProfile safety,
+  duel/FFA placement, real Battle event grouping/order/result reconstruction,
+  invalid history, motion, clock controls, actual glTF parsing and clip playback.
+- Isolated headless Chrome QA uses `phase5-qa.db` only; no development/test DB.
+  Lion/Tiger, Nigeria/Ghana, a loaded original Sentinel model versus a broken
+  model fallback, and four-participant FFA all displayed real WebGL 3D scenes.
+  The original model returned HTTP 200; the broken model returned 404 and
+  showed the 3D fallback. Updating the live Sentinel Entity after Run creation
+  did not change the historical model reference. Browser JavaScript errors:
+  none in the latest completed run.
+- QA checked 390, 768, 1024 and 1440 px and mobile landscape without horizontal
+  overflow; pause, restart and pointer-triggered fullscreen worked. Scrubbing
+  to a saved dodge showed its caption and spatial evade. A final FFA seek showed
+  the saved winner and standings. In a comparable 0.8 s browser interval,
+  2× reached 1,633 ms and 0.5× reached 412 ms of presentation time. A browser
+  click through Run & Watch created exactly one completed Run; replay reload
+  kept the count at one. Disposable QA files were removed. Headless software
+  rendering is not a reliable desktop FPS benchmark.
+- A foreign workspace's event API returned 404. The foreign Watch route showed
+  Next's 404 page and no Run identity; Next streamed the page shell with HTTP
+  200 before rendering that 404 UI. This status behavior is a known Next route
+  limitation to revisit if strict HTTP 404 on streamed pages becomes required.
 
-## Prior scaffold verification (2026-09-18)
+## Limits and next action
 
-- Direct `npx vitest run`: **190 passed, 15 files**. All 184 Phase 0–4 tests
-  remain. Six new tests cover the registry, snapshot visuals/fallback, duel/FFA
-  layout, real Battle event grouping, exact final health and ranking, timeout,
-  corrupt/out-of-order events, repeatable seek/reset and clock speed/pause.
-- `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx next build`
-  and `git diff --check`: passed. Production build generated the Watch route.
-- Authenticated headless Chrome QA used `npx next start` on port 3020 against
-  disposable `prisma/phase5-qa.db`, never `dev.db` or `test.db`. Lion vs Tiger
-  used illustrated inline image URLs and the specified 90/72/82/60/65 and
-  87/70/88/63/70 stats. Chrome clicked **Run & Watch**; exactly one Run was
-  created. Screenshots showed the intro, both historical images, attack lunge,
-  health drop, knockout and saved winner. Pause held position, Restart reset,
-  replay refresh created no Run, and changing the live Lion image did not
-  change the old Run snapshot. Nigeria/Ghana, Titan X/Thunder Beast, four
-  country FFA, a two-tick time-limit Run and a broken image URL all loaded;
-  the broken image displayed initials. FFA final winner and time-limit result
-  were visually inspected. Foreign workspace event API and Watch URL returned
-  safe 404. At 390, 768, 1024 and 1440 px plus 844×390 landscape, Chrome found
-  expected participant HUDs and no horizontal overflow. A separate isolated
-  Chrome check measured about 533/1050/2108 ms of timeline progress over about
-  1.05 s at 0.5×/1×/2×; event count and result remained unchanged. A real
-  pointer-triggered fullscreen entered successfully. QA images, scripts,
-  browser profiles and databases were removed after inspection.
+- Playback animates **completed saved history**; it is not live streamed.
+  Battle v1 is the only registered Viewer adapter. A real Lion/Tiger model must
+  be supplied as an asset; procedural 3D stand-ins do not claim to be zoological
+  models. No managed asset upload/preview, full world system, advanced rig
+  validation, AI Director, video export, public sharing or Animation Studio is
+  in Phase 5. The bounded Battle replay currently fetches all event pages
+  before playback; larger future Runs may need timeline windowing.
+- No new Battle or Race mechanics, Core simulation changes, Organization work,
+  schema changes, Animation Studio or Video Studio were introduced.
+- **Next:** review the uncommitted Phase 5 implementation. Commit only after
+  the owner's approval. Phase 6 starts only under a later prompt.
 
-## Files in committed viewer scaffold (`2421c2d`)
+## Working-tree files in this Phase 5 review checkpoint
 
-**Created:** `src/lib/viewer/{types,scene,clock,registry,battle-adapter,canvas-renderer}.ts`,
-`src/lib/viewer/viewer.test.ts`, `src/components/viewer/simulation-viewer.tsx`,
-`src/app/(platform)/simulations/[simulationId]/runs/[runId]/watch/{page,loading,error}.tsx`.
-
-**Modified:** `src/components/battle/battle-run-controls.tsx`,
-`src/app/(platform)/simulations/[simulationId]/runs/[runId]/page.tsx`, and this
-document at that checkpoint. No Prisma schema/migration change or dependency
-was added by the scaffold. The current visual correction changes only tracked
-documentation: `docs/CURRENT_STATUS.md`, `docs/vision/VISION.md` and
-`docs/vision/REFERENCE_INDEX.md`.
-
-## Known limits and next boundary
-
-- Playback completes server-side first, then animates saved history; it is not
-  live streaming. Images remain URL references in historical snapshots, so an
-  unavailable remote image falls back to initials. The committed Canvas view is
-  a scaffold; real-time browser 3D is the corrected Phase 5 objective. Public
-  sharing, full World scenes, video export and advanced cinematics are later
-  phases. Battle
-  remains the only supported Viewer adapter. Team Battle and Race, Tournament,
-  Survival, Economy, Agriculture, Sports and Civilization mechanics are not
-  implemented. No Battle mechanics were changed in the earlier scaffold.
-- Viewer timelines currently prefetch all authorized pages before playback;
-  this is suitable for Battle v1's 160-tick cap. Larger future histories may
-  need streaming/paged timeline windows. The simple synthesized audio is muted
-  by default; browsers can still restrict sound until a user gesture. Headless
-  Chrome blocked fullscreen activation from a programmatic DOM click but
-  accepted a real pointer event; the control catches browser rejection and
-  leaves normal playback working. Audio was not audibly evaluated by automation.
-- TypeScript 7 remains authoritative; typescript-eslint does not yet support
-  typed lint for it. The ignored local `AGENTS.md` is stale and must not be
-  force-added. This tracked document is the durable phase handoff.
+- **Created:** `src/lib/viewer/{animation-controller,audio,choreography,
+  environment,fallback-avatar,three-renderer}.ts`,
+  `src/lib/viewer/assets.test.ts`,
+  `public/models/simverse-sentinel.gltf`,
+  `scripts/generate-viewer-demo-model.mjs`.
+- **Modified:** `src/lib/viewer/{types,scene,battle-adapter,viewer.test}.ts`,
+  `src/components/viewer/simulation-viewer.tsx`, `package.json`,
+  `package-lock.json`, this document.
+- **Removed:** `src/lib/viewer/canvas-renderer.ts` (superseded 2D primary
+  renderer). No Prisma schema or migration changed. Disposable browser QA
+  files, profile and database have been removed.
 
 ```text
-LAST COMPLETED:
-  Phase 4 Battle Module v1 and earlier Canvas 2D viewer scaffold are committed.
-  The last recorded full run at 2421c2d passed 190 tests.
+LAST COMMITTED:
+  25864f1 docs: establish SIMVERSE real-time 3D visual direction
 
 CURRENTLY WORKING ON:
-  Docs-only correction of SIMVERSE's official visual direction, awaiting review.
+  Phase 5 Real-Time 3D Viewer Foundation v1, uncommitted review checkpoint.
 
-NOT YET COMPLETED:
-  This docs correction's review/commit; corrected Phase 5 Real-Time 3D Viewer
-  Foundation v1 implementation; Phase 6+ visual systems.
+NOT YET STARTED:
+  Phase 6 Visual Assets/Standard Animation system, Phase 7 Worlds,
+  Phase 8 advanced cinematics, Phase 9 Animation/Video Studio preparation.
 
-NEXT STEP:
-  Review/approve this docs-only correction, then commit it only with explicit
-  approval. Await the full corrected Phase 5 implementation prompt.
-
-DO NOT:
-  Commit automatically or begin corrected Phase 5 from this correction alone.
-  Do not implement Phase 6, Race mechanics, Animation Studio, Video Studio,
-  Organizations or product-specific mechanics now.
+NEXT ACTION:
+  Report changed files and limitations, stop for review. Do not commit.
 ```
