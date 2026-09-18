@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarClock, Users } from "lucide-react";
+import { ArrowLeft, CalendarClock, Play, Users } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { formatRelativeTime } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BattleRunControls } from "@/components/battle/battle-run-controls";
 import { BattleRunSummary, battleEventDescription } from "@/components/battle/battle-run-summary";
+import { buttonClasses } from "@/components/ui/button";
 
 interface PageProps {
   params: Promise<{ simulationId: string; runId: string }>;
@@ -69,6 +70,12 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
 
       {battleV1 && activeStatus && permissions.includes("simulation.run") ? (
         <BattleRunControls simulationId={simulationId} runId={run.id} status={activeStatus} />
+      ) : null}
+
+      {battleV1 && run.status === "COMPLETED" ? (
+        <Link href={`/simulations/${simulationId}/runs/${run.id}/watch`} className={buttonClasses({ size: "lg" })}>
+          <Play className="size-4" aria-hidden />Watch Replay
+        </Link>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">

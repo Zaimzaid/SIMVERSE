@@ -4,21 +4,20 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Phase:** Phase 4 — Battle Module v1 implemented and verified; uncommitted,
-  awaiting review. Do not begin Phase 5.
-- **Baseline:** clean `master` at `5fd60ff` (`feat: complete SIMVERSE Phase 3 core
-  simulation engine`). Direct baseline `npx vitest run` passed 167 tests.
+- **Phase:** Phase 5 — Visual Simulation Viewer v1 implemented and verified;
+  uncommitted, awaiting review. Do not begin Phase 6.
+- **Baseline:** clean `master` at `d9be027` (`feat: add SIMVERSE Battle Module
+  v1`); direct baseline `npx vitest run` passed 184 tests in 14 files.
 - **Last updated:** 2026-09-18.
-- **Commit status:** No Phase 4 staging or commit. Recommended message:
-  `feat: add SIMVERSE Battle Module v1`.
-- **Execution boundary:** Battle is the only production registered mechanics
-  module. Race, Tournament and Survival remain configuration choices without
-  execution. The Module Registry and server permissions authorize runs.
+- **Commit status:** Phase 5 is not staged or committed. Recommended message:
+  `feat: add SIMVERSE Visual Simulation Viewer v1`.
+- **Execution boundary:** Battle remains the only production mechanics module.
+  The Viewer is downstream presentation of completed, persisted Runs.
 
-## Official architecture and standing constraints
+## Official architecture
 
-SIMVERSE is a simulation, creation and content platform, not a single game. Its
-five pillars are:
+SIMVERSE is a simulation, creation and content platform, not a single game.
+Its five pillars are:
 
 1. **PLATFORM:** Identity, Organizations, Workspaces, Memberships, Permissions,
    Storage, Collaboration, AI Assistant, Marketplace, Billing, Audit/Governance.
@@ -34,180 +33,157 @@ five pillars are:
 
 Creator/Media is not a Simulation Module. AI Assistant, Marketplace,
 Collaboration, Storage and Billing are Platform systems. Anything Wars is one
-Product, never Core itself. Animation Studio is an official, standalone capable
-Creator/Media capability; Phase 4 implements none of it. Future ownership is
-Account → Organization → Workspace → resources; do not migrate workspace data
-yet. SIMVERSE's DB is primary; external cloud is backup/export/sync only.
+Product, never Core itself. Animation Studio remains an official standalone
+Creator/Media capability; Phase 5 does not implement it. Future ownership is
+Account → Organization → Workspace → resources; no workspace migration yet.
+SIMVERSE's database remains primary; external cloud is backup/export/sync only.
 
-## Completed before Phase 4
+## Completed before Phase 5
 
-- Phases 0–2 built Platform, Entities, Projects and the Simulation Builder.
-  READY means configuration is valid, independent of module execution support.
-- Phase 3 commit `5fd60ff` built immutable SimulationRun snapshots, run
-  participants/actions/events, versioned Core state/results, fixed 100 ms ticks,
-  seeded `mulberry32-v1` RNG, module hooks/registry, atomic tick persistence,
-  lifecycle, bounded headless execution, workspace authorization, audit and
-  generic run API/detail. `prisma/schema.prisma` was applied through `db push`.
-  Its 167 tests passed at the Phase 4 baseline. No Phase 4 schema change.
-- The Phase 3 deterministic numeric module remains test-only. Production did
-  not execute any mode until Battle v1 was registered in Phase 4.
+- **Phases 0–2:** Platform foundation, Entities, Projects and Simulation Builder.
+  READY means configuration validity, independent of execution support.
+- **Phase 3** (`5fd60ff`): immutable SimulationRun and participant snapshots,
+  Core actions/events/results, fixed 100 ms ticks, seeded RNG, module hooks,
+  atomic persistence, lifecycle, bounded execution, permissions, audit,
+  paginated events and generic Run detail.
+- **Phase 4** (`d9be027`): category and product agnostic Battle v1 (`battle`,
+  `battle-v1`) is the only registered execution module. Duel and free for all
+  consume frozen snapshot stats, apply seeded turn selection, attacks, dodge,
+  critical, defend, damage and elimination, then persist structured ordered
+  events and a ranked result. Team Battle remains configuration only. The
+  existing Core run services and endpoints are authoritative. The Phase 4 Run
+  detail retains metrics and the cursor-paged event feed. Its 184 tests passed.
 
-## Phase 4 — Battle Module v1
+## Phase 5 — Visual Simulation Viewer v1
 
-### Mechanics and versions
+### Architecture and source of truth
 
-- `src/lib/modules/battle/` owns a category and product agnostic module with
-  ID `battle`, module version `battle-v1`, execution config version 1, module
-  state version 1 and module result version 1. The production registry registers
-  only Battle. Core still owns RNG, tick/order envelopes, lifecycle,
-  persistence, snapshots, permissions and the generic result envelope.
-- Existing Phase 2 Battle config is interpreted without migration. `duel`
-  requires exactly two participants; `free_for_all` requires at least two.
-  `team` remains saveable as configuration but returns a typed, safe validation
-  error on execution because team relationships are not yet modeled. Creation
-  validates READY, mode, snapshot, version, format and cardinality server-side.
-- Stat resolver reads frozen Entity attribute **keys** (`strength`, `defense`,
-  `speed`, `intelligence`, `luck`) from the Run snapshot. Missing stats default
-  to 50; valid numeric values are rounded and clamped to 0–100. Duplicate,
-  nonnumeric and wrong-type standard attributes reject execution. No live
-  Entity read or mutation occurs during execution.
-- Each participant starts at 100/100 health. Module state stores the resolved
-  profile, health/alive/defending flags, elimination tick, ordered turn queue,
-  round, completion reason and counters for damage dealt/received, attacks
-  attempted/landed, critical hits, dodges and defends. Only one actor takes an
-  action per Core tick; at most one elimination can happen in a tick. Eliminated
-  participants are removed from the queue and never act again.
-- Initiative each round is Speed + seeded integer jitter 0–10, descending;
-  participant position breaks ties. Rule-driven action selection may defend;
-  the chance is `0.015 + 0.0005 × Intelligence`, or
-  `0.12 + 0.002 × Intelligence` at 40 health or less. Otherwise the actor
-  attacks. In FFA, living target score weights missing health by
-  `0.15 + Intelligence/250`, plus target damage threat × 0.1 and seeded jitter
-  0–10; position breaks ties. A guard costs the action and halves one landed
-  hit, then ends; it also expires at the defender's next action.
-- Attack base damage is `round(5 + 0.18 × Strength + 0.04 × Intelligence −
-  0.08 × target Defense + seeded jitter [-2,2])`, clamped to 2–28. Dodge chance
-  is `clamp(0.04 + 0.0015 × (defender Speed − attacker Speed) + 0.0004 ×
-  defender Luck, 0.02, 0.22)`. Critical chance is
-  `clamp(0.03 + 0.001 × attacker Luck + 0.00025 × attacker Intelligence,
-  0.03, 0.16)`; a critical multiplies damage by 1.5, at most 40 before guard.
-  Three seeded RNG rolls are consumed per attack, including dodges. Health
-  never falls below zero. Core's RNG is the only randomness source.
-- `battle.attack` and `battle.defend` are versioned module actions. Structured
-  versioned events are `battle.started`, `battle.attack`, `battle.defend`,
-  `battle.dodged`, `battle.critical_hit`, `battle.damage`, `battle.eliminated`,
-  `battle.timeout` and `battle.completed`. Actor/target Run participant IDs,
-  tick, simulated time, ordered sequence and numeric outcomes are persisted.
-  Display text is generated from event data; AuditLog remains distinct.
-- A knockout ends at one survivor. The configured `roundLimit` is interpreted
-  as a tick cap; blank uses 120 and any value above 160 is capped at 160. On
-  timeout, completion reason is `TIME_LIMIT`, never a knockout claim. Timeout
-  living participants rank by remaining health, then damage dealt, then stable
-  position; eliminated participants follow in reverse elimination order. A
-  knockout ranks survivor first, then reverse elimination order. If ties are
-  allowed and top living health/damage are equal, the result records their IDs
-  as a tie. The result includes format, reason, winner/ties, ranking,
-  elimination order, ticks, simulated duration and frozen participant metrics.
+- `src/lib/viewer/` defines a generic `SimulationViewerAdapter`, normalized
+  `VisualEntityInstance`, `VisualSource`, `ViewerCue`, `ViewerMoment`,
+  `ViewerTimeline`, `ViewerFrame`, presentation clock and renderer boundary.
+  `ViewerAdapterRegistry` registers only `battle/battle-v1`. Unsupported module
+  versions show an honest unavailable message. The Viewer never imports Battle
+  mechanics or decides damage, dodge, elimination, winner or ranking.
+- The Battle adapter validates the versioned persisted event stream, participant
+  IDs, sequence/tick/time order, saved Battle result and final participant
+  health/elimination consistency. Invalid or unsupported history displays a
+  safe replay error without changing the Run. Events for one Core tick form one
+  visual moment; `attack → critical/dodge → damage → elimination → completion`
+  cues retain persisted order. Visual times are derived from ordered ticks;
+  simulated timestamps remain in cues. Seeking reconstructs visual state from
+  events. The browser clock only controls presentation at 0.5×, 1×, 1.5× or 2×.
+- `Canvas2DViewerRenderer` implements the replaceable `ViewerRenderer`
+  boundary. One requestAnimationFrame loop runs only during playback; React HUD
+  state updates at about 10 Hz or on a control action. Deterministic camera
+  focus, pan, fit, restrained zoom and bounded impact shake follow the active
+  event. No `Math.random`, database write or mechanics recalculation is used.
+- Frozen `RunParticipant` snapshots supply name, short name, category, image
+  URL and colors. HTTP(S) and allowed inline data images preload with a 3.5 s
+  timeout. Missing, unsupported or broken images use a colored initials avatar.
+  Later live Entity edits do not alter old Run visuals. `VisualSource` currently
+  supports IMAGE and FALLBACK; its type can grow to sprite/model sources later.
+- Duel entities face each other. FFA uses deterministic radial placement by
+  participant position. Both use an honestly generic SIMVERSE Arena, not a
+  fabricated World. A short intro can be skipped. The renderer visibly moves
+  attackers, dodges targets, shows guard, hit/critical feedback, damage numbers,
+  knockback, defeat and winner or time-limit presentation. Participant health
+  and final standings remain available as text, including completion reason.
 
-### Services and UI
+### Route, controls and security
 
-- Phase 3 create/start/advance/pause/resume services and APIs are reused. The
-  create service maps Battle input errors to safe `ValidationError`s; all
-  persisted state/events/results continue through Core. Run creation requires
-  `simulation.run`, reads require `simulation.view`, and foreign workspace IDs
-  remain hidden. Audit logs cover creation, lifecycle and completion.
-- A READY Battle detail shows **Run Battle** only for duel/FFA configurations
-  that meet cardinality and for roles with `simulation.run`. The button creates
-  a Run, starts it and advances through bounded batches of 40 ticks (at most
-  four batches for the 160-tick cap), then opens Run detail. Existing CREATED,
-  RUNNING and PAUSED runs can start/continue/resume there; RUNNING can pause.
-  If a request fails after creation, the saved Run remains available in history.
-- Battle Run detail shows result or current progress, knockout winner or honest
-  timeout/tie, ranking, health, damage/hit/critical/dodge/defend counters and a
-  readable cursor-paged event feed generated from structured events. Existing
-  generic historical Run detail remains available for other module IDs.
-- The Mode Catalog now labels configuration and execution separately: Battle
-  available/available; Race, Tournament and Survival available/future. This is
-  presentation metadata only; the server registry is authoritative. Builder
-  copy explains Battle seed, format and tick limit behavior and marks team
-  execution as future. No separate Battle engine or new run storage was added.
+- Authenticated `/simulations/[simulationId]/runs/[runId]/watch` loads a saved
+  Run through `getSimulationRun`, which enforces `simulation.view`, active
+  workspace and safe NotFound. The route also verifies the simulation ID and
+  requires a completed result. Client event pages use the existing authorized
+  `/api/simulation-runs/[runId]/events?after=&limit=100` API until the saved
+  event count is loaded. Refresh and Replay never create a Run. Loading and
+  route error states are explicit.
+- Completed Battle Run detail links to **Watch Replay**; the Viewer links to
+  **View Results**. READY Battle detail makes **Run & Watch** primary and keeps
+  **Run Battle** for nonvisual operation. A synchronous click guard permits one
+  create/start/advance flow through existing server APIs; navigation to Watch
+  happens only after completion. Errors retain a saved Run recovery link.
+- Controls: play/pause, restart, deterministic scrub/previous/next moment,
+  0.5×/1×/1.5×/2×, Skip Intro, fullscreen, keyboard Space/R/←/→/M, mute and
+  volume. Short original browser-synth tones start only after an audio gesture;
+  autoplay restrictions leave silent playback functional. The Viewer respects
+  reduced motion by minimizing entity travel/tilt and removing camera zoom/
+  shake; text, health and result do not depend on motion. RAF, image listeners/
+  timers, resize/keyboard/fullscreen
+  listeners and AudioContext are released on unmount.
 
 ## Verification (2026-09-18)
 
-- `npx vitest run`: **184 passed, 14 files** directly from normal repository
-  state. All 167 Phase 0–3 baseline tests remain. New pure tests cover stat
-  defaults/clamping/rejection, duel/FFA, team/cardinality rejection,
-  initiative, target/action choices, stat influence, bounded damage, guard,
-  dodge, critical, knockout/elimination, timeout/tie, same/different seed,
-  invalid target/state and registry. New database tests cover real Battle
-  persistence, frozen source edits/deletion, FFA, audit, deletion protection,
-  pause/resume, permissions and workspace isolation. Vitest uses only its
-  automatically prepared isolated `test.db`.
+- Direct `npx vitest run`: **190 passed, 15 files**. All 184 Phase 0–4 tests
+  remain. Six new tests cover the registry, snapshot visuals/fallback, duel/FFA
+  layout, real Battle event grouping, exact final health and ranking, timeout,
+  corrupt/out-of-order events, repeatable seek/reset and clock speed/pause.
 - `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx next build`
-  and `git diff --check`: exit 0. Production Turbopack build generated routes.
-- Manual browser QA used Next dev/Turbopack on port 3020 with a **disposable
-  `phase4-qa.db`**, never `dev.db` or `test.db`. Authenticated headless Chrome
-  clicked Run Battle for Nigeria/Ghana (14 ticks, 30 events, Nigeria knockout),
-  Atlas Robot/Ember Mage (14 ticks, Atlas knockout) and mixed 3-way FFA
-  (19 ticks, three ranked, Nigeria knockout). A second country run with the
-  same seed and source state matched after mapping distinct generated Run
-  participant IDs by position. Team detail showed its unsupported message and
-  no run button. Race detail had no run button; server creation returned 409.
-  Battle result and events were visible. At 390 px mobile width, document width
-  was 390 px, result/events remained present, and Chrome reported no page
-  exceptions. The disposable QA database, script and screenshot were removed
-  after inspection.
+  and `git diff --check`: passed. Production build generated the Watch route.
+- Authenticated headless Chrome QA used `npx next start` on port 3020 against
+  disposable `prisma/phase5-qa.db`, never `dev.db` or `test.db`. Lion vs Tiger
+  used illustrated inline image URLs and the specified 90/72/82/60/65 and
+  87/70/88/63/70 stats. Chrome clicked **Run & Watch**; exactly one Run was
+  created. Screenshots showed the intro, both historical images, attack lunge,
+  health drop, knockout and saved winner. Pause held position, Restart reset,
+  replay refresh created no Run, and changing the live Lion image did not
+  change the old Run snapshot. Nigeria/Ghana, Titan X/Thunder Beast, four
+  country FFA, a two-tick time-limit Run and a broken image URL all loaded;
+  the broken image displayed initials. FFA final winner and time-limit result
+  were visually inspected. Foreign workspace event API and Watch URL returned
+  safe 404. At 390, 768, 1024 and 1440 px plus 844×390 landscape, Chrome found
+  expected participant HUDs and no horizontal overflow. A separate isolated
+  Chrome check measured about 533/1050/2108 ms of timeline progress over about
+  1.05 s at 0.5×/1×/2×; event count and result remained unchanged. A real
+  pointer-triggered fullscreen entered successfully. QA images, scripts,
+  browser profiles and databases were removed after inspection.
 
-## Files in this uncommitted Phase 4 change
+## Changed files in the uncommitted Phase 5 change
 
-**Created:** `src/lib/modules/battle/{config,stats,schemas,rules,battle-module}.ts`,
-`src/lib/modules/battle/battle-module.test.ts`,
-`src/server/services/battle-run-service.test.ts`,
-`src/components/battle/{battle-run-controls,battle-run-summary}.tsx`.
+**Created:** `src/lib/viewer/{types,scene,clock,registry,battle-adapter,canvas-renderer}.ts`,
+`src/lib/viewer/viewer.test.ts`, `src/components/viewer/simulation-viewer.tsx`,
+`src/app/(platform)/simulations/[simulationId]/runs/[runId]/watch/{page,loading,error}.tsx`.
 
-**Modified:** `src/lib/engine/{module,registry}.ts`,
-`src/server/services/{simulation-run-service,simulation-run-service.test}.ts`,
-`src/lib/simulations/{config,modes}.ts`,
-`src/components/simulations/{entity-picker,mode-card,simulation-builder}.tsx`,
-`src/app/(platform)/simulations/[simulationId]/page.tsx`,
-`src/app/(platform)/simulations/[simulationId]/runs/[runId]/page.tsx`,
-and this document. No Prisma schema/migration changes.
-
-The ignored local `AGENTS.md` may still describe Phase 2/3; do not force-add
-it. This tracked document is the durable phase handoff.
+**Modified:** `src/components/battle/battle-run-controls.tsx`,
+`src/app/(platform)/simulations/[simulationId]/runs/[runId]/page.tsx`, and this
+document. No Prisma schema/migration change and no dependency added.
 
 ## Known limits and next boundary
 
-- Team Battle has no execution semantics. Very large FFA fights may reach the
-  160-tick cap before every participant acts; the timeout result is explicit.
-  Battle v1 has no equipment, human tactical controls, queues, full replay UI,
-  tournament integration or cinematic visualization. The generic settings
-  `speed`, `difficulty` and `randomEvents` do not modify Battle v1 mechanics.
-- Race, Tournament, Survival, Economy, Agriculture, Sports and Civilization
-  mechanics remain future work. No Viewer, AI commentary/Director,
-  Creator/Media, Organization, Marketplace or Anything Wars product code was
-  added. TypeScript 7 is authoritative; typescript-eslint does not yet support
-  typed lint for it.
-- **Next action:** review this complete uncommitted Phase 4 diff and its QA
-  evidence. If approved, commit a Phase 4 checkpoint. Do not start the next
-  phase until separately authorized.
+- Playback completes server-side first, then animates saved history; it is not
+  live streaming. Images remain URL references in historical snapshots, so an
+  unavailable remote image falls back to initials. Video export, public
+  sharing, 3D, World scenes and advanced cinematics remain future work. Battle
+  remains the only supported Viewer adapter. Team Battle and Race, Tournament,
+  Survival, Economy, Agriculture, Sports and Civilization mechanics are not
+  implemented. No Battle mechanics were changed for Phase 5.
+- Viewer timelines currently prefetch all authorized pages before playback;
+  this is suitable for Battle v1's 160-tick cap. Larger future histories may
+  need streaming/paged timeline windows. The simple synthesized audio is muted
+  by default; browsers can still restrict sound until a user gesture. Headless
+  Chrome blocked fullscreen activation from a programmatic DOM click but
+  accepted a real pointer event; the control catches browser rejection and
+  leaves normal playback working. Audio was not audibly evaluated by automation.
+- TypeScript 7 remains authoritative; typescript-eslint does not yet support
+  typed lint for it. The ignored local `AGENTS.md` is stale and must not be
+  force-added. This tracked document is the durable phase handoff.
 
 ```text
 LAST COMPLETED:
-  Phase 4 Battle Module v1 and automated/browser verification.
-  184 tests pass; all 167 Phase 0–3 baseline tests remain.
+  Phase 5 Visual Simulation Viewer v1 implementation and automated/browser QA.
+  190 tests pass; all 184 Phase 0–4 baseline tests remain.
 
 CURRENTLY WORKING ON:
-  None. Awaiting review of the complete uncommitted Phase 4 change.
+  None. Awaiting review of the complete uncommitted Phase 5 change.
 
 NOT YET COMPLETED:
-  Phase 4 review and commit. All other mechanics modules and downstream systems.
+  Phase 5 review and commit. Phase 6 and all future mechanics/media systems.
 
 NEXT STEP:
-  Review uncommitted Phase 4 diff; await explicit approval before commit or
-  next-phase implementation.
+  Review the uncommitted Phase 5 diff and QA evidence. Commit only after
+  explicit approval; do not start Phase 6 without separate authorization.
 
 DO NOT:
-  Commit automatically. Do not implement Phase 5, Viewer, Race, Tournament,
-  Survival, Creator/Media, Organizations or product-specific mechanics now.
+  Commit automatically. Do not implement Phase 6, Race mechanics, Animation
+  Studio, Video Studio, Organizations or product-specific mechanics now.
 ```

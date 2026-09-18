@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pause, Play, Swords } from "lucide-react";
@@ -22,6 +22,7 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [recoveryRunId, setRecoveryRunId] = useState<string | null>(null);
+  const busyRef = useRef(false);
 
   async function post(path: string, body?: object): Promise<RunResponse> {
     const result = await apiFetch<RunResponse>(path, { method: "POST", body: JSON.stringify(body ?? {}) });
@@ -30,8 +31,9 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
     return result.data;
   }
 
-  async function execute() {
-    if (busy) return;
+  async function execute(watch: boolean) {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     setMessage("");
     setRecoveryRunId(null);
@@ -57,7 +59,7 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
         currentStatus = advanced.run.status;
       }
       if (activeRunId) {
-        router.push(`/simulations/${simulationId}/runs/${activeRunId}`);
+        router.push(`/simulations/${simulationId}/runs/${activeRunId}${watch && currentStatus === "COMPLETED" ? "/watch" : ""}`);
         router.refresh();
       }
       if (currentStatus === "RUNNING") setMessage("Battle is still running. Open the run to continue.");
@@ -70,6 +72,7 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
       router.refresh();
     } finally {
       setBusy(false);
+      busyRef.current = false;
     }
   }
 
@@ -87,14 +90,17 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
     }
   }
 
-  const label = !runId ? "Run Battle" : status === "CREATED" ? "Start Battle"
-    : status === "PAUSED" ? "Resume Battle" : "Continue Battle";
+  const label = !runId ? "Run & Watch" : status === "CREATED" ? "Start & Watch"
+    : status === "PAUSED" ? "Resume & Watch" : "Continue & Watch";
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Button onClick={execute} loading={busy} disabled={busy || Boolean(recoveryRunId && !runId)}>
+      <Button onClick={() => void execute(true)} loading={busy} disabled={busy || Boolean(recoveryRunId && !runId)}>
         {runId ? <Play className="size-4" aria-hidden /> : <Swords className="size-4" aria-hidden />}
         {label}
       </Button>
+      {!runId ? <Button variant="secondary" onClick={() => void execute(false)} disabled={busy || Boolean(recoveryRunId)}>
+        Run Battle
+      </Button> : null}
       {runId && status === "RUNNING" ? (
         <Button variant="secondary" onClick={pause} disabled={busy}>
           <Pause className="size-4" aria-hidden />Pause
