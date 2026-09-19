@@ -1,9 +1,9 @@
 # SIMVERSE Runtime Protocol
 
-> **Status:** Phase 6.5 conceptual protocol. No endpoint, schema package or
-> runtime implementation exists yet. Phase 7A must turn this design into a
-> reviewed versioned schema and conformance fixtures before an engine depends on
-> it.
+> **Status:** Phase 7A-A Platform implementation. Runtime Protocol v1 now has a
+> canonical Zod validator/builder, generated JSON Schema, and three checked-in
+> conformance fixtures. No public runtime endpoint or Unreal implementation
+> exists yet.
 
 ## 1. Purpose
 
@@ -53,129 +53,120 @@ Runs are bounded and existing Core data is JSON-shaped. A later binary encoding
 may be added behind the same semantic schema if size/profile evidence justifies
 it. Compression is a transport concern, not a protocol fork.
 
-## 4. Conceptual `SimulationRuntimePackage`
+## 4. Implemented `SimulationRuntimePackageV1`
+
+The authoritative implementation is
+[`src/lib/runtime-protocol/v1.ts`](../../src/lib/runtime-protocol/v1.ts). Generated
+engine-neutral artifacts live under
+[`protocol/runtime/v1/`](../../protocol/runtime/v1/). The transport shape is:
 
 ```json
 {
-  "protocol": {
-    "name": "simverse.runtime",
-    "major": 1,
-    "minor": 0
-  },
-  "packageId": "pkg_...",
-  "generatedAt": "2026-09-19T12:00:00Z",
+  "packageType": "SimulationRuntimePackageV1",
+  "protocolVersion": "1.0.0",
   "run": {
-    "id": "run_...",
+    "runId": "run_...",
     "simulationId": "sim_...",
+    "simulationName": "Lion vs Tiger",
     "status": "COMPLETED",
-    "module": { "id": "battle", "version": "battle-v1" },
-    "snapshotVersion": 1,
-    "seedMetadata": {
-      "resolvedSeed": "SV-ABCD2345",
-      "rngAlgorithmId": "core/battle-v1"
-    },
-    "tickRate": { "numerator": 1, "denominator": 1 },
+    "mode": "battle",
+    "createdAt": "...",
     "startedAt": "...",
-    "completedAt": "..."
+    "completedAt": "...",
+    "fixedStepMs": 100,
+    "totalTicks": 10,
+    "simulatedDurationMs": 1000
+  },
+  "module": { "id": "battle", "version": "battle-v1" },
+  "versions": {
+    "coreEngine": "core-v0.1",
+    "rngAlgorithm": "mulberry32-v1",
+    "inputSnapshot": 1,
+    "resultEnvelope": 1
+  },
+  "seedProvenance": {
+    "resolvedSeed": "SV-ABCD2345",
+    "source": "RUN_INPUT_SNAPSHOT"
   },
   "participants": [
     {
       "runParticipantId": "rp_...",
       "sourceEntityId": "entity_...",
       "position": 0,
+      "role": "primary",
       "identity": {
-        "name": "Lion",
+        "displayName": "Lion",
         "shortName": "Lion",
-        "portrait": { "uri": "https://...", "hash": "sha256:..." },
+        "category": "animal",
+        "imageReference": "https://...",
         "primaryColor": "#D8A33F",
         "secondaryColor": "#4A2F1B"
       },
       "visual": {
-        "profileVersion": 1,
+        "snapshotVersion": 1,
         "profileRevision": 4,
+        "sourceType": "MODEL_3D",
         "archetype": "QUADRUPED",
-        "asset": {
-          "assetId": "asset_...",
-          "version": "12",
-          "manifestUri": "https://...",
-          "contentHash": "sha256:..."
-        },
+        "portraitReference": "https://...",
+        "modelReference": "/models/lion.glb",
         "transform": {
           "scale": 1,
-          "rotationDegrees": [0, 90, 0],
-          "offsetMeters": [0, 0, 0]
+          "rotationDegrees": { "x": 0, "y": 90, "z": 0 },
+          "offsetMeters": { "x": 0, "y": 0, "z": 0 }
         },
-        "animationProfile": {
-          "profileId": "anim_...",
-          "version": "3",
-          "bindings": {
-            "IDLE": "Idle",
-            "RUN": "Run",
-            "ATTACK_PRIMARY": "Bite",
-            "HIT_LIGHT": "Hit",
-            "DEFEATED": "Defeat",
-            "VICTORY": "Roar"
-          }
+        "animationMapping": {
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "ATTACK_PRIMARY": "Bite"
         }
-      },
-      "simulation": {
-        "role": "primary",
-        "attributes": [],
-        "tags": [],
-        "overrides": {}
       }
     }
   ],
-  "world": {
-    "worldId": "world_savannah",
-    "version": "5",
-    "manifestUri": "https://...",
-    "contentHash": "sha256:...",
-    "spawnSet": "battle_duel_v1",
-    "environmentPreset": "late_afternoon_clear"
-  },
+  "world": null,
   "events": [
     {
-      "sequence": 1,
       "eventId": "event_...",
+      "sequence": 1,
       "tick": 1,
+      "simulatedTimeMs": 100,
       "type": "battle.attack",
-      "schemaVersion": 1,
       "actorRunParticipantId": "rp_lion",
       "targetRunParticipantId": "rp_tiger",
+      "payloadVersion": 1,
       "payload": {
-        "attackKind": "primary",
-        "critical": false
+        "baseDamage": 20,
+        "critical": false,
+        "dodged": false,
+        "guarded": false,
+        "finalDamage": 20,
+        "targetHealthBefore": 100,
+        "targetHealthAfter": 80
       }
     }
   ],
   "result": {
-    "schemaVersion": 1,
-    "status": "COMPLETED",
-    "winnerRunParticipantId": "rp_lion",
-    "rankings": [],
-    "modulePayload": {}
+    "envelopeVersion": 1,
+    "type": "battle.result",
+    "summary": "Lion wins by elimination.",
+    "metrics": {},
+    "payloadVersion": 1,
+    "payload": { "version": 1, "format": "duel" }
   },
   "presentation": {
     "profileVersion": 1,
-    "title": "Lion vs Tiger",
-    "qualityHint": "HIGH",
-    "cameraProfile": "battle_duel_cinematic_v1",
-    "audioProfile": "savannah_battle_v1",
-    "locale": "en"
-  },
-  "integrity": {
-    "algorithm": "sha256",
-    "packageHash": "sha256:..."
+    "displayTitle": "Lion vs Tiger",
+    "themeColor": null,
+    "showLabels": true,
+    "showLeaderboard": true
   }
 }
 ```
 
-This example is directional. Phase 7A owns exact field names, required/optional
-rules, numeric limits and schemas after comparing them with actual persisted Run
-versions. Runtime URLs should normally be supplied through a session manifest or
-signed indirection rather than permanently embedding expiring URLs in immutable
-Run data.
+The shortened result payload above is illustrative; the validator requires the
+complete existing `BattleResultV1`. All output fields are required, using
+explicit `null` where a visual or World binding is unavailable. Runtime URLs
+should eventually be supplied through a session manifest or signed indirection
+rather than permanently embedding expiring URLs in immutable Run data.
 
 ## 5. Versioning
 
@@ -287,18 +278,21 @@ it never changes the event.
 
 ## 9. Entity visual binding
 
-The package carries snapshotted visual intent and immutable artifact identity:
+Protocol v1 carries the Phase 6 immutable visual snapshot available today:
 
-- source profile version/revision;
+- source profile version/revision and source type;
 - archetype;
-- portrait identity;
-- runtime asset manifest ID/version/hash;
-- transform normalization;
-- semantic animation profile ID/version/bindings;
-- optional material, VFX and audio profile versions;
-- declared fallback asset/profile.
+- snapshotted portrait/model references;
+- normalized scale, rotation and offset;
+- semantic animation mappings;
+- explicit `null` for legacy or absent visual data.
 
-The artifact manifest, not the Run package, may contain engine-specific variants:
+The Platform does not have an Asset Library or cooked artifact registry yet, so
+v1 does not invent asset IDs, versions or hashes. Those fields should extend a
+future protocol minor version after immutable artifacts exist.
+
+Future artifact manifests, rather than Core events, may contain engine-specific
+variants:
 
 ```text
 variants
@@ -308,8 +302,8 @@ variants
 └── future-offline-render
 ```
 
-The runtime selects a compatible declared variant. It cannot substitute a live
-latest version and thereby change historical identity.
+The runtime will select a compatible declared variant. It must not substitute a
+live latest version and thereby change historical identity.
 
 ## 10. World binding
 
@@ -400,32 +394,34 @@ client cannot emit authoritative result events directly.
 
 ## 16. Conformance strategy
 
-Phase 7A should create a small, reviewed fixture suite:
+Phase 7A-A checks in three deterministic packages generated through the actual
+Core engine and canonical package builder:
 
-- Phase 3-style Run without visual fields;
-- Phase 5 legacy metadata visual profile;
-- Phase 6 managed Visual Profile snapshot;
-- duel with attack, dodge, critical, damage, elimination and victory;
-- free-for-all with same-tick ordered events and rankings;
-- missing optional assets/world;
-- invalid event sequence and mismatched result negative fixtures;
-- unsupported major/minor/module-version cases.
+- duel ending by knockout, including managed Phase 6 visual snapshots;
+- duel ending at the time limit, including legacy/no-visual snapshots;
+- four-participant free-for-all with mixed archetypes and rankings.
 
-Run the fixtures through the web adapter, package producer and Unreal protocol
-client. Assert participant identity, total ordering, terminal health/state,
-eliminations and winner parity. Store expected normalized summaries as text so
-they remain code-reviewable.
+Their manifest records seeds, outcomes, rankings, event counts, SHA-256 hashes,
+and originating Platform checkpoint. TypeScript negative tests cover invalid
+actor/target references, order, payload, result, protocol/module versions,
+credentials, and incomplete Runs without maintaining intentionally corrupt JSON
+files. Phase 7A-B must run the same checked packages through the Unreal parser
+and compare participant identity, ordering, terminal result and winner parity.
 
-## 17. Phase 7A decisions still required
+## 17. Phase 7A-A decisions and remaining Phase 7A-B work
 
-- exact JSON Schema or equivalent IDL and canonical hash serialization;
-- whether derived presentation cues ship in protocol v1;
-- protocol-neutral coordinate basis and quaternion conventions;
-- package size/event-count limits and compression;
-- Runtime Package persistence versus on-demand deterministic projection;
-- asset/world manifest schemas and supported artifact negotiation;
-- session endpoint names, token issuer/audience and deep-link registration;
-- adapter support and retention policy for old module/snapshot versions.
+Phase 7A-A resolves these Platform decisions:
 
-These decisions require implementation evidence and security review. Phase 6.5
-defines the boundary without pretending those details have already shipped.
+- Zod is the canonical validator; JSON Schema is generated and drift-tested.
+- Protocol version is `1.0.0`; transport is deterministic, readable JSON.
+- v1 packages completed Battle v1 Runs only and projects them on demand.
+- v1 has no derived presentation-cue stream and no authoritative coordinates.
+- participant/event/result relationships are validated without recomputing
+  mechanics; credential-bearing asset references are rejected.
+- checked fixtures carry SHA-256 hashes in a generated provenance manifest.
+
+Phase 7A-B still requires the Unreal toolchain, a separate runtime repository,
+C++ parsing/validation, coordinate conventions when spatial presentation is
+introduced, artifact negotiation, and cross-runtime conformance tests. Public
+runtime session endpoints, token/deep-link registration, live transport, and
+asset delivery remain separately scoped future work.

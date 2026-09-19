@@ -1,0 +1,512 @@
+{
+  "events": [
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-duel-knockout-event-1",
+      "payload": {
+        "format": "duel",
+        "maxTicks": 120,
+        "participantIds": [
+          "participant-lion",
+          "participant-tiger"
+        ]
+      },
+      "payloadVersion": 1,
+      "sequence": 1,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": null,
+      "tick": 1,
+      "type": "battle.started"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-2",
+      "payload": {
+        "baseDamage": 22,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 22,
+        "guarded": false,
+        "targetHealthAfter": 78,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 2,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 1,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-3",
+      "payload": {
+        "amount": 22,
+        "guarded": false,
+        "healthAfter": 78,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 3,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 1,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-4",
+      "payload": {
+        "baseDamage": 4,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 4,
+        "guarded": false,
+        "targetHealthAfter": 96,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 4,
+      "simulatedTimeMs": 200,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 2,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-5",
+      "payload": {
+        "amount": 4,
+        "guarded": false,
+        "healthAfter": 96,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 5,
+      "simulatedTimeMs": 200,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 2,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-6",
+      "payload": {
+        "baseDamage": 22,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 22,
+        "guarded": false,
+        "targetHealthAfter": 56,
+        "targetHealthBefore": 78
+      },
+      "payloadVersion": 1,
+      "sequence": 6,
+      "simulatedTimeMs": 300,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 3,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-7",
+      "payload": {
+        "amount": 22,
+        "guarded": false,
+        "healthAfter": 56,
+        "healthBefore": 78
+      },
+      "payloadVersion": 1,
+      "sequence": 7,
+      "simulatedTimeMs": 300,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 3,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-8",
+      "payload": {
+        "baseDamage": 4,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 4,
+        "guarded": false,
+        "targetHealthAfter": 92,
+        "targetHealthBefore": 96
+      },
+      "payloadVersion": 1,
+      "sequence": 8,
+      "simulatedTimeMs": 400,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 4,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-9",
+      "payload": {
+        "amount": 4,
+        "guarded": false,
+        "healthAfter": 92,
+        "healthBefore": 96
+      },
+      "payloadVersion": 1,
+      "sequence": 9,
+      "simulatedTimeMs": 400,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 4,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-10",
+      "payload": {
+        "baseDamage": 23,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 35,
+        "guarded": false,
+        "targetHealthAfter": 21,
+        "targetHealthBefore": 56
+      },
+      "payloadVersion": 1,
+      "sequence": 10,
+      "simulatedTimeMs": 500,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 5,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-11",
+      "payload": {
+        "finalDamage": 35
+      },
+      "payloadVersion": 1,
+      "sequence": 11,
+      "simulatedTimeMs": 500,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 5,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-12",
+      "payload": {
+        "amount": 35,
+        "guarded": false,
+        "healthAfter": 21,
+        "healthBefore": 56
+      },
+      "payloadVersion": 1,
+      "sequence": 12,
+      "simulatedTimeMs": 500,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 5,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-13",
+      "payload": {
+        "baseDamage": 3,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 3,
+        "guarded": false,
+        "targetHealthAfter": 89,
+        "targetHealthBefore": 92
+      },
+      "payloadVersion": 1,
+      "sequence": 13,
+      "simulatedTimeMs": 600,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 6,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-tiger",
+      "eventId": "run-fixture-duel-knockout-event-14",
+      "payload": {
+        "amount": 3,
+        "guarded": false,
+        "healthAfter": 89,
+        "healthBefore": 92
+      },
+      "payloadVersion": 1,
+      "sequence": 14,
+      "simulatedTimeMs": 600,
+      "targetRunParticipantId": "participant-lion",
+      "tick": 6,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-15",
+      "payload": {
+        "baseDamage": 22,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 21,
+        "guarded": false,
+        "targetHealthAfter": 0,
+        "targetHealthBefore": 21
+      },
+      "payloadVersion": 1,
+      "sequence": 15,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 7,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-16",
+      "payload": {
+        "amount": 21,
+        "guarded": false,
+        "healthAfter": 0,
+        "healthBefore": 21
+      },
+      "payloadVersion": 1,
+      "sequence": 16,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 7,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-lion",
+      "eventId": "run-fixture-duel-knockout-event-17",
+      "payload": {
+        "eliminationRank": 1,
+        "eliminationTick": 7
+      },
+      "payloadVersion": 1,
+      "sequence": 17,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": "participant-tiger",
+      "tick": 7,
+      "type": "battle.eliminated"
+    },
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-duel-knockout-event-18",
+      "payload": {
+        "completionReason": "KNOCKOUT",
+        "ranking": [
+          "participant-lion",
+          "participant-tiger"
+        ],
+        "tiedParticipantIds": [],
+        "winnerRunParticipantId": "participant-lion"
+      },
+      "payloadVersion": 1,
+      "sequence": 18,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": null,
+      "tick": 7,
+      "type": "battle.completed"
+    }
+  ],
+  "module": {
+    "id": "battle",
+    "version": "battle-v1"
+  },
+  "packageType": "SimulationRuntimePackageV1",
+  "participants": [
+    {
+      "identity": {
+        "category": "animal",
+        "displayName": "Lion",
+        "imageReference": "https://assets.simverse.example/portraits/entity-lion.webp",
+        "primaryColor": "#D8A33F",
+        "secondaryColor": "#4A2F1B",
+        "shortName": null
+      },
+      "position": 0,
+      "role": "primary",
+      "runParticipantId": "participant-lion",
+      "sourceEntityId": "entity-lion",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "QUADRUPED",
+        "modelReference": "/models/entity-lion.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-lion.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    },
+    {
+      "identity": {
+        "category": "animal",
+        "displayName": "Tiger",
+        "imageReference": "https://assets.simverse.example/portraits/entity-tiger.webp",
+        "primaryColor": "#4F7DD9",
+        "secondaryColor": "#182B4D",
+        "shortName": null
+      },
+      "position": 1,
+      "role": null,
+      "runParticipantId": "participant-tiger",
+      "sourceEntityId": "entity-tiger",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "QUADRUPED",
+        "modelReference": "/models/entity-tiger.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-tiger.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    }
+  ],
+  "presentation": {
+    "displayTitle": "Lion vs Tiger — Knockout",
+    "profileVersion": 1,
+    "showLabels": true,
+    "showLeaderboard": true,
+    "themeColor": "#22D3EE"
+  },
+  "protocolVersion": "1.0.0",
+  "result": {
+    "envelopeVersion": 1,
+    "metrics": {
+      "completionReason": "KNOCKOUT",
+      "participants": 2,
+      "ticks": 7,
+      "totalDamage": 111
+    },
+    "payload": {
+      "completionReason": "KNOCKOUT",
+      "eliminationOrder": [
+        "participant-tiger"
+      ],
+      "format": "duel",
+      "participantMetrics": [
+        {
+          "alive": true,
+          "attacksAttempted": 4,
+          "attacksLanded": 4,
+          "criticalHits": 1,
+          "damageDealt": 100,
+          "damageReceived": 11,
+          "defending": false,
+          "defends": 0,
+          "dodges": 0,
+          "eliminationTick": null,
+          "health": 89,
+          "position": 0,
+          "profile": {
+            "defense": 80,
+            "intelligence": 60,
+            "luck": 55,
+            "speed": 75,
+            "strength": 100
+          },
+          "runParticipantId": "participant-lion"
+        },
+        {
+          "alive": false,
+          "attacksAttempted": 3,
+          "attacksLanded": 3,
+          "criticalHits": 0,
+          "damageDealt": 11,
+          "damageReceived": 100,
+          "defending": false,
+          "defends": 0,
+          "dodges": 0,
+          "eliminationTick": 7,
+          "health": 0,
+          "position": 1,
+          "profile": {
+            "defense": 25,
+            "intelligence": 30,
+            "luck": 25,
+            "speed": 35,
+            "strength": 25
+          },
+          "runParticipantId": "participant-tiger"
+        }
+      ],
+      "ranking": [
+        "participant-lion",
+        "participant-tiger"
+      ],
+      "simulatedDurationMs": 700,
+      "tiedParticipantIds": [],
+      "totalTicks": 7,
+      "version": 1,
+      "winnerRunParticipantId": "participant-lion"
+    },
+    "payloadVersion": 1,
+    "summary": "Lion wins by elimination.",
+    "type": "battle.result"
+  },
+  "run": {
+    "completedAt": "2026-09-19T12:00:00.700Z",
+    "createdAt": "2026-09-19T11:59:00.000Z",
+    "fixedStepMs": 100,
+    "mode": "battle",
+    "runId": "run-fixture-duel-knockout",
+    "simulatedDurationMs": 700,
+    "simulationId": "simulation-fixture-duel-knockout",
+    "simulationName": "Lion vs Tiger — Knockout",
+    "startedAt": "2026-09-19T12:00:00.000Z",
+    "status": "COMPLETED",
+    "totalTicks": 7
+  },
+  "seedProvenance": {
+    "resolvedSeed": "SV-KNOCK001",
+    "source": "RUN_INPUT_SNAPSHOT"
+  },
+  "versions": {
+    "coreEngine": "core-v0.1",
+    "inputSnapshot": 1,
+    "resultEnvelope": 1,
+    "rngAlgorithm": "mulberry32-v1"
+  },
+  "world": null
+}

@@ -1,0 +1,1718 @@
+{
+  "events": [
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-four-player-ffa-event-1",
+      "payload": {
+        "format": "free_for_all",
+        "maxTicks": 120,
+        "participantIds": [
+          "participant-robot",
+          "participant-car",
+          "participant-mage",
+          "participant-orb"
+        ]
+      },
+      "payloadVersion": 1,
+      "sequence": 1,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": null,
+      "tick": 1,
+      "type": "battle.started"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-2",
+      "payload": {
+        "baseDamage": 9,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 9,
+        "guarded": false,
+        "targetHealthAfter": 91,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 2,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 1,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-3",
+      "payload": {
+        "amount": 9,
+        "guarded": false,
+        "healthAfter": 91,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 3,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 1,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-4",
+      "payload": {
+        "baseDamage": 22,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 22,
+        "guarded": false,
+        "targetHealthAfter": 78,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 4,
+      "simulatedTimeMs": 200,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 2,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-5",
+      "payload": {
+        "amount": 22,
+        "guarded": false,
+        "healthAfter": 78,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 5,
+      "simulatedTimeMs": 200,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 2,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-6",
+      "payload": {
+        "baseDamage": 11,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 11,
+        "guarded": false,
+        "targetHealthAfter": 80,
+        "targetHealthBefore": 91
+      },
+      "payloadVersion": 1,
+      "sequence": 6,
+      "simulatedTimeMs": 300,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 3,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-7",
+      "payload": {
+        "amount": 11,
+        "guarded": false,
+        "healthAfter": 80,
+        "healthBefore": 91
+      },
+      "payloadVersion": 1,
+      "sequence": 7,
+      "simulatedTimeMs": 300,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 3,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-8",
+      "payload": {
+        "baseDamage": 8,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 8,
+        "guarded": false,
+        "targetHealthAfter": 72,
+        "targetHealthBefore": 80
+      },
+      "payloadVersion": 1,
+      "sequence": 8,
+      "simulatedTimeMs": 400,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 4,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-9",
+      "payload": {
+        "amount": 8,
+        "guarded": false,
+        "healthAfter": 72,
+        "healthBefore": 80
+      },
+      "payloadVersion": 1,
+      "sequence": 9,
+      "simulatedTimeMs": 400,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 4,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-10",
+      "payload": {
+        "baseDamage": 11,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 11,
+        "guarded": false,
+        "targetHealthAfter": 61,
+        "targetHealthBefore": 72
+      },
+      "payloadVersion": 1,
+      "sequence": 10,
+      "simulatedTimeMs": 500,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 5,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-11",
+      "payload": {
+        "amount": 11,
+        "guarded": false,
+        "healthAfter": 61,
+        "healthBefore": 72
+      },
+      "payloadVersion": 1,
+      "sequence": 11,
+      "simulatedTimeMs": 500,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 5,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-12",
+      "payload": {
+        "baseDamage": 10,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 10,
+        "guarded": false,
+        "targetHealthAfter": 51,
+        "targetHealthBefore": 61
+      },
+      "payloadVersion": 1,
+      "sequence": 12,
+      "simulatedTimeMs": 600,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 6,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-13",
+      "payload": {
+        "amount": 10,
+        "guarded": false,
+        "healthAfter": 51,
+        "healthBefore": 61
+      },
+      "payloadVersion": 1,
+      "sequence": 13,
+      "simulatedTimeMs": 600,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 6,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-14",
+      "payload": {
+        "baseDamage": 22,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 22,
+        "guarded": false,
+        "targetHealthAfter": 56,
+        "targetHealthBefore": 78
+      },
+      "payloadVersion": 1,
+      "sequence": 14,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 7,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-15",
+      "payload": {
+        "amount": 22,
+        "guarded": false,
+        "healthAfter": 56,
+        "healthBefore": 78
+      },
+      "payloadVersion": 1,
+      "sequence": 15,
+      "simulatedTimeMs": 700,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 7,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-16",
+      "payload": {
+        "baseDamage": 9,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 9,
+        "guarded": false,
+        "targetHealthAfter": 42,
+        "targetHealthBefore": 51
+      },
+      "payloadVersion": 1,
+      "sequence": 16,
+      "simulatedTimeMs": 800,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 8,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-17",
+      "payload": {
+        "amount": 9,
+        "guarded": false,
+        "healthAfter": 42,
+        "healthBefore": 51
+      },
+      "payloadVersion": 1,
+      "sequence": 17,
+      "simulatedTimeMs": 800,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 8,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-18",
+      "payload": {
+        "baseDamage": 11,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 11,
+        "guarded": false,
+        "targetHealthAfter": 31,
+        "targetHealthBefore": 42
+      },
+      "payloadVersion": 1,
+      "sequence": 18,
+      "simulatedTimeMs": 900,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 9,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-19",
+      "payload": {
+        "amount": 11,
+        "guarded": false,
+        "healthAfter": 31,
+        "healthBefore": 42
+      },
+      "payloadVersion": 1,
+      "sequence": 19,
+      "simulatedTimeMs": 900,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 9,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-20",
+      "payload": {
+        "baseDamage": 20,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 20,
+        "guarded": false,
+        "targetHealthAfter": 36,
+        "targetHealthBefore": 56
+      },
+      "payloadVersion": 1,
+      "sequence": 20,
+      "simulatedTimeMs": 1000,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 10,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-21",
+      "payload": {
+        "amount": 20,
+        "guarded": false,
+        "healthAfter": 36,
+        "healthBefore": 56
+      },
+      "payloadVersion": 1,
+      "sequence": 21,
+      "simulatedTimeMs": 1000,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 10,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-22",
+      "payload": {
+        "baseDamage": 9,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 9,
+        "guarded": false,
+        "targetHealthAfter": 22,
+        "targetHealthBefore": 31
+      },
+      "payloadVersion": 1,
+      "sequence": 22,
+      "simulatedTimeMs": 1100,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 11,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-23",
+      "payload": {
+        "amount": 9,
+        "guarded": false,
+        "healthAfter": 22,
+        "healthBefore": 31
+      },
+      "payloadVersion": 1,
+      "sequence": 23,
+      "simulatedTimeMs": 1100,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 11,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-24",
+      "payload": {
+        "baseDamage": 7,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 7,
+        "guarded": false,
+        "targetHealthAfter": 15,
+        "targetHealthBefore": 22
+      },
+      "payloadVersion": 1,
+      "sequence": 24,
+      "simulatedTimeMs": 1200,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 12,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-25",
+      "payload": {
+        "amount": 7,
+        "guarded": false,
+        "healthAfter": 15,
+        "healthBefore": 22
+      },
+      "payloadVersion": 1,
+      "sequence": 25,
+      "simulatedTimeMs": 1200,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 12,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-26",
+      "payload": {
+        "baseDamage": 10,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 10,
+        "guarded": false,
+        "targetHealthAfter": 5,
+        "targetHealthBefore": 15
+      },
+      "payloadVersion": 1,
+      "sequence": 26,
+      "simulatedTimeMs": 1300,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 13,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-27",
+      "payload": {
+        "amount": 10,
+        "guarded": false,
+        "healthAfter": 5,
+        "healthBefore": 15
+      },
+      "payloadVersion": 1,
+      "sequence": 27,
+      "simulatedTimeMs": 1300,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 13,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-robot",
+      "eventId": "run-fixture-four-player-ffa-event-28",
+      "payload": {
+        "duration": "until_next_action_or_hit",
+        "health": 5
+      },
+      "payloadVersion": 1,
+      "sequence": 28,
+      "simulatedTimeMs": 1400,
+      "targetRunParticipantId": null,
+      "tick": 14,
+      "type": "battle.defend"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-29",
+      "payload": {
+        "duration": "until_next_action_or_hit",
+        "health": 36
+      },
+      "payloadVersion": 1,
+      "sequence": 29,
+      "simulatedTimeMs": 1500,
+      "targetRunParticipantId": null,
+      "tick": 15,
+      "type": "battle.defend"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-30",
+      "payload": {
+        "baseDamage": 6,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 3,
+        "guarded": true,
+        "targetHealthAfter": 2,
+        "targetHealthBefore": 5
+      },
+      "payloadVersion": 1,
+      "sequence": 30,
+      "simulatedTimeMs": 1600,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 16,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-31",
+      "payload": {
+        "amount": 3,
+        "guarded": true,
+        "healthAfter": 2,
+        "healthBefore": 5
+      },
+      "payloadVersion": 1,
+      "sequence": 31,
+      "simulatedTimeMs": 1600,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 16,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-32",
+      "payload": {
+        "baseDamage": 9,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 2,
+        "guarded": false,
+        "targetHealthAfter": 0,
+        "targetHealthBefore": 2
+      },
+      "payloadVersion": 1,
+      "sequence": 32,
+      "simulatedTimeMs": 1700,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 17,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-33",
+      "payload": {
+        "amount": 2,
+        "guarded": false,
+        "healthAfter": 0,
+        "healthBefore": 2
+      },
+      "payloadVersion": 1,
+      "sequence": 33,
+      "simulatedTimeMs": 1700,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 17,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-34",
+      "payload": {
+        "eliminationRank": 1,
+        "eliminationTick": 17
+      },
+      "payloadVersion": 1,
+      "sequence": 34,
+      "simulatedTimeMs": 1700,
+      "targetRunParticipantId": "participant-robot",
+      "tick": 17,
+      "type": "battle.eliminated"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-35",
+      "payload": {
+        "baseDamage": 14,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 14,
+        "guarded": false,
+        "targetHealthAfter": 86,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 35,
+      "simulatedTimeMs": 1800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 18,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-36",
+      "payload": {
+        "amount": 14,
+        "guarded": false,
+        "healthAfter": 86,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 36,
+      "simulatedTimeMs": 1800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 18,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-37",
+      "payload": {
+        "baseDamage": 11,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 17,
+        "guarded": false,
+        "targetHealthAfter": 19,
+        "targetHealthBefore": 36
+      },
+      "payloadVersion": 1,
+      "sequence": 37,
+      "simulatedTimeMs": 1900,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 19,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-38",
+      "payload": {
+        "finalDamage": 17
+      },
+      "payloadVersion": 1,
+      "sequence": 38,
+      "simulatedTimeMs": 1900,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 19,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-39",
+      "payload": {
+        "amount": 17,
+        "guarded": false,
+        "healthAfter": 19,
+        "healthBefore": 36
+      },
+      "payloadVersion": 1,
+      "sequence": 39,
+      "simulatedTimeMs": 1900,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 19,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-40",
+      "payload": {
+        "baseDamage": 13,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 13,
+        "guarded": false,
+        "targetHealthAfter": 6,
+        "targetHealthBefore": 19
+      },
+      "payloadVersion": 1,
+      "sequence": 40,
+      "simulatedTimeMs": 2000,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 20,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-41",
+      "payload": {
+        "amount": 13,
+        "guarded": false,
+        "healthAfter": 6,
+        "healthBefore": 19
+      },
+      "payloadVersion": 1,
+      "sequence": 41,
+      "simulatedTimeMs": 2000,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 20,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-42",
+      "payload": {
+        "baseDamage": 11,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 11,
+        "guarded": false,
+        "targetHealthAfter": 75,
+        "targetHealthBefore": 86
+      },
+      "payloadVersion": 1,
+      "sequence": 42,
+      "simulatedTimeMs": 2100,
+      "targetRunParticipantId": "participant-car",
+      "tick": 21,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-mage",
+      "eventId": "run-fixture-four-player-ffa-event-43",
+      "payload": {
+        "amount": 11,
+        "guarded": false,
+        "healthAfter": 75,
+        "healthBefore": 86
+      },
+      "payloadVersion": 1,
+      "sequence": 43,
+      "simulatedTimeMs": 2100,
+      "targetRunParticipantId": "participant-car",
+      "tick": 21,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-44",
+      "payload": {
+        "baseDamage": 13,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 6,
+        "guarded": false,
+        "targetHealthAfter": 0,
+        "targetHealthBefore": 6
+      },
+      "payloadVersion": 1,
+      "sequence": 44,
+      "simulatedTimeMs": 2200,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 22,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-45",
+      "payload": {
+        "amount": 6,
+        "guarded": false,
+        "healthAfter": 0,
+        "healthBefore": 6
+      },
+      "payloadVersion": 1,
+      "sequence": 45,
+      "simulatedTimeMs": 2200,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 22,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-46",
+      "payload": {
+        "eliminationRank": 2,
+        "eliminationTick": 22
+      },
+      "payloadVersion": 1,
+      "sequence": 46,
+      "simulatedTimeMs": 2200,
+      "targetRunParticipantId": "participant-mage",
+      "tick": 22,
+      "type": "battle.eliminated"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-47",
+      "payload": {
+        "baseDamage": 13,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 13,
+        "guarded": false,
+        "targetHealthAfter": 87,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 47,
+      "simulatedTimeMs": 2300,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 23,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-48",
+      "payload": {
+        "amount": 13,
+        "guarded": false,
+        "healthAfter": 87,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 48,
+      "simulatedTimeMs": 2300,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 23,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-49",
+      "payload": {
+        "baseDamage": 12,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 18,
+        "guarded": false,
+        "targetHealthAfter": 57,
+        "targetHealthBefore": 75
+      },
+      "payloadVersion": 1,
+      "sequence": 49,
+      "simulatedTimeMs": 2400,
+      "targetRunParticipantId": "participant-car",
+      "tick": 24,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-50",
+      "payload": {
+        "finalDamage": 18
+      },
+      "payloadVersion": 1,
+      "sequence": 50,
+      "simulatedTimeMs": 2400,
+      "targetRunParticipantId": "participant-car",
+      "tick": 24,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-51",
+      "payload": {
+        "amount": 18,
+        "guarded": false,
+        "healthAfter": 57,
+        "healthBefore": 75
+      },
+      "payloadVersion": 1,
+      "sequence": 51,
+      "simulatedTimeMs": 2400,
+      "targetRunParticipantId": "participant-car",
+      "tick": 24,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-52",
+      "payload": {
+        "baseDamage": 12,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 12,
+        "guarded": false,
+        "targetHealthAfter": 75,
+        "targetHealthBefore": 87
+      },
+      "payloadVersion": 1,
+      "sequence": 52,
+      "simulatedTimeMs": 2500,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 25,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-53",
+      "payload": {
+        "amount": 12,
+        "guarded": false,
+        "healthAfter": 75,
+        "healthBefore": 87
+      },
+      "payloadVersion": 1,
+      "sequence": 53,
+      "simulatedTimeMs": 2500,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 25,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-54",
+      "payload": {
+        "baseDamage": 9,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 14,
+        "guarded": false,
+        "targetHealthAfter": 43,
+        "targetHealthBefore": 57
+      },
+      "payloadVersion": 1,
+      "sequence": 54,
+      "simulatedTimeMs": 2600,
+      "targetRunParticipantId": "participant-car",
+      "tick": 26,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-55",
+      "payload": {
+        "finalDamage": 14
+      },
+      "payloadVersion": 1,
+      "sequence": 55,
+      "simulatedTimeMs": 2600,
+      "targetRunParticipantId": "participant-car",
+      "tick": 26,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-56",
+      "payload": {
+        "amount": 14,
+        "guarded": false,
+        "healthAfter": 43,
+        "healthBefore": 57
+      },
+      "payloadVersion": 1,
+      "sequence": 56,
+      "simulatedTimeMs": 2600,
+      "targetRunParticipantId": "participant-car",
+      "tick": 26,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-57",
+      "payload": {
+        "baseDamage": 14,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 14,
+        "guarded": false,
+        "targetHealthAfter": 61,
+        "targetHealthBefore": 75
+      },
+      "payloadVersion": 1,
+      "sequence": 57,
+      "simulatedTimeMs": 2700,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 27,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-58",
+      "payload": {
+        "amount": 14,
+        "guarded": false,
+        "healthAfter": 61,
+        "healthBefore": 75
+      },
+      "payloadVersion": 1,
+      "sequence": 58,
+      "simulatedTimeMs": 2700,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 27,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-59",
+      "payload": {
+        "baseDamage": 9,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 9,
+        "guarded": false,
+        "targetHealthAfter": 34,
+        "targetHealthBefore": 43
+      },
+      "payloadVersion": 1,
+      "sequence": 59,
+      "simulatedTimeMs": 2800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 28,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-60",
+      "payload": {
+        "amount": 9,
+        "guarded": false,
+        "healthAfter": 34,
+        "healthBefore": 43
+      },
+      "payloadVersion": 1,
+      "sequence": 60,
+      "simulatedTimeMs": 2800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 28,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-61",
+      "payload": {
+        "baseDamage": 11,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 11,
+        "guarded": false,
+        "targetHealthAfter": 50,
+        "targetHealthBefore": 61
+      },
+      "payloadVersion": 1,
+      "sequence": 61,
+      "simulatedTimeMs": 2900,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 29,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-62",
+      "payload": {
+        "amount": 11,
+        "guarded": false,
+        "healthAfter": 50,
+        "healthBefore": 61
+      },
+      "payloadVersion": 1,
+      "sequence": 62,
+      "simulatedTimeMs": 2900,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 29,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-63",
+      "payload": {
+        "baseDamage": 8,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 12,
+        "guarded": false,
+        "targetHealthAfter": 22,
+        "targetHealthBefore": 34
+      },
+      "payloadVersion": 1,
+      "sequence": 63,
+      "simulatedTimeMs": 3000,
+      "targetRunParticipantId": "participant-car",
+      "tick": 30,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-64",
+      "payload": {
+        "finalDamage": 12
+      },
+      "payloadVersion": 1,
+      "sequence": 64,
+      "simulatedTimeMs": 3000,
+      "targetRunParticipantId": "participant-car",
+      "tick": 30,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-65",
+      "payload": {
+        "amount": 12,
+        "guarded": false,
+        "healthAfter": 22,
+        "healthBefore": 34
+      },
+      "payloadVersion": 1,
+      "sequence": 65,
+      "simulatedTimeMs": 3000,
+      "targetRunParticipantId": "participant-car",
+      "tick": 30,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-66",
+      "payload": {
+        "baseDamage": 13,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 13,
+        "guarded": false,
+        "targetHealthAfter": 37,
+        "targetHealthBefore": 50
+      },
+      "payloadVersion": 1,
+      "sequence": 66,
+      "simulatedTimeMs": 3100,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 31,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-67",
+      "payload": {
+        "amount": 13,
+        "guarded": false,
+        "healthAfter": 37,
+        "healthBefore": 50
+      },
+      "payloadVersion": 1,
+      "sequence": 67,
+      "simulatedTimeMs": 3100,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 31,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-68",
+      "payload": {
+        "baseDamage": 12,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 12,
+        "guarded": false,
+        "targetHealthAfter": 10,
+        "targetHealthBefore": 22
+      },
+      "payloadVersion": 1,
+      "sequence": 68,
+      "simulatedTimeMs": 3200,
+      "targetRunParticipantId": "participant-car",
+      "tick": 32,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-69",
+      "payload": {
+        "amount": 12,
+        "guarded": false,
+        "healthAfter": 10,
+        "healthBefore": 22
+      },
+      "payloadVersion": 1,
+      "sequence": 69,
+      "simulatedTimeMs": 3200,
+      "targetRunParticipantId": "participant-car",
+      "tick": 32,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-70",
+      "payload": {
+        "duration": "until_next_action_or_hit",
+        "health": 10
+      },
+      "payloadVersion": 1,
+      "sequence": 70,
+      "simulatedTimeMs": 3300,
+      "targetRunParticipantId": null,
+      "tick": 33,
+      "type": "battle.defend"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-71",
+      "payload": {
+        "baseDamage": 10,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 5,
+        "guarded": true,
+        "targetHealthAfter": 5,
+        "targetHealthBefore": 10
+      },
+      "payloadVersion": 1,
+      "sequence": 71,
+      "simulatedTimeMs": 3400,
+      "targetRunParticipantId": "participant-car",
+      "tick": 34,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-72",
+      "payload": {
+        "amount": 5,
+        "guarded": true,
+        "healthAfter": 5,
+        "healthBefore": 10
+      },
+      "payloadVersion": 1,
+      "sequence": 72,
+      "simulatedTimeMs": 3400,
+      "targetRunParticipantId": "participant-car",
+      "tick": 34,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-73",
+      "payload": {
+        "baseDamage": 10,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 10,
+        "guarded": false,
+        "targetHealthAfter": 27,
+        "targetHealthBefore": 37
+      },
+      "payloadVersion": 1,
+      "sequence": 73,
+      "simulatedTimeMs": 3500,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 35,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-74",
+      "payload": {
+        "amount": 10,
+        "guarded": false,
+        "healthAfter": 27,
+        "healthBefore": 37
+      },
+      "payloadVersion": 1,
+      "sequence": 74,
+      "simulatedTimeMs": 3500,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 35,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-75",
+      "payload": {
+        "duration": "until_next_action_or_hit",
+        "health": 27
+      },
+      "payloadVersion": 1,
+      "sequence": 75,
+      "simulatedTimeMs": 3600,
+      "targetRunParticipantId": null,
+      "tick": 36,
+      "type": "battle.defend"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-76",
+      "payload": {
+        "baseDamage": 12,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 6,
+        "guarded": true,
+        "targetHealthAfter": 21,
+        "targetHealthBefore": 27
+      },
+      "payloadVersion": 1,
+      "sequence": 76,
+      "simulatedTimeMs": 3700,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 37,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-car",
+      "eventId": "run-fixture-four-player-ffa-event-77",
+      "payload": {
+        "amount": 6,
+        "guarded": true,
+        "healthAfter": 21,
+        "healthBefore": 27
+      },
+      "payloadVersion": 1,
+      "sequence": 77,
+      "simulatedTimeMs": 3700,
+      "targetRunParticipantId": "participant-orb",
+      "tick": 37,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-78",
+      "payload": {
+        "baseDamage": 10,
+        "critical": false,
+        "dodged": false,
+        "finalDamage": 5,
+        "guarded": false,
+        "targetHealthAfter": 0,
+        "targetHealthBefore": 5
+      },
+      "payloadVersion": 1,
+      "sequence": 78,
+      "simulatedTimeMs": 3800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 38,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-79",
+      "payload": {
+        "amount": 5,
+        "guarded": false,
+        "healthAfter": 0,
+        "healthBefore": 5
+      },
+      "payloadVersion": 1,
+      "sequence": 79,
+      "simulatedTimeMs": 3800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 38,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": "participant-orb",
+      "eventId": "run-fixture-four-player-ffa-event-80",
+      "payload": {
+        "eliminationRank": 3,
+        "eliminationTick": 38
+      },
+      "payloadVersion": 1,
+      "sequence": 80,
+      "simulatedTimeMs": 3800,
+      "targetRunParticipantId": "participant-car",
+      "tick": 38,
+      "type": "battle.eliminated"
+    },
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-four-player-ffa-event-81",
+      "payload": {
+        "completionReason": "KNOCKOUT",
+        "ranking": [
+          "participant-orb",
+          "participant-car",
+          "participant-mage",
+          "participant-robot"
+        ],
+        "tiedParticipantIds": [],
+        "winnerRunParticipantId": "participant-orb"
+      },
+      "payloadVersion": 1,
+      "sequence": 81,
+      "simulatedTimeMs": 3800,
+      "targetRunParticipantId": null,
+      "tick": 38,
+      "type": "battle.completed"
+    }
+  ],
+  "module": {
+    "id": "battle",
+    "version": "battle-v1"
+  },
+  "packageType": "SimulationRuntimePackageV1",
+  "participants": [
+    {
+      "identity": {
+        "category": "robot",
+        "displayName": "Atlas Robot",
+        "imageReference": "https://assets.simverse.example/portraits/entity-robot.webp",
+        "primaryColor": "#D8A33F",
+        "secondaryColor": "#4A2F1B",
+        "shortName": null
+      },
+      "position": 0,
+      "role": "primary",
+      "runParticipantId": "participant-robot",
+      "sourceEntityId": "entity-robot",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "ROBOT",
+        "modelReference": "/models/entity-robot.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-robot.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    },
+    {
+      "identity": {
+        "category": "vehicle",
+        "displayName": "Velocity Car",
+        "imageReference": "https://assets.simverse.example/portraits/entity-car.webp",
+        "primaryColor": "#4F7DD9",
+        "secondaryColor": "#182B4D",
+        "shortName": null
+      },
+      "position": 1,
+      "role": null,
+      "runParticipantId": "participant-car",
+      "sourceEntityId": "entity-car",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "VEHICLE_GROUND",
+        "modelReference": "/models/entity-car.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-car.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    },
+    {
+      "identity": {
+        "category": "fantasy_character",
+        "displayName": "Ember Mage",
+        "imageReference": "https://assets.simverse.example/portraits/entity-mage.webp",
+        "primaryColor": "#D8A33F",
+        "secondaryColor": "#4A2F1B",
+        "shortName": null
+      },
+      "position": 2,
+      "role": null,
+      "runParticipantId": "participant-mage",
+      "sourceEntityId": "entity-mage",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "HUMANOID",
+        "modelReference": "/models/entity-mage.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-mage.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    },
+    {
+      "identity": {
+        "category": "object",
+        "displayName": "Quantum Orb",
+        "imageReference": "https://assets.simverse.example/portraits/entity-orb.webp",
+        "primaryColor": "#4F7DD9",
+        "secondaryColor": "#182B4D",
+        "shortName": null
+      },
+      "position": 3,
+      "role": null,
+      "runParticipantId": "participant-orb",
+      "sourceEntityId": "entity-orb",
+      "visual": {
+        "animationMapping": {
+          "ATTACK_PRIMARY": "Attack",
+          "DEFEATED": "Defeated",
+          "HIT_LIGHT": "Hit",
+          "IDLE": "Idle",
+          "RUN": "Run",
+          "VICTORY": "Victory"
+        },
+        "archetype": "ABSTRACT",
+        "modelReference": "/models/entity-orb.glb",
+        "portraitReference": "https://assets.simverse.example/portraits/entity-orb.webp",
+        "profileRevision": 1,
+        "snapshotVersion": 1,
+        "sourceType": "MODEL_3D",
+        "transform": {
+          "offsetMeters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationDegrees": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "scale": 1
+        }
+      }
+    }
+  ],
+  "presentation": {
+    "displayTitle": "Four Archetypes — Free-for-All",
+    "profileVersion": 1,
+    "showLabels": true,
+    "showLeaderboard": true,
+    "themeColor": "#22D3EE"
+  },
+  "protocolVersion": "1.0.0",
+  "result": {
+    "envelopeVersion": 1,
+    "metrics": {
+      "completionReason": "KNOCKOUT",
+      "participants": 4,
+      "ticks": 38,
+      "totalDamage": 379
+    },
+    "payload": {
+      "completionReason": "KNOCKOUT",
+      "eliminationOrder": [
+        "participant-robot",
+        "participant-mage",
+        "participant-car"
+      ],
+      "format": "free_for_all",
+      "participantMetrics": [
+        {
+          "alive": false,
+          "attacksAttempted": 3,
+          "attacksLanded": 3,
+          "criticalHits": 0,
+          "damageDealt": 64,
+          "damageReceived": 100,
+          "defending": false,
+          "defends": 1,
+          "dodges": 0,
+          "eliminationTick": 17,
+          "health": 0,
+          "position": 0,
+          "profile": {
+            "defense": 85,
+            "intelligence": 80,
+            "luck": 45,
+            "speed": 60,
+            "strength": 95
+          },
+          "runParticipantId": "participant-robot"
+        },
+        {
+          "alive": false,
+          "attacksAttempted": 13,
+          "attacksLanded": 13,
+          "criticalHits": 0,
+          "damageDealt": 135,
+          "damageReceived": 100,
+          "defending": false,
+          "defends": 1,
+          "dodges": 0,
+          "eliminationTick": 38,
+          "health": 0,
+          "position": 1,
+          "profile": {
+            "defense": 55,
+            "intelligence": 35,
+            "luck": 40,
+            "speed": 95,
+            "strength": 60
+          },
+          "runParticipantId": "participant-car"
+        },
+        {
+          "alive": false,
+          "attacksAttempted": 5,
+          "attacksLanded": 5,
+          "criticalHits": 0,
+          "damageDealt": 55,
+          "damageReceived": 100,
+          "defending": false,
+          "defends": 1,
+          "dodges": 0,
+          "eliminationTick": 22,
+          "health": 0,
+          "position": 2,
+          "profile": {
+            "defense": 40,
+            "intelligence": 95,
+            "luck": 65,
+            "speed": 55,
+            "strength": 45
+          },
+          "runParticipantId": "participant-mage"
+        },
+        {
+          "alive": true,
+          "attacksAttempted": 13,
+          "attacksLanded": 13,
+          "criticalHits": 4,
+          "damageDealt": 125,
+          "damageReceived": 79,
+          "defending": false,
+          "defends": 1,
+          "dodges": 0,
+          "eliminationTick": null,
+          "health": 21,
+          "position": 3,
+          "profile": {
+            "defense": 65,
+            "intelligence": 70,
+            "luck": 80,
+            "speed": 45,
+            "strength": 35
+          },
+          "runParticipantId": "participant-orb"
+        }
+      ],
+      "ranking": [
+        "participant-orb",
+        "participant-car",
+        "participant-mage",
+        "participant-robot"
+      ],
+      "simulatedDurationMs": 3800,
+      "tiedParticipantIds": [],
+      "totalTicks": 38,
+      "version": 1,
+      "winnerRunParticipantId": "participant-orb"
+    },
+    "payloadVersion": 1,
+    "summary": "Quantum Orb wins by elimination.",
+    "type": "battle.result"
+  },
+  "run": {
+    "completedAt": "2026-09-19T14:00:03.800Z",
+    "createdAt": "2026-09-19T13:59:00.000Z",
+    "fixedStepMs": 100,
+    "mode": "battle",
+    "runId": "run-fixture-four-player-ffa",
+    "simulatedDurationMs": 3800,
+    "simulationId": "simulation-fixture-four-player-ffa",
+    "simulationName": "Four Archetypes — Free-for-All",
+    "startedAt": "2026-09-19T14:00:00.000Z",
+    "status": "COMPLETED",
+    "totalTicks": 38
+  },
+  "seedProvenance": {
+    "resolvedSeed": "SV-FFA00001",
+    "source": "RUN_INPUT_SNAPSHOT"
+  },
+  "versions": {
+    "coreEngine": "core-v0.1",
+    "inputSnapshot": 1,
+    "resultEnvelope": 1,
+    "rngAlgorithm": "mulberry32-v1"
+  },
+  "world": null
+}

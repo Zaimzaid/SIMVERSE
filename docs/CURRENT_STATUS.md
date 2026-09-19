@@ -4,16 +4,17 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Current work:** Phase 6.5 — High-Fidelity Game Runtime Architecture is being
-  documented in the working tree. This is architecture/feasibility work only;
-  **do not commit without approval**. Phase 7 implementation has not started.
-- **Committed checkpoint:** `b08df45` (`feat: add SIMVERSE entity visuals and
-  animation system`), after Phase 5 `22a7560` and Phase 4 `d9be027`. The working
-  tree was clean before Phase 6.5 began.
+- **Current work:** Phase 7A-A — Platform Runtime Protocol v1 is implemented in
+  the working tree for review. **Do not commit without approval.** Phase 7A-B
+  Unreal work has not started and is blocked by the local toolchain gate.
+- **Committed checkpoint:** `a432b7b` (`docs: define SIMVERSE high-fidelity
+  runtime architecture`), after Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase
+  4 `d9be027`. The working tree was clean before Phase 7A-A began.
 - **Last updated:** 2026-09-19.
 - **Boundary:** Battle remains the only production mechanics module. Core and
-  Modules remain authoritative. Three.js is now formally the Web Preview Viewer;
-  no Unreal project, Runtime Protocol code, World code or Phase 7 code exists.
+  Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
+  Runtime Protocol v1 transports completed Battle truth; no Unreal project,
+  World code, premium runtime, or Phase 7A-B code exists.
 
 ## Official architecture and visual direction
 
@@ -34,19 +35,20 @@ uses original branding and assets.
 1. **Phase 5:** Web 3D Viewer Foundation — committed in `22a7560`.
 2. **Phase 6:** Entity Visual Assets + Standard Animation — committed in
    `b08df45`.
-3. **Phase 6.5:** High-Fidelity Runtime architecture and feasibility — current
-   documentation review.
-4. **Phase 7A:** Runtime Protocol v1 + separate Unreal bootstrap.
-5. **Phase 7B:** High-Fidelity Character Pipeline.
-6. **Phase 7C:** Lion vs Tiger Savannah proof.
-7. **Phase 8:** reusable World Runtime.
-8. **Phase 9:** reusable cinematic presentation systems.
-9. **Later:** additional archetypes, native/cloud delivery at scale, live
+3. **Phase 6.5:** High-Fidelity Runtime architecture and feasibility — committed
+   in `a432b7b`.
+4. **Phase 7A-A:** Platform Runtime Protocol v1 — current implementation review.
+5. **Phase 7A-B:** separate Unreal bootstrap — blocked by toolchain/disk gate.
+6. **Phase 7B:** High-Fidelity Character Pipeline.
+7. **Phase 7C:** Lion vs Tiger Savannah proof.
+8. **Phase 8:** reusable World Runtime.
+9. **Phase 9:** reusable cinematic presentation systems.
+10. **Later:** additional archetypes, native/cloud delivery at scale, live
    streams, Animation Studio, Video Studio and media export.
 
 The previous plan to make general Worlds the immediate Phase 7 task is
-superseded. Phase 7A is the exact next recommended implementation phase, subject
-to approval after Phase 6.5 review.
+superseded. Phase 7A is split so the engine-neutral Platform contract can be
+completed before the local Unreal toolchain becomes available.
 
 ## Phase 6.5 high-fidelity runtime decision
 
@@ -99,6 +101,46 @@ The conceptual engine-neutral package and event boundary is in
 - Start with a local developer runtime consuming a sanitized completed Run
   fixture, then a packaged desktop runtime. Pilot Pixel Streaming only after the
   runtime/protocol boundary and measured unit economics are stable.
+
+## Phase 7A-A Platform Runtime Protocol v1
+
+- `src/lib/runtime-protocol/v1.ts` is the sole canonical protocol validator and
+  `buildSimulationRuntimePackageV1(...)` builder. It reuses existing Core and
+  Battle Zod schemas rather than duplicating mechanics.
+- `src/server/services/runtime-package-service.ts` reads a workspace-authorized
+  Run, immutable participant rows, every persisted event, and its authoritative
+  result through existing service boundaries. It does not read current Entity
+  state or mutate/persist anything.
+- Protocol version `1.0.0` supports completed Battle `battle-v1` Runs using
+  `core-v0.1`, `mulberry32-v1`, input snapshot v1, and result envelope v1.
+  Incomplete Runs, missing results, unsupported modules/versions, corrupt
+  references/order/payloads, and credential-bearing asset references fail with
+  explicit errors.
+- Output is stable human-readable JSON with explicit nullable visual/World
+  fields. It includes minimized historical participant identity and visual
+  snapshots, ordered typed events, exact `BattleResultV1`, version/seed
+  provenance, timing, and presentation metadata. Workspace, auth, billing,
+  audit, unrelated metadata, and secrets are omitted.
+- Zod remains authoritative for relational checks. The JSON Schema under
+  `protocol/runtime/v1/` is generated from it and drift-tested; there is no
+  second hand-maintained contract.
+- Three deterministic checked packages cover Duel — Knockout, Duel — Time
+  Limit, and Four-player Free-for-All. Their generated manifest records seed,
+  outcome, ranking, event count, SHA-256, and origin checkpoint `a432b7b`.
+
+### Phase 7A-B toolchain gate
+
+Phase 7A-B is blocked on this machine. Verification on 2026-09-19 found:
+
+- Unreal Editor / Unreal Engine 5 absent;
+- Visual Studio Installer and the Game Development with C++ toolchain absent;
+- Windows SDK absent;
+- drive C reporting 0 GB free;
+- `C:\Users\zaid\Documents\MAIN PROJECT\SIMVERSE-RUNTIME` absent.
+
+Do not create the runtime repository, `.uproject`, or placeholder Unreal C++
+until Unreal Engine 5, Visual Studio 2022 Game Development with C++, a Windows
+SDK, and sufficient disk space are all available.
 
 ## Committed Phase 6 foundation
 
@@ -239,6 +281,12 @@ The conceptual engine-neutral package and event boundary is in
 - Disposable QA scripts, database, screenshots, browser profile, traces, and
   logs are removed before review. Ignored test/build outputs are also removed
   after the final command run.
+- Phase 7A-A direct `npx vitest run` passed **232 tests in 22 files**, preserving
+  all 207 Phase 6 tests and adding 25 Runtime Protocol validator, builder,
+  fixture/schema drift, data-minimization, and persisted-history service tests.
+  `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, and `npx next build`
+  passed. The build required network access for the existing Google Fonts and
+  made no application changes.
 
 ## Known limits
 
@@ -253,10 +301,10 @@ The conceptual engine-neutral package and event boundary is in
   until Asset Library IDs exist.
 - Battle remains the only Viewer adapter. Playback still consumes completed
   saved Runs rather than streaming live simulation.
-- No high-fidelity runtime, Runtime Protocol implementation, Unreal project,
-  production character pipeline, World runtime, cloud-streaming deployment or
-  live event transport exists yet. Animation Studio, Video Studio, new modules,
-  and new Battle rules also remain future work.
+- No high-fidelity runtime, Unreal project/parser, public runtime session
+  endpoint, production character pipeline, World runtime, cloud-streaming
+  deployment or live event transport exists yet. Animation Studio, Video
+  Studio, new modules, and new Battle rules also remain future work.
 
 ## Committed Phase 6 checkpoint
 
@@ -270,28 +318,38 @@ The conceptual engine-neutral package and event boundary is in
 - No package dependency or lockfile changed. Phase 6 uses the Prisma and
   Three.js packages already committed in earlier phases.
 
-## Phase 6.5 working-tree documentation
+## Committed Phase 6.5 checkpoint
 
-- **Created:** `docs/architecture/HIGH_FIDELITY_RUNTIME.md` and
+- Commit `a432b7b` contains exactly the approved four architecture documents:
+  modified `docs/CURRENT_STATUS.md` and `docs/vision/VISION.md`, plus new
+  `docs/architecture/HIGH_FIDELITY_RUNTIME.md` and
   `docs/architecture/RUNTIME_PROTOCOL.md`.
-- **Modified:** `docs/CURRENT_STATUS.md` and `docs/vision/VISION.md`.
-- **Code impact:** none. No application source, schema, test, dependency,
-  runtime project, asset or build file is changed.
+- No implementation code, schema, tests, dependencies, assets, or Unreal
+  project were included in that checkpoint.
+
+## Phase 7A-A working-tree scope
+
+- Canonical TypeScript/Zod protocol, authorized package service, generated JSON
+  Schema, protocol artifact documentation, three fixture packages and manifest,
+  fixture generator/test support, protocol/service tests, and status/protocol
+  documentation.
+- Prisma schema and Battle mechanics are unchanged. No dependency, UI, Viewer,
+  model, World, Unreal, networking, streaming, or runtime-repository changes.
 
 ```text
 LAST COMMITTED:
-  b08df45 feat: add SIMVERSE entity visuals and animation system
+  a432b7b docs: define SIMVERSE high-fidelity runtime architecture
 
 CURRENTLY WORKING ON:
-  Phase 6.5 High-Fidelity Game Runtime Architecture;
-  documentation and feasibility only, uncommitted for review.
+  Phase 7A-A Platform Runtime Protocol v1;
+  implemented and uncommitted for review.
 
-NOT YET STARTED:
-  Runtime Protocol implementation, Unreal project/bootstrap, production
-  character pipeline, Savannah proof, World runtime, cloud streaming and Phase 7.
+BLOCKED / NOT YET STARTED:
+  Phase 7A-B Unreal Bootstrap is blocked by missing Unreal Engine 5, Visual
+  Studio C++ tooling, Windows SDK, and disk space. Phase 7B+ has not started.
 
 NEXT ACTION:
-  Review the Phase 6.5 architecture documents. After an approved docs-only
-  checkpoint, begin Phase 7A Runtime Protocol v1 + Unreal Bootstrap only on
-  explicit instruction.
+  Complete Phase 7A-A quality gates and review. After an approved checkpoint,
+  install/verify the required toolchain and resume Phase 7A-B only on explicit
+  instruction.
 ```

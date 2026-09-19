@@ -1,0 +1,1498 @@
+{
+  "$defs": {
+    "__schema0": {
+      "const": "SimulationRuntimePackageV1",
+      "type": "string"
+    },
+    "__schema1": {
+      "const": "1.0.0",
+      "type": "string"
+    },
+    "__schema10": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "contentHash": {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "environmentPreset": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "manifestReference": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "spawnSet": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "version": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "worldId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "worldId",
+            "version",
+            "manifestReference",
+            "contentHash",
+            "spawnSet",
+            "environmentPreset"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema11": {
+      "items": {
+        "$ref": "#/$defs/__schema12"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "type": "array"
+    },
+    "__schema12": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "format": {
+                  "enum": [
+                    "duel",
+                    "free_for_all"
+                  ],
+                  "type": "string"
+                },
+                "maxTicks": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "participantIds": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "format",
+                "maxTicks",
+                "participantIds"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.started",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "duration": {
+                  "const": "until_next_action_or_hit",
+                  "type": "string"
+                },
+                "health": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "health",
+                "duration"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.defend",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "baseDamage": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "critical": {
+                  "type": "boolean"
+                },
+                "dodged": {
+                  "type": "boolean"
+                },
+                "finalDamage": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "guarded": {
+                  "type": "boolean"
+                },
+                "targetHealthAfter": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "targetHealthBefore": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "baseDamage",
+                "critical",
+                "dodged",
+                "guarded",
+                "finalDamage",
+                "targetHealthBefore",
+                "targetHealthAfter"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.attack",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "targetHealth": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "targetHealth"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.dodged",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "finalDamage": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "finalDamage"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.critical_hit",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "amount": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "guarded": {
+                  "type": "boolean"
+                },
+                "healthAfter": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "healthBefore": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "amount",
+                "healthBefore",
+                "healthAfter",
+                "guarded"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.damage",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "eliminationRank": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "eliminationTick": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "eliminationTick",
+                "eliminationRank"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.eliminated",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "maxTicks": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "survivors": {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "maxTicks",
+                "survivors"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.timeout",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actorRunParticipantId": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "eventId": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "payload": {
+              "additionalProperties": false,
+              "properties": {
+                "completionReason": {
+                  "enum": [
+                    "KNOCKOUT",
+                    "TIME_LIMIT"
+                  ],
+                  "type": "string"
+                },
+                "ranking": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "tiedParticipantIds": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "winnerRunParticipantId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "completionReason",
+                "winnerRunParticipantId",
+                "tiedParticipantIds",
+                "ranking"
+              ],
+              "type": "object"
+            },
+            "payloadVersion": {
+              "const": 1,
+              "type": "number"
+            },
+            "sequence": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "simulatedTimeMs": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "targetRunParticipantId": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "tick": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "type": {
+              "const": "battle.completed",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId",
+            "sequence",
+            "tick",
+            "simulatedTimeMs",
+            "actorRunParticipantId",
+            "targetRunParticipantId",
+            "type",
+            "payloadVersion",
+            "payload"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "__schema13": {
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+    },
+    "__schema14": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "__schema15": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "__schema16": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "__schema17": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema18": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "__schema19": {
+      "additionalProperties": false,
+      "properties": {
+        "envelopeVersion": {
+          "const": 1,
+          "type": "number"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "completionReason": {
+              "enum": [
+                "KNOCKOUT",
+                "TIME_LIMIT"
+              ],
+              "type": "string"
+            },
+            "eliminationOrder": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "format": {
+              "enum": [
+                "duel",
+                "free_for_all"
+              ],
+              "type": "string"
+            },
+            "participantMetrics": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "alive": {
+                    "type": "boolean"
+                  },
+                  "attacksAttempted": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "attacksLanded": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "criticalHits": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "damageDealt": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "damageReceived": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "defending": {
+                    "type": "boolean"
+                  },
+                  "defends": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "dodges": {
+                    "$ref": "#/$defs/__schema20"
+                  },
+                  "eliminationTick": {
+                    "anyOf": [
+                      {
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "health": {
+                    "maximum": 100,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "position": {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "profile": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "defense": {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "intelligence": {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "luck": {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "speed": {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      "strength": {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "strength",
+                      "defense",
+                      "speed",
+                      "intelligence",
+                      "luck"
+                    ],
+                    "type": "object"
+                  },
+                  "runParticipantId": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "runParticipantId",
+                  "position",
+                  "profile",
+                  "health",
+                  "alive",
+                  "defending",
+                  "eliminationTick",
+                  "damageDealt",
+                  "damageReceived",
+                  "attacksAttempted",
+                  "attacksLanded",
+                  "criticalHits",
+                  "dodges",
+                  "defends"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "ranking": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "simulatedDurationMs": {
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
+            },
+            "tiedParticipantIds": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "totalTicks": {
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
+            },
+            "version": {
+              "const": 1,
+              "type": "number"
+            },
+            "winnerRunParticipantId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "version",
+            "format",
+            "completionReason",
+            "winnerRunParticipantId",
+            "tiedParticipantIds",
+            "ranking",
+            "eliminationOrder",
+            "totalTicks",
+            "simulatedDurationMs",
+            "participantMetrics"
+          ],
+          "type": "object"
+        },
+        "payloadVersion": {
+          "const": 1,
+          "type": "number"
+        },
+        "summary": {
+          "maxLength": 1000,
+          "type": "string"
+        },
+        "type": {
+          "const": "battle.result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "envelopeVersion",
+        "type",
+        "summary",
+        "metrics",
+        "payloadVersion",
+        "payload"
+      ],
+      "type": "object"
+    },
+    "__schema2": {
+      "additionalProperties": false,
+      "properties": {
+        "completedAt": {
+          "$ref": "#/$defs/__schema3"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/__schema3"
+        },
+        "fixedStepMs": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "mode": {
+          "const": "battle",
+          "type": "string"
+        },
+        "runId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "simulatedDurationMs": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "simulationId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "simulationName": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "startedAt": {
+          "$ref": "#/$defs/__schema3"
+        },
+        "status": {
+          "const": "COMPLETED",
+          "type": "string"
+        },
+        "totalTicks": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "runId",
+        "simulationId",
+        "simulationName",
+        "status",
+        "mode",
+        "createdAt",
+        "startedAt",
+        "completedAt",
+        "fixedStepMs",
+        "totalTicks",
+        "simulatedDurationMs"
+      ],
+      "type": "object"
+    },
+    "__schema20": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "__schema21": {
+      "additionalProperties": false,
+      "properties": {
+        "displayTitle": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "profileVersion": {
+          "const": 1,
+          "type": "number"
+        },
+        "showLabels": {
+          "type": "boolean"
+        },
+        "showLeaderboard": {
+          "type": "boolean"
+        },
+        "themeColor": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "profileVersion",
+        "displayTitle",
+        "themeColor",
+        "showLabels",
+        "showLeaderboard"
+      ],
+      "type": "object"
+    },
+    "__schema3": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "__schema4": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "const": "battle",
+          "type": "string"
+        },
+        "version": {
+          "const": "battle-v1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "type": "object"
+    },
+    "__schema5": {
+      "additionalProperties": false,
+      "properties": {
+        "coreEngine": {
+          "const": "core-v0.1",
+          "type": "string"
+        },
+        "inputSnapshot": {
+          "const": 1,
+          "type": "number"
+        },
+        "resultEnvelope": {
+          "const": 1,
+          "type": "number"
+        },
+        "rngAlgorithm": {
+          "const": "mulberry32-v1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "coreEngine",
+        "rngAlgorithm",
+        "inputSnapshot",
+        "resultEnvelope"
+      ],
+      "type": "object"
+    },
+    "__schema6": {
+      "additionalProperties": false,
+      "properties": {
+        "resolvedSeed": {
+          "pattern": "^SV-[0-9A-Z]{8}$",
+          "type": "string"
+        },
+        "source": {
+          "const": "RUN_INPUT_SNAPSHOT",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resolvedSeed",
+        "source"
+      ],
+      "type": "object"
+    },
+    "__schema7": {
+      "items": {
+        "$ref": "#/$defs/__schema8"
+      },
+      "maxItems": 500,
+      "minItems": 2,
+      "type": "array"
+    },
+    "__schema8": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "additionalProperties": false,
+          "properties": {
+            "category": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "displayName": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "imageReference": {
+              "$ref": "#/$defs/__schema9"
+            },
+            "primaryColor": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "secondaryColor": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "shortName": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "displayName",
+            "shortName",
+            "category",
+            "imageReference",
+            "primaryColor",
+            "secondaryColor"
+          ],
+          "type": "object"
+        },
+        "position": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runParticipantId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceEntityId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "animationMapping": {
+                  "additionalProperties": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "IDLE",
+                      "WALK",
+                      "RUN",
+                      "TURN",
+                      "ATTACK_PRIMARY",
+                      "ATTACK_SECONDARY",
+                      "DEFEND",
+                      "DODGE",
+                      "HIT_LIGHT",
+                      "HIT_HEAVY",
+                      "DEFEATED",
+                      "VICTORY",
+                      "INTRO",
+                      "SPECIAL",
+                      "STUNNED",
+                      "JUMP",
+                      "LAND",
+                      "FLY",
+                      "SWIM",
+                      "EMOTE"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "archetype": {
+                  "enum": [
+                    "HUMANOID",
+                    "QUADRUPED",
+                    "CREATURE",
+                    "ROBOT",
+                    "VEHICLE_GROUND",
+                    "VEHICLE_AIR",
+                    "VEHICLE_WATER",
+                    "OBJECT",
+                    "ABSTRACT",
+                    "CUSTOM"
+                  ],
+                  "type": "string"
+                },
+                "modelReference": {
+                  "$ref": "#/$defs/__schema9"
+                },
+                "portraitReference": {
+                  "$ref": "#/$defs/__schema9"
+                },
+                "profileRevision": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "snapshotVersion": {
+                  "const": 1,
+                  "type": "number"
+                },
+                "sourceType": {
+                  "enum": [
+                    "IMAGE",
+                    "MODEL_3D",
+                    "PROCEDURAL",
+                    "SPRITE",
+                    "ANIMATED_SPRITE",
+                    "GENERATED_3D"
+                  ],
+                  "type": "string"
+                },
+                "transform": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "offsetMeters": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "maximum": 100,
+                          "minimum": -100,
+                          "type": "number"
+                        },
+                        "y": {
+                          "maximum": 100,
+                          "minimum": -100,
+                          "type": "number"
+                        },
+                        "z": {
+                          "maximum": 100,
+                          "minimum": -100,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "type": "object"
+                    },
+                    "rotationDegrees": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "maximum": 360,
+                          "minimum": -360,
+                          "type": "number"
+                        },
+                        "y": {
+                          "maximum": 360,
+                          "minimum": -360,
+                          "type": "number"
+                        },
+                        "z": {
+                          "maximum": 360,
+                          "minimum": -360,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                        "z"
+                      ],
+                      "type": "object"
+                    },
+                    "scale": {
+                      "maximum": 20,
+                      "minimum": 0.05,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "scale",
+                    "rotationDegrees",
+                    "offsetMeters"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "snapshotVersion",
+                "profileRevision",
+                "sourceType",
+                "archetype",
+                "portraitReference",
+                "modelReference",
+                "transform",
+                "animationMapping"
+              ],
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "runParticipantId",
+        "position",
+        "sourceEntityId",
+        "role",
+        "identity",
+        "visual"
+      ],
+      "type": "object"
+    },
+    "__schema9": {
+      "anyOf": [
+        {
+          "maxLength": 1400000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$id": "https://simverse.example/protocol/runtime/v1/simulation-runtime-package.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Generated transport shape. The SIMVERSE Zod validator also enforces relational integrity.",
+  "properties": {
+    "events": {
+      "$ref": "#/$defs/__schema11"
+    },
+    "module": {
+      "$ref": "#/$defs/__schema4"
+    },
+    "packageType": {
+      "$ref": "#/$defs/__schema0"
+    },
+    "participants": {
+      "$ref": "#/$defs/__schema7"
+    },
+    "presentation": {
+      "$ref": "#/$defs/__schema21"
+    },
+    "protocolVersion": {
+      "$ref": "#/$defs/__schema1"
+    },
+    "result": {
+      "$ref": "#/$defs/__schema19"
+    },
+    "run": {
+      "$ref": "#/$defs/__schema2"
+    },
+    "seedProvenance": {
+      "$ref": "#/$defs/__schema6"
+    },
+    "versions": {
+      "$ref": "#/$defs/__schema5"
+    },
+    "world": {
+      "$ref": "#/$defs/__schema10"
+    }
+  },
+  "required": [
+    "packageType",
+    "protocolVersion",
+    "run",
+    "module",
+    "versions",
+    "seedProvenance",
+    "participants",
+    "world",
+    "events",
+    "result",
+    "presentation"
+  ],
+  "title": "SimulationRuntimePackageV1",
+  "type": "object"
+}

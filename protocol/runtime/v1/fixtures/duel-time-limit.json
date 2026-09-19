@@ -1,0 +1,244 @@
+{
+  "events": [
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-duel-time-limit-event-1",
+      "payload": {
+        "format": "duel",
+        "maxTicks": 1,
+        "participantIds": [
+          "participant-falcon",
+          "participant-hawk"
+        ]
+      },
+      "payloadVersion": 1,
+      "sequence": 1,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": null,
+      "tick": 1,
+      "type": "battle.started"
+    },
+    {
+      "actorRunParticipantId": "participant-falcon",
+      "eventId": "run-fixture-duel-time-limit-event-2",
+      "payload": {
+        "baseDamage": 13,
+        "critical": true,
+        "dodged": false,
+        "finalDamage": 20,
+        "guarded": false,
+        "targetHealthAfter": 80,
+        "targetHealthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 2,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-hawk",
+      "tick": 1,
+      "type": "battle.attack"
+    },
+    {
+      "actorRunParticipantId": "participant-falcon",
+      "eventId": "run-fixture-duel-time-limit-event-3",
+      "payload": {
+        "finalDamage": 20
+      },
+      "payloadVersion": 1,
+      "sequence": 3,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-hawk",
+      "tick": 1,
+      "type": "battle.critical_hit"
+    },
+    {
+      "actorRunParticipantId": "participant-falcon",
+      "eventId": "run-fixture-duel-time-limit-event-4",
+      "payload": {
+        "amount": 20,
+        "guarded": false,
+        "healthAfter": 80,
+        "healthBefore": 100
+      },
+      "payloadVersion": 1,
+      "sequence": 4,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": "participant-hawk",
+      "tick": 1,
+      "type": "battle.damage"
+    },
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-duel-time-limit-event-5",
+      "payload": {
+        "maxTicks": 1,
+        "survivors": 2
+      },
+      "payloadVersion": 1,
+      "sequence": 5,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": null,
+      "tick": 1,
+      "type": "battle.timeout"
+    },
+    {
+      "actorRunParticipantId": null,
+      "eventId": "run-fixture-duel-time-limit-event-6",
+      "payload": {
+        "completionReason": "TIME_LIMIT",
+        "ranking": [
+          "participant-falcon",
+          "participant-hawk"
+        ],
+        "tiedParticipantIds": [],
+        "winnerRunParticipantId": "participant-falcon"
+      },
+      "payloadVersion": 1,
+      "sequence": 6,
+      "simulatedTimeMs": 100,
+      "targetRunParticipantId": null,
+      "tick": 1,
+      "type": "battle.completed"
+    }
+  ],
+  "module": {
+    "id": "battle",
+    "version": "battle-v1"
+  },
+  "packageType": "SimulationRuntimePackageV1",
+  "participants": [
+    {
+      "identity": {
+        "category": "animal",
+        "displayName": "Falcon",
+        "imageReference": "https://assets.simverse.example/portraits/entity-falcon.webp",
+        "primaryColor": "#D8A33F",
+        "secondaryColor": "#4A2F1B",
+        "shortName": null
+      },
+      "position": 0,
+      "role": "primary",
+      "runParticipantId": "participant-falcon",
+      "sourceEntityId": "entity-falcon",
+      "visual": null
+    },
+    {
+      "identity": {
+        "category": "animal",
+        "displayName": "Hawk",
+        "imageReference": "https://assets.simverse.example/portraits/entity-hawk.webp",
+        "primaryColor": "#4F7DD9",
+        "secondaryColor": "#182B4D",
+        "shortName": null
+      },
+      "position": 1,
+      "role": null,
+      "runParticipantId": "participant-hawk",
+      "sourceEntityId": "entity-hawk",
+      "visual": null
+    }
+  ],
+  "presentation": {
+    "displayTitle": "Falcon vs Hawk — Time Limit",
+    "profileVersion": 1,
+    "showLabels": true,
+    "showLeaderboard": true,
+    "themeColor": "#22D3EE"
+  },
+  "protocolVersion": "1.0.0",
+  "result": {
+    "envelopeVersion": 1,
+    "metrics": {
+      "completionReason": "TIME_LIMIT",
+      "participants": 2,
+      "ticks": 1,
+      "totalDamage": 20
+    },
+    "payload": {
+      "completionReason": "TIME_LIMIT",
+      "eliminationOrder": [],
+      "format": "duel",
+      "participantMetrics": [
+        {
+          "alive": true,
+          "attacksAttempted": 1,
+          "attacksLanded": 1,
+          "criticalHits": 1,
+          "damageDealt": 20,
+          "damageReceived": 0,
+          "defending": false,
+          "defends": 0,
+          "dodges": 0,
+          "eliminationTick": null,
+          "health": 100,
+          "position": 0,
+          "profile": {
+            "defense": 50,
+            "intelligence": 50,
+            "luck": 50,
+            "speed": 50,
+            "strength": 50
+          },
+          "runParticipantId": "participant-falcon"
+        },
+        {
+          "alive": true,
+          "attacksAttempted": 0,
+          "attacksLanded": 0,
+          "criticalHits": 0,
+          "damageDealt": 0,
+          "damageReceived": 20,
+          "defending": false,
+          "defends": 0,
+          "dodges": 0,
+          "eliminationTick": null,
+          "health": 80,
+          "position": 1,
+          "profile": {
+            "defense": 50,
+            "intelligence": 50,
+            "luck": 50,
+            "speed": 50,
+            "strength": 50
+          },
+          "runParticipantId": "participant-hawk"
+        }
+      ],
+      "ranking": [
+        "participant-falcon",
+        "participant-hawk"
+      ],
+      "simulatedDurationMs": 100,
+      "tiedParticipantIds": [],
+      "totalTicks": 1,
+      "version": 1,
+      "winnerRunParticipantId": "participant-falcon"
+    },
+    "payloadVersion": 1,
+    "summary": "Falcon leads when time expires.",
+    "type": "battle.result"
+  },
+  "run": {
+    "completedAt": "2026-09-19T13:00:00.100Z",
+    "createdAt": "2026-09-19T12:59:00.000Z",
+    "fixedStepMs": 100,
+    "mode": "battle",
+    "runId": "run-fixture-duel-time-limit",
+    "simulatedDurationMs": 100,
+    "simulationId": "simulation-fixture-duel-time-limit",
+    "simulationName": "Falcon vs Hawk — Time Limit",
+    "startedAt": "2026-09-19T13:00:00.000Z",
+    "status": "COMPLETED",
+    "totalTicks": 1
+  },
+  "seedProvenance": {
+    "resolvedSeed": "SV-TIME0001",
+    "source": "RUN_INPUT_SNAPSHOT"
+  },
+  "versions": {
+    "coreEngine": "core-v0.1",
+    "inputSnapshot": 1,
+    "resultEnvelope": 1,
+    "rngAlgorithm": "mulberry32-v1"
+  },
+  "world": null
+}

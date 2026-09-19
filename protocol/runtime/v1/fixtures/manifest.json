@@ -1,0 +1,50 @@
+{
+  "fixtures": [
+    {
+      "eventCount": 18,
+      "expectedCompletionReason": "KNOCKOUT",
+      "expectedTiedParticipantIds": [],
+      "expectedWinnerRunParticipantId": "participant-lion",
+      "file": "duel-knockout.json",
+      "ranking": [
+        "participant-lion",
+        "participant-tiger"
+      ],
+      "scenario": "Duel — Knockout",
+      "seed": "SV-KNOCK001",
+      "sha256": "4a10f1ab95ffe0b7ff412f8d129adb96c953f752ccd78b982a9a633241c43923"
+    },
+    {
+      "eventCount": 6,
+      "expectedCompletionReason": "TIME_LIMIT",
+      "expectedTiedParticipantIds": [],
+      "expectedWinnerRunParticipantId": "participant-falcon",
+      "file": "duel-time-limit.json",
+      "ranking": [
+        "participant-falcon",
+        "participant-hawk"
+      ],
+      "scenario": "Duel — Time Limit",
+      "seed": "SV-TIME0001",
+      "sha256": "319302c51290766e50859671c26a46e3b9f53dbea4f3da7073f0c874d50464b0"
+    },
+    {
+      "eventCount": 81,
+      "expectedCompletionReason": "KNOCKOUT",
+      "expectedTiedParticipantIds": [],
+      "expectedWinnerRunParticipantId": "participant-orb",
+      "file": "four-player-free-for-all.json",
+      "ranking": [
+        "participant-orb",
+        "participant-car",
+        "participant-mage",
+        "participant-robot"
+      ],
+      "scenario": "Four-player Free-for-All",
+      "seed": "SV-FFA00001",
+      "sha256": "537fbb17f3e174843256c011cb601cf416974bbb55fbb51fda1a9b18948b3f0b"
+    }
+  ],
+  "originatingPlatformCheckpoint": "a432b7b",
+  "protocolVersion": "1.0.0"
+}
