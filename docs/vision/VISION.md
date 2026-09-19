@@ -87,7 +87,7 @@ Content-creation capabilities that can consume simulation output and also suppor
 
 Examples:
 
-- Real-Time 3D Viewer
+- High-Fidelity Experience Runtime and Web Preview Viewer
 - Visual Asset System
 - Standard Animation System
 - Camera System
@@ -172,6 +172,15 @@ shadows, VFX, sound, a premium HUD, and cinematic introductions and outcomes.
 2D and image representations may remain fallbacks. They are not the premium
 default visual experience.
 
+Human Phase 5–6 visual review established that the existing Three.js Viewer is
+the **SIMVERSE Web Preview Viewer**: useful for quick previews, fallback replay,
+low-resource devices, editor previews and debugging. It is not the final
+reference-quality runtime. The premium destination is a separate
+**High-Fidelity Experience Runtime**, with Unreal Engine 5 recommended for the
+first implementation. Both consume the same engine-neutral, authoritative Run
+protocol. This decision does not move simulation logic into Unreal and does not
+replace the web Platform.
+
 The owner's uploaded gaming images define the **target quality class and
 presentation direction**. They are references, not source assets. SIMVERSE must
 use original branding, UI, environments, models, characters, logos and visual
@@ -216,28 +225,38 @@ The broad intended workflow is:
 
 Not all of this belongs in the first release. The phase plan controls when each part is implemented.
 
-The intended Watch journey is **Create → Configure → Run & Watch → real-time 3D
-visualization → visible actions → cinematic outcome → Replay → future Edit /
-Export**. A Lion vs Tiger run should eventually show a 3D lion and tiger with
-physical placement, movement, attacks, dodges, hit reactions, health changes,
+The intended Watch journey is **Create → Configure → Run & Watch → choose the
+available presentation tier → visible actions → cinematic outcome → Replay →
+future Edit / Export**. Premium presentation may open a native runtime or a
+future cloud-streamed session; the Web Preview remains immediately available.
+A Lion vs Tiger run should eventually show a 3D lion and tiger with physical
+placement, movement, attacks, dodges, hit reactions, health changes,
 elimination and the true winner. Core and the Battle Module determine what
-happened. The Viewer only visualizes their persisted events and result.
+happened. Every presentation runtime only visualizes persisted events and result.
 
-### Real-Time 3D Viewer and reusable presentation systems
+### Presentation runtimes and reusable presentation systems
 
-The SIMVERSE Real-Time 3D Viewer requires a browser 3D renderer, perspective
-camera, 3D scene/environment, lighting, shadows, model loading, animation
-system, camera system, VFX, sound, HUD, playback/replay controls and fullscreen
-presentation. Its Viewer Core and adapters map SimulationRun truth into visual
-cues. Browser rendering may be real-time even when the Run completed before
-playback; do not call that live simulation streaming.
+SIMVERSE separates authoritative simulation from presentation through a
+versioned **Runtime Protocol**. A completed SimulationRun package can feed the
+Three.js Web Preview Viewer, the High-Fidelity Experience Runtime and future
+video/cinematic renderers. The protocol carries versioned Run/module identity,
+participant snapshots, immutable visual and World references, ordered events,
+result and presentation metadata without Unreal-specific class names.
+
+The Web Preview provides perspective camera, a lightweight scene, model
+loading, animation, VFX/audio foundations, HUD, replay controls and fullscreen.
+The High-Fidelity Runtime owns the premium character, World, lighting,
+animation, camera, VFX and sound implementation. Presentation may be real-time
+even when the authoritative Run completed before playback; do not call that
+live simulation streaming.
 
 The **Standard Animation System** is a first-class professional system. Its
-shared state vocabulary includes IDLE, WALK, RUN, TURN, ATTACK, DEFEND, DODGE,
-HIT/REACTION, DEFEATED/ELIMINATED, VICTORY and INTRO. It should support clips,
-state machines, transition logic, crossfades/blending, loop and non-loop states,
-interruption rules, completion, fallbacks and event-to-animation mapping. The
-long-term architecture must not be limited to crude CSS/transform-only motion.
+shared state vocabulary includes IDLE, WALK, RUN, TURN, ATTACK_PRIMARY,
+ATTACK_SECONDARY, DEFEND, DODGE, HIT_LIGHT, HIT_HEAVY, DEFEATED, VICTORY and
+INTRO. It should support clips, state machines, transition logic,
+crossfades/blending, loop and non-loop states, interruption rules, completion,
+fallbacks and event-to-animation mapping. The long-term architecture must not
+be limited to crude CSS/transform-only motion.
 
 Entity **simulation data** (attributes, metadata and behavior inputs) is
 distinct from **visual identity** (thumbnail/portrait, image fallback, 3D
@@ -379,22 +398,29 @@ Never justify scope creep by saying a future feature appeared in a concept image
 
 ### Revised visual roadmap
 
-1. **Phase 5 — Real-Time 3D Viewer Foundation v1:** real browser 3D renderer,
-   Viewer Core and adapters including Battle, Watch and Run & Watch, an original
-   SIMVERSE Arena, model-loading and procedural 3D fallback foundations,
-   animation-controller, camera, lighting, VFX and sound foundations, HUD,
-   playback controls and fullscreen. It does not require automatically
-   generating custom production-quality Lion/Tiger models from their names.
-2. **Phase 6 — Entity Visual Asset + Standard Animation System:** asset
-   assignment/import, archetypes, rigs, animation profiles, model validation
-   and reusable standard animation sets.
-3. **Phase 7 — 3D Environments / Worlds.**
-4. **Phase 8 — Cinematic Camera + Lighting + VFX + Sound.**
-5. **Phase 9 — Animation Studio / Video Studio preparation.**
+1. **Phase 5 — Web 3D Viewer Foundation:** the committed Three.js renderer,
+   Viewer adapters, original Arena, model loading, procedural fallback, camera,
+   presentation effects, HUD, replay controls and fullscreen. Its formal role is
+   now Web Preview rather than final reference-quality runtime.
+2. **Phase 6 — Entity Visual Asset + Standard Animation System:** committed
+   visual profiles, archetypes, model assignment/inspection, semantic animation
+   mappings, immutable Run snapshots and Immersive Watch Mode.
+3. **Phase 6.5 — High-Fidelity Runtime Architecture:** engine evaluation,
+   runtime-neutral protocol, Unreal recommendation, repository/delivery strategy
+   and roadmap. Documentation only.
+4. **Phase 7A — Runtime Protocol v1 + Unreal Bootstrap:** a separate minimal
+   runtime consumes completed Run fixtures and proves event/result parity.
+5. **Phase 7B — High-Fidelity Character Pipeline:** versioned runtime assets,
+   one production quadruped pipeline, locomotion, IK and semantic actions.
+6. **Phase 7C — Lion vs Tiger Savannah Proof:** bounded high-quality character,
+   World, camera, VFX, audio, HUD and cinematic-result vertical slice.
+7. **Phase 8 — Reusable World Runtime.**
+8. **Phase 9 — Reusable cinematic presentation systems.**
+9. **Later:** additional archetypes, native/cloud delivery at scale, live
+   streams, Animation Studio, Video Studio and the media export pipeline.
 
-Later work may include AI Director, advanced cinematic rendering, Animation
-Studio, Video Studio and the media export pipeline. This roadmap supersedes any
-earlier one that defines Phase 5 primarily as a Canvas 2D Viewer.
+This sequence supersedes both the old Canvas-first direction and the previous
+assumption that general World implementation should immediately follow Phase 6.
 
 ---
 

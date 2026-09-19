@@ -4,16 +4,16 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Current work:** Phase 6 — Entity Visual Asset System, Professional Standard
-  Animation System, and Immersive Watch Mode are implemented in the working
-  tree for review. **Do not commit without approval.** Phase 7 has not started.
-- **Committed checkpoint:** `22a7560` (`feat: add SIMVERSE real-time 3D viewer
-  foundation`), after the visual-direction checkpoint `25864f1` and Phase 4
-  Battle checkpoint `d9be027`. The tree was clean before Phase 6 began.
+- **Current work:** Phase 6.5 — High-Fidelity Game Runtime Architecture is being
+  documented in the working tree. This is architecture/feasibility work only;
+  **do not commit without approval**. Phase 7 implementation has not started.
+- **Committed checkpoint:** `b08df45` (`feat: add SIMVERSE entity visuals and
+  animation system`), after Phase 5 `22a7560` and Phase 4 `d9be027`. The working
+  tree was clean before Phase 6.5 began.
 - **Last updated:** 2026-09-19.
-- **Boundary:** Battle remains the only production mechanics module. Entity
-  visuals and Viewer animation present completed, saved Core history and never
-  decide or alter simulation outcomes.
+- **Boundary:** Battle remains the only production mechanics module. Core and
+  Modules remain authoritative. Three.js is now formally the Web Preview Viewer;
+  no Unreal project, Runtime Protocol code, World code or Phase 7 code exists.
 
 ## Official architecture and visual direction
 
@@ -24,19 +24,83 @@ Platform systems. Anything Wars is a Product. Animation Studio remains a
 separate official Creator/Media capability that must eventually support
 standalone creation; it is not implemented here.
 
-The visual target is premium, full-screen-capable, real-time browser 3D
-simulation playback. Uploaded gaming references establish a quality class and
-presentation direction only. SIMVERSE uses original branding and assets.
+The visual target is premium, full-screen-capable, real-time 3D simulation
+playback through a native runtime and, later, browser streaming. Uploaded gaming
+references establish a quality class and presentation direction only. SIMVERSE
+uses original branding and assets.
 
-### Visual roadmap
+### Revised runtime roadmap
 
-1. **Phase 5:** Real-Time 3D Viewer Foundation v1 — committed in `22a7560`.
-2. **Phase 6:** Entity Visual Assets + Standard Animation — current review.
-3. **Phase 7:** 3D Environments / Worlds — not started.
-4. **Phase 8:** Cinematic Camera + Lighting + VFX + Sound.
-5. **Phase 9:** Animation Studio / Video Studio preparation.
+1. **Phase 5:** Web 3D Viewer Foundation — committed in `22a7560`.
+2. **Phase 6:** Entity Visual Assets + Standard Animation — committed in
+   `b08df45`.
+3. **Phase 6.5:** High-Fidelity Runtime architecture and feasibility — current
+   documentation review.
+4. **Phase 7A:** Runtime Protocol v1 + separate Unreal bootstrap.
+5. **Phase 7B:** High-Fidelity Character Pipeline.
+6. **Phase 7C:** Lion vs Tiger Savannah proof.
+7. **Phase 8:** reusable World Runtime.
+8. **Phase 9:** reusable cinematic presentation systems.
+9. **Later:** additional archetypes, native/cloud delivery at scale, live
+   streams, Animation Studio, Video Studio and media export.
 
-## Phase 6 architecture
+The previous plan to make general Worlds the immediate Phase 7 task is
+superseded. Phase 7A is the exact next recommended implementation phase, subject
+to approval after Phase 6.5 review.
+
+## Phase 6.5 high-fidelity runtime decision
+
+The premium visual destination is a separate **SIMVERSE High-Fidelity Experience
+Runtime**, with **Unreal Engine 5** recommended for its first implementation.
+The existing Three.js implementation remains the **SIMVERSE Web Preview Viewer**
+for instant previews, fallback playback, low-resource devices, creator/editor
+preview and debugging.
+
+The detailed decision is in
+[architecture/HIGH_FIDELITY_RUNTIME.md](architecture/HIGH_FIDELITY_RUNTIME.md).
+The conceptual engine-neutral package and event boundary is in
+[architecture/RUNTIME_PROTOCOL.md](architecture/RUNTIME_PROTOCOL.md).
+
+### Responsibilities
+
+- **Next.js Platform:** accounts, authentication, workspaces, permissions,
+  Entities, Projects, Simulation Builder, asset/World metadata, launch UI,
+  history/results, collaboration/marketplace later.
+- **Core and Modules:** actions, state, targets, RNG, damage, eliminations,
+  ordered events, rankings and results.
+- **Runtime Protocol:** versioned projection of a completed Run, participant and
+  visual snapshots, immutable asset/World bindings, ordered events, result and
+  presentation metadata.
+- **Three.js Web Preview:** lightweight/fallback/debug consumer.
+- **Unreal High-Fidelity Runtime:** downstream premium consumer responsible for
+  world loading, characters, animation, camera, VFX, audio, HUD and presentation
+  physics without deciding simulation facts.
+
+### Engine feasibility
+
+- Unreal provides the most direct integrated path for large worlds,
+  high-fidelity lighting/rendering, skeletal animation, Animation Blueprints,
+  IK/Control Rig, Chaos, Niagara, MetaSounds, Sequencer, packaged desktop builds
+  and Pixel Streaming browser delivery.
+- Unity 6 remains a viable C#/cross-platform alternative. Godot 4 is the
+  strongest open-source alternative. Both would require a different balance of
+  custom high-end runtime, content and streaming work.
+- Licensing, runtime distribution and cloud-stream classification must be
+  reviewed before commercial release. Current official terms and verified
+  primary links are recorded in the architecture document.
+
+### Repository and delivery decision
+
+- When approved, create a separate private `SIMVERSE-RUNTIME` Unreal repository.
+  Do not place Unreal caches, builds or giant binary-content directories in this
+  Next.js repository.
+- Use Git + Git LFS/locks initially for a small team and evaluate Perforce as the
+  binary content team grows. Store cooked builds outside Git.
+- Start with a local developer runtime consuming a sanitized completed Run
+  fixture, then a packaged desktop runtime. Pilot Pixel Streaming only after the
+  runtime/protocol boundary and measured unit economics are stable.
+
+## Committed Phase 6 foundation
 
 ### Persistent Entity visual profiles
 
@@ -188,41 +252,46 @@ presentation direction only. SIMVERSE uses original branding and assets.
   mutable URL. Production assets should use content-addressed or versioned URLs
   until Asset Library IDs exist.
 - Battle remains the only Viewer adapter. Playback still consumes completed
-  saved Runs rather than streaming live simulation. Phase 7 Worlds, Phase 8
-  cinematics, Animation Studio, Video Studio, new modules, and new Battle rules
-  are outside this phase.
+  saved Runs rather than streaming live simulation.
+- No high-fidelity runtime, Runtime Protocol implementation, Unreal project,
+  production character pipeline, World runtime, cloud-streaming deployment or
+  live event transport exists yet. Animation Studio, Video Studio, new modules,
+  and new Battle rules also remain future work.
 
-## Files in the Phase 6 review checkpoint
+## Committed Phase 6 checkpoint
 
-- **Created (11):** `public/models/simverse-rigged-proxy.gltf`,
-  `scripts/generate-rigged-viewer-demo-model.mjs`,
-  `src/app/(platform)/entities/[entityId]/visuals/page.tsx`,
-  `src/app/api/entities/[entityId]/visual-profile/route.ts`,
-  `src/components/entities/entity-visuals-editor.tsx`,
-  `src/components/entities/visual-preview.tsx`,
-  `src/lib/viewer/immersive.ts`, `src/lib/viewer/immersive.test.ts`,
-  `src/lib/visuals/profile.ts`, `src/lib/visuals/profile.test.ts`, and
-  `src/server/services/visual-profile-service.test.ts`.
-- **Modified (20):** `prisma/schema.prisma`, `docs/CURRENT_STATUS.md`, Entity
-  overview/edit pages, Entity form fixture, Platform shell, Simulation Viewer,
-  engine schemas, Viewer controller/choreography/scene/renderer/types and tests,
-  audit/Entity/snapshot services, Battle Run service tests, and test DB reset.
-- **Dependencies:** no package dependency or lockfile change. Phase 6 uses the
-  Prisma and Three.js packages already committed in earlier phases.
+- Commit `b08df45` contains the approved **20 modified + 11 created = 31** Phase
+  6 files: Entity Visual Profile persistence/UI, semantic animation runtime,
+  immutable Run visual snapshots, Viewer integration, immersive Watch Mode,
+  tests, original demo asset/generator, and status documentation.
+- No disposable QA artifacts were committed. The Prisma changes are limited to
+  Entity Visual Profile architecture. Existing Phase 3–5 Runs remain backward
+  compatible, and Battle mechanics did not change.
+- No package dependency or lockfile changed. Phase 6 uses the Prisma and
+  Three.js packages already committed in earlier phases.
+
+## Phase 6.5 working-tree documentation
+
+- **Created:** `docs/architecture/HIGH_FIDELITY_RUNTIME.md` and
+  `docs/architecture/RUNTIME_PROTOCOL.md`.
+- **Modified:** `docs/CURRENT_STATUS.md` and `docs/vision/VISION.md`.
+- **Code impact:** none. No application source, schema, test, dependency,
+  runtime project, asset or build file is changed.
 
 ```text
 LAST COMMITTED:
-  22a7560 feat: add SIMVERSE real-time 3D viewer foundation
+  b08df45 feat: add SIMVERSE entity visuals and animation system
 
 CURRENTLY WORKING ON:
-  Phase 6 Entity Visual Assets, Standard Animation, and Immersive Watch Mode;
-  implemented and uncommitted for review.
+  Phase 6.5 High-Fidelity Game Runtime Architecture;
+  documentation and feasibility only, uncommitted for review.
 
 NOT YET STARTED:
-  Phase 7 3D Environments / Worlds, Phase 8 advanced cinematics,
-  Phase 9 Animation/Video Studio preparation.
+  Runtime Protocol implementation, Unreal project/bootstrap, production
+  character pipeline, Savannah proof, World runtime, cloud streaming and Phase 7.
 
 NEXT ACTION:
-  Report the completed Phase 6 checkpoint and wait for approval.
-  Do not commit and do not begin Phase 7.
+  Review the Phase 6.5 architecture documents. After an approved docs-only
+  checkpoint, begin Phase 7A Runtime Protocol v1 + Unreal Bootstrap only on
+  explicit instruction.
 ```
