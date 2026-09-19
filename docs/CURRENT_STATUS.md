@@ -4,12 +4,12 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Current work:** Phase 7A-A — Platform Runtime Protocol v1 is implemented in
-  the working tree for review. **Do not commit without approval.** Phase 7A-B
-  Unreal work has not started and is blocked by the local toolchain gate.
-- **Committed checkpoint:** `a432b7b` (`docs: define SIMVERSE high-fidelity
-  runtime architecture`), after Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase
-  4 `d9be027`. The working tree was clean before Phase 7A-A began.
+- **Last completed:** Phase 7A-A — Platform Runtime Protocol v1, committed in
+  `5687430` (`feat: add SIMVERSE runtime protocol v1`).
+- **Current work:** Phase 7A-B — Unreal Runtime Bootstrap. **Status: waiting for
+  Unreal Engine installation.** No Unreal implementation has started.
+- **Committed checkpoint:** `5687430`, after Phase 6.5 `a432b7b`, Phase 6
+  `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
 - **Last updated:** 2026-09-19.
 - **Boundary:** Battle remains the only production mechanics module. Core and
   Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
@@ -37,8 +37,9 @@ uses original branding and assets.
    `b08df45`.
 3. **Phase 6.5:** High-Fidelity Runtime architecture and feasibility — committed
    in `a432b7b`.
-4. **Phase 7A-A:** Platform Runtime Protocol v1 — current implementation review.
-5. **Phase 7A-B:** separate Unreal bootstrap — blocked by toolchain/disk gate.
+4. **Phase 7A-A:** Platform Runtime Protocol v1 — committed in `5687430`.
+5. **Phase 7A-B:** separate Unreal Runtime Bootstrap — current; waiting for
+   Unreal Engine installation.
 6. **Phase 7B:** High-Fidelity Character Pipeline.
 7. **Phase 7C:** Lion vs Tiger Savannah proof.
 8. **Phase 8:** reusable World Runtime.
@@ -128,19 +129,28 @@ The conceptual engine-neutral package and event boundary is in
   Limit, and Four-player Free-for-All. Their generated manifest records seed,
   outcome, ranking, event count, SHA-256, and origin checkpoint `a432b7b`.
 
-### Phase 7A-B toolchain gate
+### Phase 7A-B readiness and toolchain gate
 
-Phase 7A-B is blocked on this machine. Verification on 2026-09-19 found:
+The 2026-09-19 readiness audit confirmed these prerequisites are ready:
 
-- Unreal Editor / Unreal Engine 5 absent;
-- Visual Studio Installer and the Game Development with C++ toolchain absent;
-- Windows SDK absent;
-- drive C reporting 0 GB free;
-- `C:\Users\zaid\Documents\MAIN PROJECT\SIMVERSE-RUNTIME` absent.
+- Visual Studio Community 2022 17.14.41;
+- Game Development with C++;
+- MSVC v143 14.44.35229;
+- Windows SDK 10.0.26100 and Windows SDK 10.0.22621;
+- Git 2.55 and Git LFS 3.7.1.
 
-Do not create the runtime repository, `.uproject`, or placeholder Unreal C++
-until Unreal Engine 5, Visual Studio 2022 Game Development with C++, a Windows
-SDK, and sufficient disk space are all available.
+Storage at audit time:
+
+- drive C had approximately 44 GiB free;
+- drive D had approximately 358 GiB free;
+- Unreal Engine, the runtime repository, Derived Data Cache, and runtime builds
+  should be placed on D where practical.
+
+The only remaining toolchain blocker is **Unreal Engine 5**, which is not
+installed. Install one stable compatible Unreal Engine 5 release on D, then run
+the Phase 7A-B gate check. Do not create the runtime repository, `.uproject`, or
+placeholder Unreal C++ until that gate passes. The durable bootstrap plan is in
+[architecture/PHASE_7A_B_BOOTSTRAP.md](architecture/PHASE_7A_B_BOOTSTRAP.md).
 
 ## Committed Phase 6 foundation
 
@@ -327,29 +337,28 @@ SDK, and sufficient disk space are all available.
 - No implementation code, schema, tests, dependencies, assets, or Unreal
   project were included in that checkpoint.
 
-## Phase 7A-A working-tree scope
+## Committed Phase 7A-A checkpoint
 
-- Canonical TypeScript/Zod protocol, authorized package service, generated JSON
-  Schema, protocol artifact documentation, three fixture packages and manifest,
-  fixture generator/test support, protocol/service tests, and status/protocol
-  documentation.
+- Commit `5687430` contains the canonical TypeScript/Zod protocol, authorized
+  package service, generated JSON Schema, protocol artifact documentation,
+  three fixture packages and manifest, fixture generator/test support,
+  protocol/service tests, and status/protocol documentation.
 - Prisma schema and Battle mechanics are unchanged. No dependency, UI, Viewer,
   model, World, Unreal, networking, streaming, or runtime-repository changes.
 
 ```text
-LAST COMMITTED:
-  a432b7b docs: define SIMVERSE high-fidelity runtime architecture
+LAST COMPLETED:
+  Phase 7A-A — Platform Runtime Protocol v1
+  5687430 feat: add SIMVERSE runtime protocol v1
 
-CURRENTLY WORKING ON:
-  Phase 7A-A Platform Runtime Protocol v1;
-  implemented and uncommitted for review.
+CURRENT:
+  Phase 7A-B — Unreal Runtime Bootstrap
+  STATUS: WAITING FOR UNREAL ENGINE INSTALLATION
 
-BLOCKED / NOT YET STARTED:
-  Phase 7A-B Unreal Bootstrap is blocked by missing Unreal Engine 5, Visual
-  Studio C++ tooling, Windows SDK, and disk space. Phase 7B+ has not started.
+ONLY REMAINING TOOLCHAIN BLOCKER:
+  Unreal Engine 5 is not installed. Phase 7B+ has not started.
 
 NEXT ACTION:
-  Complete Phase 7A-A quality gates and review. After an approved checkpoint,
-  install/verify the required toolchain and resume Phase 7A-B only on explicit
-  instruction.
+  Install one stable compatible Unreal Engine 5 release on D:, then run the
+  Phase 7A-B gate check before creating SIMVERSE-RUNTIME or any Unreal files.
 ```
