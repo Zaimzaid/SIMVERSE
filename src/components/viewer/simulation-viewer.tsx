@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- snapshots may contain validated remote or inline portraits. */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -258,21 +259,48 @@ export function SimulationViewer(props: Props) {
     ? frame.tiedIds.length > 1 ? "Time limit · Draw" : "Time limit · Final standings"
     : `Winner · ${scene.find((entity) => entity.id === frame.winnerId)?.name ?? "Battle complete"}` : null;
 
-  return <div className="space-y-4">
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <Link href={resultsHref} className="inline-flex items-center gap-2 text-sm text-secondary hover:text-foreground"><ArrowLeft className="size-4" />View Results</Link>
+  return <div className="flex min-h-dvh flex-col gap-2 bg-[#030814] p-2 sm:p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+      <Link href={resultsHref} className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white"><ArrowLeft className="size-4" />Exit Viewer</Link>
       <span className="text-xs font-semibold uppercase tracking-[.22em] text-accent">SIMVERSE / Visual Replay</span>
     </div>
-    <div ref={stageRef} className="overflow-hidden rounded-2xl border border-border-strong bg-[#080f1d] shadow-[0_24px_80px_-30px_rgba(0,0,0,.8)] fullscreen:flex fullscreen:flex-col fullscreen:justify-center">
+    <div ref={stageRef} className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#080f1d] shadow-[0_24px_80px_-30px_rgba(0,0,0,.8)] fullscreen:justify-center">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-6">
         <div className="min-w-0"><h1 className="truncate font-display text-lg font-bold text-white sm:text-xl">{title}</h1><p className="text-xs text-[#9eb3ca]">SIMVERSE Arena · {scene.length > 2 ? "Free for all" : "Duel"} · Historical replay</p></div>
         <span className="rounded-full border border-[#318da8]/40 bg-[#0d2b3a] px-3 py-1 text-xs font-bold text-[#9eeaf8]">{completion ? resultLabel : frame ? `TICK ${frame.tick}` : "LOADING"}</span>
       </div>
-      <div className="relative h-[min(58vh,670px)] min-h-[290px] w-full sm:h-[clamp(390px,58vh,670px)] fullscreen:min-h-0 fullscreen:h-auto fullscreen:flex-1">
-        <canvas ref={canvasRef} role="img" aria-label="Real-time 3D SIMVERSE Battle arena replaying saved simulation events" className="h-full w-full" />
+      <div className="relative min-h-[280px] w-full flex-1 fullscreen:min-h-0">
+        <canvas ref={canvasRef} role="img" aria-label="Real-time 3D SIMVERSE Battle arena replaying saved simulation events" className="absolute inset-0 h-full w-full" />
+        <div className={`pointer-events-none absolute left-2 right-2 top-2 z-10 grid gap-2 ${scene.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`} aria-label="Participant health">
+          {scene.map((entity) => {
+            const state = frame?.participants[entity.id];
+            return <div key={entity.id} className="min-w-0 rounded-lg border border-white/15 bg-[#071325]/80 p-2 shadow-lg backdrop-blur-md">
+              <div className="mb-1.5 flex items-center justify-between gap-1 text-[10px] sm:text-xs">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span aria-hidden className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full border border-white/30 text-[9px] font-black text-white sm:size-7"
+                    style={{ background: entity.profile.primaryColor }}>
+                    {entity.profile.portraitUrl ? <img src={entity.profile.portraitUrl} alt="" className="size-full object-cover" /> : entity.shortName.trim().slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 truncate font-semibold text-white">{entity.name}</span>
+                </span>
+                <span className="shrink-0 font-mono text-[#b5c9dc]">{state?.eliminated ? "OUT · " : state?.defending ? "GUARD · " : ""}{state?.health ?? 100}</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[#283447]" role="progressbar" aria-label={`${entity.name} health`} aria-valuenow={state?.health ?? 100} aria-valuemin={0} aria-valuemax={100}>
+                <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${state?.health ?? 100}%`, background: entity.profile.primaryColor }} />
+              </div>
+            </div>;
+          })}
+        </div>
         {frame && frame.timeMs < (timelineRef.current?.introMs ?? 0) && !phase && !error ? <div className="pointer-events-none absolute inset-0 grid place-content-center bg-[#050b19]/65 p-6 text-center text-white">
           <p className="text-xs font-bold uppercase tracking-[.3em] text-cyan-300">SIMVERSE / BATTLE</p>
-          {scene.length === 2 ? <h2 className="mt-4 font-display text-2xl font-extrabold sm:text-5xl">{scene[0]?.name} <span className="text-cyan-300">VS</span> {scene[1]?.name}</h2>
+          {scene.length === 2 ? <><div className="mx-auto mt-4 flex items-center justify-center gap-4">
+            {scene.map((entity, index) => <span key={entity.id} className="contents">
+              {index === 1 ? <span className="font-display text-xl font-black text-cyan-300 sm:text-3xl">VS</span> : null}
+              <span className="grid size-16 place-items-center overflow-hidden rounded-full border-2 border-cyan-300/60 bg-[#10253a] text-lg font-black sm:size-24">
+                {entity.profile.portraitUrl ? <img src={entity.profile.portraitUrl} alt="" className="size-full object-cover" /> : entity.shortName.slice(0, 2).toUpperCase()}
+              </span>
+            </span>)}
+          </div><h2 className="mt-3 font-display text-2xl font-extrabold sm:text-5xl">{scene[0]?.name} <span className="text-cyan-300">VS</span> {scene[1]?.name}</h2></>
             : <><h2 className="mt-4 font-display text-3xl font-extrabold sm:text-5xl">FREE FOR ALL</h2><p className="mt-3 text-sm text-slate-200">{scene.map((entity) => entity.name).join(" · ")}</p></>}
           <p className="mt-3 text-sm uppercase tracking-[.24em] text-cyan-200">Entering the arena</p>
         </div> : null}
@@ -288,24 +316,6 @@ export function SimulationViewer(props: Props) {
           className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-black/65 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black/85"><SkipForward className="size-3.5" />Skip Intro</button> : null}
       </div>
       {warnings.length > 0 ? <p role="status" className="border-t border-amber-400/20 bg-[#241d15] px-4 py-2 text-xs text-amber-200">{warnings[0]}</p> : null}
-      <div className="grid gap-2 border-t border-white/10 bg-[#0b1526] p-3 sm:grid-cols-2 sm:p-4" aria-label="Participant health">
-        {scene.map((entity) => {
-          const state = frame?.participants[entity.id];
-          return <div key={entity.id} className="min-w-0 rounded-lg border border-white/10 bg-[#101d31] p-2.5">
-            <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
-              <span className="flex min-w-0 items-center gap-2">
-                <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full border border-white/30 text-[10px] font-black text-white"
-                  style={{ background: entity.profile.primaryColor }}>{entity.shortName.trim().slice(0, 2).toUpperCase()}</span>
-                <span className="min-w-0 truncate font-semibold text-white">{entity.name} <span className="font-normal text-[#8cb0c9]">/ {entity.category}</span></span>
-              </span>
-              <span className="shrink-0 font-mono text-[#b5c9dc]">{state?.eliminated ? "ELIMINATED · " : state?.defending ? "GUARD · " : ""}{state?.health ?? 100}/100</span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-[#283447]" role="progressbar" aria-label={`${entity.name} health`} aria-valuenow={state?.health ?? 100} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${state?.health ?? 100}%`, background: entity.profile.primaryColor }} />
-            </div>
-          </div>;
-        })}
-      </div>
       {completion ? <p className="border-t border-white/10 bg-[#0b1526] px-4 py-2 text-xs text-[#bfd0df]">
         <span className="font-semibold text-white">Final standings: </span>
         {frame.rankingIds.map((id, index) => `${index + 1}. ${scene.find((entity) => entity.id === id)?.name ?? "Participant"}`).join(" · ")}
@@ -346,6 +356,6 @@ export function SimulationViewer(props: Props) {
         </div>
       </div>
     </div>
-    <p className="text-xs text-muted">Playback uses this run’s saved events and participant snapshots. Space: play/pause · R: restart · ←/→: step · M: mute · F: fullscreen.</p>
+    <p className="px-1 text-[11px] text-slate-500">Saved events and participant snapshots · Space: play/pause · R: restart · ←/→: step · M: mute · F: fullscreen.</p>
   </div>;
 }

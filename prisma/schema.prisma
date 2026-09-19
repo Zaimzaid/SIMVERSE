@@ -150,6 +150,7 @@ model Entity {
   createdBy       User?                 @relation("EntityCreator", fields: [createdById], references: [id], onDelete: SetNull)
   attributeValues EntityAttributeValue[]
   entityTags      EntityTag[]
+  visualProfile  EntityVisualProfile?
 
   // Phase 2 — an Entity may be referenced by many Projects and Simulations.
   // These are reference links (join rows), never clones: deleting/archiving a
@@ -164,6 +165,36 @@ model Entity {
   @@index([workspaceId, updatedAt])
   @@index([workspaceId, name])
   @@index([createdById])
+}
+
+/// Creator-managed visual identity for an Entity. Simulation attributes and
+/// mechanics stay on Entity/EAV; this record is presentation configuration.
+/// String vocabularies and JSON animation mappings are validated by the app so
+/// the SQLite schema remains portable to PostgreSQL.
+model EntityVisualProfile {
+  id               String   @id @default(cuid())
+  entityId         String   @unique
+  sourceType       String   @default("PROCEDURAL")
+  portraitUrl      String?
+  modelUrl         String?
+  archetype        String   @default("CUSTOM")
+  scale            Float    @default(1)
+  rotationX        Float    @default(0)
+  rotationY        Float    @default(0)
+  rotationZ        Float    @default(0)
+  offsetX          Float    @default(0)
+  offsetY          Float    @default(0)
+  offsetZ          Float    @default(0)
+  animationProfile String?  // bounded JSON map: SIMVERSE state -> imported clip name
+  enabled          Boolean  @default(true)
+  revision         Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([sourceType])
+  @@index([archetype])
 }
 
 /// Definition of a reusable attribute (trait/stat) within a workspace — the "A" of EAV.

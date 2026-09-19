@@ -3,6 +3,7 @@ import { SEED_REGEX } from "@/lib/simulations/seed";
 import { SIMULATION_DIFFICULTIES, SIMULATION_SPEEDS } from "@/lib/simulations/config";
 import { ENGINE_STATE_VERSION, INPUT_SNAPSHOT_VERSION, RESULT_VERSION } from "./constants";
 import { rngStateSchema } from "./rng";
+import { visualProfileSnapshotSchema } from "@/lib/visuals/profile";
 
 export const jsonRecordSchema = z.record(z.string(), z.json());
 export type JsonRecord = z.infer<typeof jsonRecordSchema>;
@@ -43,6 +44,10 @@ export const participantSnapshotSchema = z.object({
   primaryColor: z.string().nullable(),
   secondaryColor: z.string().nullable(),
   metadata: jsonRecordSchema.nullable(),
+  // Optional for Phase 3-5 snapshot compatibility. New runs freeze versioned
+  // visual identity here rather than reading the mutable Entity during replay.
+  visualProfileVersion: z.literal(1).optional(),
+  visualProfile: visualProfileSnapshotSchema.nullable().optional(),
   tags: z.array(tagSnapshotSchema),
   attributes: z.array(attributeSnapshotSchema),
 }).strict();

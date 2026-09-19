@@ -52,12 +52,20 @@ describe("Viewer registry and scene", () => {
   });
   it("uses snapshotted visual fields, safe model URLs, opposite duel and spaced FFA positions", () => {
     const lion = participant(0, "Lion", "https://example.com/lion.png");
-    expect(visualProfile(lion)).toMatchObject({ sourceType: "PROCEDURAL_3D", portraitUrl: lion.imageUrl });
+    expect(visualProfile(lion)).toMatchObject({ sourceType: "PROCEDURAL", portraitUrl: lion.imageUrl });
     expect(visualProfile(participant(1, "Tiger", "javascript:bad")).portraitUrl).toBeNull();
     expect(visualProfile({ ...lion, metadata: { visualProfile: { modelUrl: "/models/sentinel.glb", scale: 100, archetype: "ROBOT", animationProfile: { ATTACK: "Punch" } } } }))
-      .toMatchObject({ sourceType: "MODEL_3D", modelUrl: "/models/sentinel.glb", scale: 2, archetype: "ROBOT", animationProfile: { ATTACK: "Punch" } });
+      .toMatchObject({ sourceType: "MODEL_3D", modelUrl: "/models/sentinel.glb", scale: 20, archetype: "ROBOT", animationProfile: { ATTACK_PRIMARY: "Punch" } });
     expect(visualProfile({ ...lion, metadata: { visualProfile: { modelUrl: "javascript:bad.glb", scale: -1 } } }))
-      .toMatchObject({ sourceType: "PROCEDURAL_3D", modelUrl: null, scale: 0.25 });
+      .toMatchObject({ sourceType: "PROCEDURAL", modelUrl: null, scale: 0.05 });
+    const managed = visualProfile({ ...lion, visualProfileVersion: 1, visualProfile: {
+      version: 1, profileRevision: 3, sourceType: "MODEL_3D", modelUrl: "/models/simverse-sentinel.gltf",
+      portraitUrl: "https://example.com/managed.png", archetype: "QUADRUPED", scale: 0.8,
+      rotationX: 2, rotationY: 90, rotationZ: 0, offsetX: 0.1, offsetY: 0.2, offsetZ: 0.3,
+      animationProfile: { ATTACK_PRIMARY: "Bite_01" }, enabled: true,
+    } });
+    expect(managed).toMatchObject({ sourceType: "MODEL_3D", archetype: "QUADRUPED", rotationY: 90,
+      portraitUrl: "https://example.com/managed.png", animationProfile: { ATTACK_PRIMARY: "Bite_01" } });
     const duel = buildArenaScene([lion, participant(1, "Tiger")]);
     expect(duel[0]!.x).toBeLessThan(duel[1]!.x);
     expect(duel.map((entity) => entity.facing)).toEqual([1, -1]);
@@ -118,7 +126,7 @@ describe("Battle viewer adapter", () => {
     expect(approachPose.x).not.toBe(initialPose.x);
     expect(approach.participants).toEqual(initial.participants);
     const strike = battleViewerAdapter.deriveFrame(timeline, scene, fixture.result, attack.startMs + 450);
-    expect(deriveEntityPose(actor, strike, scene).animation).toBe("ATTACK");
+    expect(deriveEntityPose(actor, strike, scene).animation).toBe("ATTACK_PRIMARY");
     expect(deriveEntityPose(actor, strike, scene).scale).toBeGreaterThan(1);
     const damage = timeline.cues.find((cue) => cue.kind === "DAMAGE")!;
     const target = scene.find((entity) => entity.id === damage.targetId)!;
@@ -129,6 +137,26 @@ describe("Battle viewer adapter", () => {
     if (end.winnerId) expect(deriveEntityPose(scene.find((entity) => entity.id === end.winnerId)!, end, scene).animation).toBe("VICTORY");
     for (const eliminated of scene.filter((entity) => end.participants[entity.id]!.eliminated)) {
       expect(deriveEntityPose(eliminated, end, scene).animation).toBe("DEFEATED");
+    }
+  });
+
+  it("selects secondary attacks deterministically and heavy hits only from persisted critical events", () => {
+    const fixture = complete();
+    const scene = battleViewerAdapter.buildScene(fixture.participants);
+    const timeline = battleViewerAdapter.buildTimeline(fixture);
+    const attack = timeline.cues.find((cue) => cue.kind === "ATTACK" && cue.sequence % 2 === 0)
+      ?? timeline.cues.find((cue) => cue.kind === "ATTACK")!;
+    const actor = scene.find((entity) => entity.id === attack.actorId)!;
+    actor.profile.animationProfile.ATTACK_SECONDARY = "Attack_2";
+    const strike = battleViewerAdapter.deriveFrame(timeline, scene, fixture.result, attack.startMs + 450);
+    const expected = attack.sequence % 2 === 0 ? "ATTACK_SECONDARY" : "ATTACK_PRIMARY";
+    expect(deriveEntityPose(actor, strike, scene).animation).toBe(expected);
+    expect(deriveEntityPose(actor, strike, scene).animation).toBe(expected);
+    const critical = timeline.cues.find((cue) => cue.kind === "CRITICAL");
+    if (critical) {
+      const target = scene.find((entity) => entity.id === critical.targetId)!;
+      const frame = battleViewerAdapter.deriveFrame(timeline, scene, fixture.result, critical.startMs + 40);
+      expect(deriveEntityPose(target, frame, scene).animation).toBe("HIT_HEAVY");
     }
   });
 

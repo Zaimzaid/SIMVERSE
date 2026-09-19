@@ -1,17 +1,19 @@
 import type { EngineEvent, ParticipantSnapshotV1 } from "@/lib/engine/schemas";
+import type { AnimationProfile, AnimationState, VisualArchetype } from "@/lib/visuals/profile";
 
-/** The source vocabulary is shared with the future Visual Asset system. Phase 5 renders MODEL_3D and PROCEDURAL_3D. */
-export type VisualSourceType = "IMAGE" | "SPRITE" | "ANIMATED_SPRITE" | "MODEL_3D" | "PROCEDURAL_3D" | "CUSTOM";
-export type VisualArchetype = "HUMANOID" | "QUADRUPED" | "CREATURE" | "ROBOT" | "VEHICLE_GROUND" | "VEHICLE_AIR" | "VEHICLE_WATER" | "OBJECT" | "ABSTRACT" | "CUSTOM";
-export type AnimationState = "IDLE" | "WALK" | "RUN" | "ATTACK" | "DEFEND" | "DODGE" | "HIT" | "DEFEATED" | "VICTORY";
-export type AnimationProfile = Partial<Record<AnimationState, string>>;
+export type { AnimationProfile, AnimationState, VisualArchetype } from "@/lib/visuals/profile";
 
 export interface EntityVisualProfile {
-  sourceType: "MODEL_3D" | "PROCEDURAL_3D";
+  sourceType: "MODEL_3D" | "PROCEDURAL";
   modelUrl: string | null;
   portraitUrl: string | null;
   scale: number;
-  orientationDegrees: number;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+  offsetX: number;
+  offsetY: number;
+  offsetZ: number;
   archetype: VisualArchetype;
   primaryColor: string;
   secondaryColor: string;

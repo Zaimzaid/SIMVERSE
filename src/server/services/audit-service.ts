@@ -12,6 +12,8 @@ export type AuditAction =
   | "workspace.updated"
   | "entity.created"
   | "entity.updated"
+  | "entity.visual_profile_updated"
+  | "entity.visual_profile_deleted"
   | "entity.duplicated"
   | "entity.archived"
   | "entity.restored"

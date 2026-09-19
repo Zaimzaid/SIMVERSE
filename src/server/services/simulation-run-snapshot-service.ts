@@ -10,6 +10,7 @@ import { INPUT_SNAPSHOT_VERSION } from "@/lib/engine/constants";
 import { normalizeConfigInput, normalizePresentationInput } from "@/lib/simulations/config";
 import { minEntitiesForMode } from "@/lib/simulations/modes";
 import { isValidSeed } from "@/lib/simulations/seed";
+import { animationProfileSchema } from "@/lib/visuals/profile";
 
 const snapshotInclude = {
   entityLinks: {
@@ -21,6 +22,7 @@ const snapshotInclude = {
             include: { attributeDefinition: true },
             orderBy: { attributeDefinitionId: "asc" },
           },
+          visualProfile: true,
         },
       },
     },
@@ -46,6 +48,15 @@ function parseOptions(json: string | null): string[] | null {
     // A malformed stored definition is an invalid execution input.
   }
   throw new ValidationError("An entity attribute definition is invalid for execution.");
+}
+
+function parseAnimationProfile(json: string | null) {
+  if (!json) return {};
+  try {
+    return animationProfileSchema.parse(JSON.parse(json));
+  } catch {
+    throw new ValidationError("An Entity Visual Profile animation mapping is invalid for execution.");
+  }
 }
 
 /** Capture every execution input inside the same transaction that creates a Run. */
@@ -107,6 +118,7 @@ export async function buildRunInputSnapshot(
         value: value.value,
       };
     });
+    const visual = entity.visualProfile?.enabled ? entity.visualProfile : null;
     return participantSnapshotSchema.parse({
       runParticipantId: randomUUID(),
       sourceEntityId: entity.id,
@@ -122,6 +134,24 @@ export async function buildRunInputSnapshot(
       primaryColor: entity.primaryColor,
       secondaryColor: entity.secondaryColor,
       metadata: parseRecord(entity.metadata, "Entity metadata"),
+      visualProfileVersion: 1,
+      visualProfile: visual ? {
+        version: 1,
+        profileRevision: visual.revision,
+        sourceType: visual.sourceType,
+        portraitUrl: visual.portraitUrl ?? undefined,
+        modelUrl: visual.modelUrl ?? undefined,
+        archetype: visual.archetype,
+        scale: visual.scale,
+        rotationX: visual.rotationX,
+        rotationY: visual.rotationY,
+        rotationZ: visual.rotationZ,
+        offsetX: visual.offsetX,
+        offsetY: visual.offsetY,
+        offsetZ: visual.offsetZ,
+        animationProfile: parseAnimationProfile(visual.animationProfile),
+        enabled: visual.enabled,
+      } : null,
       tags: entity.entityTags.map(({ tag }) => ({ id: tag.id, name: tag.name, slug: tag.slug })),
       attributes,
     });

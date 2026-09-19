@@ -1,18 +1,20 @@
 import type { ParticipantSnapshotV1 } from "@/lib/engine/schemas";
-import type { AnimationProfile, EntityVisualProfile, VisualArchetype, VisualEntityInstance } from "./types";
-
-const archetypes: VisualArchetype[] = ["HUMANOID", "QUADRUPED", "CREATURE", "ROBOT", "VEHICLE_GROUND", "VEHICLE_AIR", "VEHICLE_WATER", "OBJECT", "ABSTRACT", "CUSTOM"];
-const animationStates = ["IDLE", "WALK", "RUN", "ATTACK", "DEFEND", "DODGE", "HIT", "DEFEATED", "VICTORY"] as const;
+import {
+  ANIMATION_STATES,
+  VISUAL_ARCHETYPES,
+  type AnimationProfile,
+  type VisualArchetype,
+} from "@/lib/visuals/profile";
+import type { EntityVisualProfile, VisualEntityInstance } from "./types";
 
 function safeModelUrl(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 2048) return null;
-  // Only project-hosted assets or HTTPS resources are eligible. The browser still enforces CORS.
   if (/^\/(?!\/)[^?#]+\.(glb|gltf)(?:[?#].*)?$/i.test(value) || /^https:\/\/[^\s]+\.(glb|gltf)(?:[?#].*)?$/i.test(value)) return value;
   return null;
 }
 
-function safePortrait(value: string | null): string | null {
-  if (!value) return null;
+function safePortrait(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
   return /^https?:\/\//i.test(value) || /^data:image\/(png|jpe?g|gif|webp|svg\+xml|avif);base64,/i.test(value) ? value : null;
 }
 
@@ -20,28 +22,50 @@ function safeColor(value: string | null, fallback: string): string {
   return value && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
 }
 
-/** Read only snapshotted identity. Phase 6 will replace this metadata bridge with managed Visual Assets. */
-export function visualProfile(participant: ParticipantSnapshotV1): EntityVisualProfile {
-  const raw = participant.metadata?.visualProfile;
-  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
-  const modelUrl = safeModelUrl(data.modelUrl);
-  const scale = typeof data.scale === "number" && Number.isFinite(data.scale) ? Math.max(0.25, Math.min(2, data.scale)) : 1;
-  const orientationDegrees = typeof data.orientationDegrees === "number" && Number.isFinite(data.orientationDegrees)
-    ? Math.max(-180, Math.min(180, data.orientationDegrees)) : 0;
-  const archetype = typeof data.archetype === "string" && archetypes.includes(data.archetype as VisualArchetype)
-    ? data.archetype as VisualArchetype : "ABSTRACT";
-  const rawClips = data.animationProfile && typeof data.animationProfile === "object" && !Array.isArray(data.animationProfile)
-    ? data.animationProfile as Record<string, unknown> : {};
-  const animationProfile: AnimationProfile = {};
-  for (const state of animationStates) {
-    const clip = rawClips[state];
-    if (typeof clip === "string" && clip.length <= 100) animationProfile[state] = clip;
+function bounded(value: unknown, fallback: number, minimum: number, maximum: number) {
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(minimum, Math.min(maximum, value)) : fallback;
+}
+
+function animationMapping(value: unknown, legacy = false): AnimationProfile {
+  const raw = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  const profile: AnimationProfile = {};
+  for (const state of ANIMATION_STATES) {
+    const clip = raw[state];
+    if (typeof clip === "string" && clip.length <= 160) profile[state] = clip;
   }
+  if (legacy) {
+    if (!profile.ATTACK_PRIMARY && typeof raw.ATTACK === "string") profile.ATTACK_PRIMARY = raw.ATTACK.slice(0, 160);
+    if (!profile.HIT_LIGHT && typeof raw.HIT === "string") profile.HIT_LIGHT = raw.HIT.slice(0, 160);
+  }
+  return profile;
+}
+
+/** Resolve visual identity only from the immutable Run participant snapshot. */
+export function visualProfile(participant: ParticipantSnapshotV1): EntityVisualProfile {
+  const managed = participant.visualProfile?.enabled ? participant.visualProfile : null;
+  const legacyRaw = participant.metadata?.visualProfile;
+  const legacy = legacyRaw && typeof legacyRaw === "object" && !Array.isArray(legacyRaw)
+    ? legacyRaw as Record<string, unknown> : {};
+  const data: Record<string, unknown> = managed ?? legacy;
+  const modelUrl = safeModelUrl(data.modelUrl);
+  const archetype = typeof data.archetype === "string" && (VISUAL_ARCHETYPES as readonly string[]).includes(data.archetype)
+    ? data.archetype as VisualArchetype : "ABSTRACT";
+  const usesModel = Boolean(modelUrl && (!managed || managed.sourceType === "MODEL_3D"));
   return {
-    sourceType: modelUrl ? "MODEL_3D" : "PROCEDURAL_3D", modelUrl, portraitUrl: safePortrait(participant.imageUrl),
-    scale, orientationDegrees, archetype,
+    sourceType: usesModel ? "MODEL_3D" : "PROCEDURAL",
+    modelUrl: usesModel ? modelUrl : null,
+    portraitUrl: safePortrait(managed?.portraitUrl) ?? safePortrait(participant.imageUrl),
+    scale: bounded(data.scale, 1, 0.05, 20),
+    rotationX: bounded(data.rotationX, 0, -360, 360),
+    rotationY: bounded(data.rotationY ?? data.orientationDegrees, 0, -360, 360),
+    rotationZ: bounded(data.rotationZ, 0, -360, 360),
+    offsetX: bounded(data.offsetX, 0, -100, 100),
+    offsetY: bounded(data.offsetY, 0, -100, 100),
+    offsetZ: bounded(data.offsetZ, 0, -100, 100),
+    archetype,
     primaryColor: safeColor(participant.primaryColor, "#22d3ee"),
-    secondaryColor: safeColor(participant.secondaryColor, "#5068ff"), animationProfile,
+    secondaryColor: safeColor(participant.secondaryColor, "#5068ff"),
+    animationProfile: animationMapping(data.animationProfile, !managed),
   };
 }
 

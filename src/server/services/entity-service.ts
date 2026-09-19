@@ -18,6 +18,16 @@ import {
   type EntityStatusFilter,
 } from "@/lib/entities/constants";
 import { slugify } from "@/lib/utils";
+import {
+  VISUAL_ARCHETYPES,
+  VISUAL_SOURCE_TYPES,
+  animationProfileSchema,
+  visualProfileInputSchema,
+  type AnimationProfile,
+  type VisualArchetype,
+  type VisualProfileInput,
+  type VisualSourceType,
+} from "@/lib/visuals/profile";
 import type { EntityAttributeInput } from "@/lib/validation";
 import { createEntitySchema, duplicateEntitySchema, parseOrThrow, updateEntitySchema } from "@/lib/validation";
 import { prisma } from "@/server/db/client";
@@ -62,12 +72,21 @@ export interface EntityView {
   secondaryColor: string | null;
   status: EntityStatus;
   metadata: Record<string, unknown> | null;
+  visualProfile: EntityVisualProfileView | null;
   tags: EntityTagView[];
   attributes: EntityAttributeView[];
   createdByName: string | null;
   createdAt: Date;
   updatedAt: Date;
   archivedAt: Date | null;
+}
+
+export interface EntityVisualProfileView extends VisualProfileInput {
+  id: string;
+  entityId: string;
+  revision: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ListEntitiesParams {
@@ -96,6 +115,7 @@ const entityInclude = {
   attributeValues: { include: { attributeDefinition: true } },
   entityTags: { include: { tag: true } },
   createdBy: { select: { displayName: true } },
+  visualProfile: true,
 } satisfies Prisma.EntityInclude;
 
 type EntityWithRelations = Prisma.EntityGetPayload<{ include: typeof entityInclude }>;
@@ -134,12 +154,54 @@ function toEntityView(row: EntityWithRelations): EntityView {
     secondaryColor: row.secondaryColor,
     status: isEntityStatus(row.status) ? row.status : "ACTIVE",
     metadata: parseMetadata(row.metadata),
+    visualProfile: row.visualProfile ? toVisualProfileView(row.visualProfile) : null,
     tags,
     attributes,
     createdByName: row.createdBy?.displayName ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     archivedAt: row.archivedAt,
+  };
+}
+
+function storedSourceType(value: string): VisualSourceType {
+  return (VISUAL_SOURCE_TYPES as readonly string[]).includes(value) ? value as VisualSourceType : "PROCEDURAL";
+}
+
+function storedArchetype(value: string): VisualArchetype {
+  return (VISUAL_ARCHETYPES as readonly string[]).includes(value) ? value as VisualArchetype : "CUSTOM";
+}
+
+function storedAnimationProfile(value: string | null): AnimationProfile {
+  if (!value) return {};
+  try {
+    const result = animationProfileSchema.safeParse(JSON.parse(value));
+    return result.success ? result.data : {};
+  } catch {
+    return {};
+  }
+}
+
+function toVisualProfileView(row: NonNullable<EntityWithRelations["visualProfile"]>): EntityVisualProfileView {
+  return {
+    id: row.id,
+    entityId: row.entityId,
+    sourceType: storedSourceType(row.sourceType),
+    portraitUrl: row.portraitUrl ?? undefined,
+    modelUrl: row.modelUrl ?? undefined,
+    archetype: storedArchetype(row.archetype),
+    scale: row.scale,
+    rotationX: row.rotationX,
+    rotationY: row.rotationY,
+    rotationZ: row.rotationZ,
+    offsetX: row.offsetX,
+    offsetY: row.offsetY,
+    offsetZ: row.offsetZ,
+    animationProfile: storedAnimationProfile(row.animationProfile),
+    enabled: row.enabled,
+    revision: row.revision,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 
@@ -230,6 +292,83 @@ export async function getEntity(
   });
   if (!row) throw new NotFoundError("Entity not found.");
   return toEntityView(row);
+}
+
+/** Read the managed visual identity through the Entity workspace boundary. */
+export async function getEntityVisualProfile(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+): Promise<EntityVisualProfileView | null> {
+  await requireMembership(userId, workspaceId, "entity.view");
+  const entity = await prisma.entity.findFirst({
+    where: { id: entityId, workspaceId },
+    include: { visualProfile: true },
+  });
+  if (!entity) throw new NotFoundError("Entity not found.");
+  return entity.visualProfile ? toVisualProfileView(entity.visualProfile) : null;
+}
+
+/** Create or replace an Entity's independently editable Visual Profile. */
+export async function upsertEntityVisualProfile(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+  input: unknown,
+): Promise<EntityVisualProfileView> {
+  await requireMembership(userId, workspaceId, "entity.edit");
+  const entity = await prisma.entity.findFirst({ where: { id: entityId, workspaceId }, select: { id: true } });
+  if (!entity) throw new NotFoundError("Entity not found.");
+  const data = parseOrThrow(visualProfileInputSchema, input, "The visual profile is invalid.");
+  const persisted = {
+    sourceType: data.sourceType,
+    portraitUrl: data.portraitUrl ?? null,
+    modelUrl: data.modelUrl ?? null,
+    archetype: data.archetype,
+    scale: data.scale,
+    rotationX: data.rotationX,
+    rotationY: data.rotationY,
+    rotationZ: data.rotationZ,
+    offsetX: data.offsetX,
+    offsetY: data.offsetY,
+    offsetZ: data.offsetZ,
+    animationProfile: JSON.stringify(data.animationProfile),
+    enabled: data.enabled,
+  };
+  const profile = await prisma.entityVisualProfile.upsert({
+    where: { entityId },
+    create: { entityId, ...persisted },
+    update: { ...persisted, revision: { increment: 1 } },
+  });
+  await recordAudit({
+    action: "entity.visual_profile_updated",
+    actorUserId: userId,
+    workspaceId,
+    entityType: "EntityVisualProfile",
+    entityId,
+    metadata: { sourceType: data.sourceType, archetype: data.archetype, revision: profile.revision },
+  });
+  return toVisualProfileView(profile);
+}
+
+/** Remove managed visual configuration; Viewer falls back to the Entity identity. */
+export async function deleteEntityVisualProfile(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+): Promise<{ entityId: string }> {
+  await requireMembership(userId, workspaceId, "entity.edit");
+  const entity = await prisma.entity.findFirst({ where: { id: entityId, workspaceId }, select: { id: true } });
+  if (!entity) throw new NotFoundError("Entity not found.");
+  await prisma.entityVisualProfile.deleteMany({ where: { entityId } });
+  await recordAudit({
+    action: "entity.visual_profile_deleted",
+    actorUserId: userId,
+    workspaceId,
+    entityType: "EntityVisualProfile",
+    entityId,
+  });
+  return { entityId };
 }
 
 // ---------------------------------------------------------------------------
@@ -371,7 +510,7 @@ export async function duplicateEntity(
 
   const source = await prisma.entity.findFirst({
     where: { id: entityId, workspaceId },
-    include: { attributeValues: true, entityTags: true },
+    include: { attributeValues: true, entityTags: true, visualProfile: true },
   });
   if (!source) throw new NotFoundError("Entity not found.");
 
@@ -401,6 +540,23 @@ export async function duplicateEntity(
         entityTags: {
           create: source.entityTags.map((et) => ({ tagId: et.tagId })),
         },
+        visualProfile: source.visualProfile ? {
+          create: {
+            sourceType: source.visualProfile.sourceType,
+            portraitUrl: source.visualProfile.portraitUrl,
+            modelUrl: source.visualProfile.modelUrl,
+            archetype: source.visualProfile.archetype,
+            scale: source.visualProfile.scale,
+            rotationX: source.visualProfile.rotationX,
+            rotationY: source.visualProfile.rotationY,
+            rotationZ: source.visualProfile.rotationZ,
+            offsetX: source.visualProfile.offsetX,
+            offsetY: source.visualProfile.offsetY,
+            offsetZ: source.visualProfile.offsetZ,
+            animationProfile: source.visualProfile.animationProfile,
+            enabled: source.visualProfile.enabled,
+          },
+        } : undefined,
       },
       include: entityInclude,
     });

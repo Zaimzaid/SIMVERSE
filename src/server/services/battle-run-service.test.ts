@@ -5,7 +5,8 @@ import { prisma } from "@/server/db/client";
 import { resetDb } from "../../../test/helpers/db";
 import { registerUser } from "./auth-service";
 import { createAttributeDefinition } from "./attribute-service";
-import { createEntity, deleteEntity, updateEntity } from "./entity-service";
+import { createEntity, deleteEntity, updateEntity, upsertEntityVisualProfile } from "./entity-service";
+import { DEFAULT_VISUAL_PROFILE } from "@/lib/visuals/profile";
 import { createProject, deleteProject } from "./project-service";
 import { createSimulation, deleteSimulation, markSimulationReady } from "./simulation-service";
 import {
@@ -61,6 +62,33 @@ async function events(ownerId: string, workspaceId: string, runId: string) {
 }
 
 describe("Battle production run service", () => {
+  it("freezes versioned Entity visual identity while older snapshot fields remain optional", async () => {
+    const { ownerId, workspaceId, entities, simulation } = await scenario();
+    await upsertEntityVisualProfile(ownerId, workspaceId, entities[0]!.id, {
+      ...DEFAULT_VISUAL_PROFILE,
+      sourceType: "MODEL_3D",
+      modelUrl: "/models/simverse-sentinel.gltf",
+      archetype: "QUADRUPED",
+      animationProfile: { IDLE: "idle", ATTACK_PRIMARY: "attack_1" },
+    });
+    const run = await createSimulationRun(ownerId, workspaceId, simulation.id);
+    expect(run.participants[0]?.visualProfileVersion).toBe(1);
+    expect(run.participants[0]?.visualProfile).toMatchObject({
+      modelUrl: "/models/simverse-sentinel.gltf", archetype: "QUADRUPED", profileRevision: 1,
+    });
+    await upsertEntityVisualProfile(ownerId, workspaceId, entities[0]!.id, {
+      ...DEFAULT_VISUAL_PROFILE,
+      sourceType: "MODEL_3D",
+      modelUrl: "/models/replacement.glb",
+      archetype: "ROBOT",
+      animationProfile: {},
+    });
+    const historical = await getSimulationRun(ownerId, workspaceId, run.id);
+    expect(historical.participants[0]?.visualProfile).toMatchObject({
+      modelUrl: "/models/simverse-sentinel.gltf", archetype: "QUADRUPED", profileRevision: 1,
+    });
+  });
+
   it("creates and completes a real duel with frozen stats, persisted actions/events/result and audit", async () => {
     const { ownerId, workspaceId, strength, entities, project, simulation } = await scenario();
     const run = await createSimulationRun(ownerId, workspaceId, simulation.id);

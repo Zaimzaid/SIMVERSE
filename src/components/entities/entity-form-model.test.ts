@@ -22,6 +22,7 @@ function makeEntity(overrides: Partial<EntityView> = {}): EntityView {
     secondaryColor: null,
     status: "ACTIVE",
     metadata: null,
+    visualProfile: null,
     tags: [],
     attributes: [],
     createdByName: null,

@@ -17,6 +17,7 @@ export async function resetDb(): Promise<void> {
   await prisma.project.deleteMany();
   // Entity system (children first): values + tag links, then entities, then the
   // workspace-scoped catalogs (tags, attribute definitions).
+  await prisma.entityVisualProfile.deleteMany();
   await prisma.entityAttributeValue.deleteMany();
   await prisma.entityTag.deleteMany();
   await prisma.entity.deleteMany();

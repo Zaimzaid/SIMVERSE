@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarPlus,
   Hash,
+  Palette,
   Pencil,
   Tag as TagIcon,
   User as UserIcon,
@@ -129,6 +130,10 @@ export default async function EntityDetailPage({ params }: PageParams) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Link href={`/entities/${entity.id}/visuals`} className={buttonClasses({ variant: "secondary" })}>
+            <Palette className="size-4" />
+            Visuals
+          </Link>
           {canEdit ? (
             <Link href={`/entities/${entity.id}/edit`} className={buttonClasses({ variant: "secondary" })}>
               <Pencil className="size-4" />

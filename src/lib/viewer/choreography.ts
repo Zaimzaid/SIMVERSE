@@ -53,7 +53,8 @@ export function deriveEntityPose(entity: VisualEntityInstance, frame: ViewerFram
     pose.heading = Math.atan2(dx, dz);
     if (at >= attack.startMs && at < attack.startMs + 350) pose.animation = "RUN";
     else if (at < attack.startMs + 730) {
-      pose.animation = "ATTACK";
+      pose.animation = entity.profile.animationProfile.ATTACK_SECONDARY && attack.sequence % 2 === 0
+        ? "ATTACK_SECONDARY" : "ATTACK_PRIMARY";
       const strike = pulse(at, attack.startMs + 350, 90, 290);
       pose.scale = 1 + (frame.reducedMotion ? 0.025 : 0.095) * strike;
       pose.tilt = frame.reducedMotion ? 0 : -entity.facing * strike * 0.21;
@@ -66,8 +67,9 @@ export function deriveEntityPose(entity: VisualEntityInstance, frame: ViewerFram
     const dx = aggressor ? entity.x - aggressor.x : entity.facing;
     const dz = aggressor ? entity.z - aggressor.z : 0;
     const length = Math.hypot(dx, dz) || 1;
-    pose.x += (-dz / length) * outward * (frame.reducedMotion ? 0.2 : 1.15);
-    pose.z += (dx / length) * outward * (frame.reducedMotion ? 0.2 : 1.15);
+    const displacement = frame.reducedMotion ? 0.2 : entity.profile.animationProfile.DODGE ? 0.62 : 1.15;
+    pose.x += (-dz / length) * outward * displacement;
+    pose.z += (dx / length) * outward * displacement;
     pose.dodge = outward;
     if (at >= dodge.startMs - 110 && at < dodge.startMs + 380) pose.animation = "DODGE";
     pose.tilt = frame.reducedMotion ? 0 : outward * 0.19;
@@ -81,7 +83,7 @@ export function deriveEntityPose(entity: VisualEntityInstance, frame: ViewerFram
     pose.z += dz / length * impact * (frame.reducedMotion ? 0.07 : 0.32);
     pose.impact = impact;
     pose.critical = critical ? impact : 0;
-    if (at < damage.startMs + 380) pose.animation = "HIT";
+    if (at < damage.startMs + 380) pose.animation = critical ? "HIT_HEAVY" : "HIT_LIGHT";
     pose.tilt = frame.reducedMotion ? 0 : -impact * 0.12;
   }
   if (status?.defending) { pose.guard = 1; if (!attack) pose.animation = "DEFEND"; }

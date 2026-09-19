@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { isImmersiveViewerPath } from "@/lib/viewer/immersive";
 import { Logo } from "@/components/brand/logo";
 import { Drawer } from "@/components/ui/drawer";
 import { SidebarNav } from "./sidebar-nav";
@@ -14,6 +16,11 @@ interface PlatformShellProps extends ShellData {
 /** The authenticated app frame: fixed sidebar + top bar + scrollable main. */
 export function PlatformShell({ children, ...shell }: PlatformShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (isImmersiveViewerPath(pathname)) {
+    return <main className="min-h-dvh w-full bg-[#030814]">{children}</main>;
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

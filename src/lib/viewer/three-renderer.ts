@@ -1,5 +1,5 @@
 import {
-  ACESFilmicToneMapping, Box3, BufferGeometry, Group, Mesh, MeshBasicMaterial, PCFSoftShadowMap,
+  ACESFilmicToneMapping, Box3, BufferGeometry, Group, Mesh, MeshBasicMaterial, PCFShadowMap,
   PerspectiveCamera, Scene, SphereGeometry, SRGBColorSpace, TorusGeometry, Vector3,
   WebGLRenderer, type AnimationClip, type Material, type Object3D, type Texture,
 } from "three";
@@ -52,7 +52,7 @@ export class ThreeViewerRenderer {
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.45;
-    this.renderer.shadowMap.type = PCFSoftShadowMap;
+    this.renderer.shadowMap.type = PCFShadowMap;
     environment.create(this.scene);
     for (const entity of entities) {
       const root = new Group(); root.position.set(entity.x, 0, entity.z);
@@ -141,8 +141,16 @@ export class ThreeViewerRenderer {
         if (!Number.isFinite(maxDimension) || maxDimension < 0.001) throw new Error("Empty 3D model");
         const factor = 2.25 / maxDimension * entity.profile.scale;
         model.scale.setScalar(factor);
-        model.position.y = -bounds.min.y * factor + 0.05;
-        model.rotation.y = entity.profile.orientationDegrees * Math.PI / 180;
+        model.position.set(
+          entity.profile.offsetX,
+          -bounds.min.y * factor + 0.05 + entity.profile.offsetY,
+          entity.profile.offsetZ,
+        );
+        model.rotation.set(
+          entity.profile.rotationX * Math.PI / 180,
+          entity.profile.rotationY * Math.PI / 180,
+          entity.profile.rotationZ * Math.PI / 180,
+        );
         model.traverse((object) => { if (object instanceof Mesh) { object.castShadow = true; object.receiveShadow = true; } });
         actor.content.add(model);
         actor.fallback.visible = false;

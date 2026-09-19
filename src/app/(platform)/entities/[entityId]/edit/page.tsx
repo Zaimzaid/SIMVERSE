@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Boxes } from "lucide-react";
+import { ArrowLeft, Boxes, Palette } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { listAttributeDefinitions } from "@/server/services/attribute-service";
@@ -80,6 +80,9 @@ export default async function EditEntityPage({ params }: PageParams) {
           title="Edit entity"
           description="Update this entity’s identity, appearance, attributes, and tags."
         />
+        <Link href={`/entities/${entity.id}/visuals`} className={buttonClasses({ variant: "secondary", className: "mt-3" })}>
+          <Palette className="size-4" />Visuals
+        </Link>
       </div>
 
       <EntityForm
