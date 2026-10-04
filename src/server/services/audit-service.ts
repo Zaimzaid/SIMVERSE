@@ -41,7 +41,12 @@ export type AuditAction =
   | "simulation_run.resumed"
   | "simulation_run.completed"
   | "simulation_run.failed"
-  | "simulation_run.cancelled";
+  | "simulation_run.cancelled"
+  | "asset.created"
+  | "asset.updated"
+  | "asset.archived"
+  | "asset.restored"
+  | "asset.deleted";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

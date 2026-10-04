@@ -41,6 +41,8 @@ model User {
   addedProjectEntities ProjectEntity[] @relation("ProjectEntityAdder")
   createdSimulations   Simulation[]    @relation("SimulationCreator")
   createdRuns          SimulationRun[] @relation("RunCreator")
+  createdAssets        Asset[]         @relation("AssetCreator")
+  createdAssetVersions AssetVersion[]  @relation("AssetVersionCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -63,6 +65,7 @@ model Workspace {
   projects             Project[]
   simulations          Simulation[]
   simulationRuns       SimulationRun[]
+  assets               Asset[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -157,6 +160,7 @@ model Entity {
   // Project or Simulation must not touch the shared Entity (see join models).
   projectLinks    ProjectEntity[]
   simulationLinks SimulationEntity[]
+  assetLinks      AssetEntity[]
 
   // Composite indexes keep list/search/filter/sort fast at scale and always
   // begin with workspaceId so every query is tenant-scoped by the leading column.
@@ -252,6 +256,7 @@ model Tag {
 
   workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   entityTags EntityTag[]
+  assetTags  AssetTag[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId])
@@ -267,6 +272,121 @@ model EntityTag {
 
   @@id([entityId, tagId])
   @@index([tagId])
+}
+
+// ============================================================================
+// ASSET LIBRARY (Web Phase 1 — metadata, versions and safe external references)
+//
+// Asset binaries stay in object storage/CDNs and are never stored in this
+// database. Asset is the stable workspace identity and searchable projection;
+// every mutation appends an immutable AssetVersion snapshot so history remains
+// inspectable and downstream consumers can pin a precise version.
+// ============================================================================
+
+model Asset {
+  id                 String    @id @default(cuid())
+  workspaceId        String
+  name               String
+  description        String?
+  type               String
+  status             String    @default("DRAFT")
+  currentVersion     Int       @default(1)
+  archivedFromStatus String?
+  createdById        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  archivedAt         DateTime?
+
+  workspace    Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy    User?               @relation("AssetCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  versions     AssetVersion[]
+  assetTags    AssetTag[]
+  entityLinks  AssetEntity[]
+  parentLinks  AssetRelationship[] @relation("AssetRelationshipDerived")
+  derivedLinks AssetRelationship[] @relation("AssetRelationshipParent")
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, type])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, name])
+  @@index([createdById])
+}
+
+model AssetVersion {
+  id                     String   @id @default(cuid())
+  assetId                String
+  version                Int
+  name                   String
+  description            String?
+  type                   String
+  status                 String
+  tags                   String
+  provenance             String
+  licenseInfo            String?
+  authorInfo             String?
+  externalReference      String?
+  thumbnailReference     String?
+  technicalMetadata      String?
+  modelSpecification     String?
+  rigSpecification       String?
+  animationSpecification String?
+  productionChecklist    String
+  entityAssociations     String
+  derivedFromAssetIds    String
+  changeNote             String?
+  createdById            String?
+  createdAt              DateTime @default(now())
+
+  asset     Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("AssetVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([assetId, version])
+  @@index([assetId, createdAt])
+  @@index([createdById])
+}
+
+/// Current searchable tag assignment. Each AssetVersion separately snapshots
+/// tag names, so changing current tags never rewrites historical versions.
+model AssetTag {
+  assetId String
+  tagId   String
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([assetId, tagId])
+  @@index([tagId])
+}
+
+/// Workspace-validated Entity association. version pins the association to an
+/// immutable AssetVersion while Asset remains the stable library identity.
+model AssetEntity {
+  assetId   String
+  entityId  String
+  version   Int
+  purpose   String   @default("PRIMARY")
+  createdAt DateTime @default(now())
+
+  asset  Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@id([assetId, entityId, purpose])
+  @@index([entityId])
+}
+
+/// Directed lineage between stable Asset identities. Version-specific source
+/// provenance remains frozen inside AssetVersion metadata.
+model AssetRelationship {
+  parentAssetId  String
+  derivedAssetId String
+  relationship   String   @default("DERIVED_FROM")
+  createdAt      DateTime @default(now())
+
+  parentAsset  Asset @relation("AssetRelationshipParent", fields: [parentAssetId], references: [id], onDelete: Cascade)
+  derivedAsset Asset @relation("AssetRelationshipDerived", fields: [derivedAssetId], references: [id], onDelete: Cascade)
+
+  @@id([parentAssetId, derivedAssetId, relationship])
+  @@index([derivedAssetId])
 }
 
 // ============================================================================

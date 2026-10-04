@@ -6,15 +6,21 @@
 - **Version:** 0.1.0.
 - **Last completed:** Phase 7A-A — Platform Runtime Protocol v1, committed in
   `5687430` (`feat: add SIMVERSE runtime protocol v1`).
-- **Current work:** Phase 7A-B — Unreal Runtime Bootstrap. **Status: waiting for
-  Unreal Engine installation.** No Unreal implementation has started.
-- **Committed checkpoint:** `5687430`, after Phase 6.5 `a432b7b`, Phase 6
+- **Current work:** Parallel Platform Track — **Web Phase 1: Asset Library v1**.
+  Implementation is complete and uncommitted, awaiting owner review.
+- **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
+  because the external D: drive became unstable and Windows reported Disk Event
+  51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
+  is stable.
+- **Committed checkpoint:** `dbfc971`, after Phase 7A-A `5687430`, Phase 6.5
+  `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-09-19.
+- **Last updated:** 2026-10-04.
 - **Boundary:** Battle remains the only production mechanics module. Core and
   Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
   Runtime Protocol v1 transports completed Battle truth; no Unreal project,
-  World code, premium runtime, or Phase 7A-B code exists.
+  World code or Phase 7B work exists in this Platform repository. Runtime
+  Protocol v1 and Battle mechanics are unchanged by the parallel Platform track.
 
 ## Official architecture and visual direction
 
@@ -38,8 +44,8 @@ uses original branding and assets.
 3. **Phase 6.5:** High-Fidelity Runtime architecture and feasibility — committed
    in `a432b7b`.
 4. **Phase 7A-A:** Platform Runtime Protocol v1 — committed in `5687430`.
-5. **Phase 7A-B:** separate Unreal Runtime Bootstrap — current; waiting for
-   Unreal Engine installation.
+5. **Phase 7A-B:** separate Unreal Runtime Bootstrap — paused because its
+   external D: storage is unstable.
 6. **Phase 7B:** High-Fidelity Character Pipeline.
 7. **Phase 7C:** Lion vs Tiger Savannah proof.
 8. **Phase 8:** reusable World Runtime.
@@ -146,10 +152,11 @@ Storage at audit time:
 - Unreal Engine, the runtime repository, Derived Data Cache, and runtime builds
   should be placed on D where practical.
 
-The only remaining toolchain blocker is **Unreal Engine 5**, which is not
-installed. Install one stable compatible Unreal Engine 5 release on D, then run
-the Phase 7A-B gate check. Do not create the runtime repository, `.uproject`, or
-placeholder Unreal C++ until that gate passes. The durable bootstrap plan is in
+This readiness record predates the paused implementation attempt. Unreal Engine
+was subsequently installed and bootstrap work began outside this Platform
+repository, but the external D: volume became unstable and emitted Windows Disk
+Event 51 I/O errors. Phase 7A-B is paused until that storage is stable. The
+durable bootstrap plan remains in
 [architecture/PHASE_7A_B_BOOTSTRAP.md](architecture/PHASE_7A_B_BOOTSTRAP.md).
 
 ## Committed Phase 6 foundation
@@ -260,6 +267,44 @@ placeholder Unreal C++ until that gate passes. The durable bootstrap plan is in
 - Keyboard controls, text event context, semantic buttons, reduced motion,
   quality controls, and silent playback behavior remain available.
 
+## Parallel Platform Track — Web Phase 1: Asset Library v1
+
+- Assets are workspace-scoped stable identities with searchable type, production
+  status, name, tags, Entity association and updated-date projections. Supported
+  types cover concept art, 3D models, textures, materials, rigs, animations,
+  audio, VFX, environments, props, characters, creatures, vehicles and other
+  future content.
+- Large binaries are never stored in Prisma. Each Asset stores validated metadata
+  and safe same-origin or HTTPS storage/preview references. References containing
+  path traversal, embedded credentials or credential-like query parameters are
+  rejected.
+- Every create, edit, status transition, archive and restore appends an immutable
+  `AssetVersion`. Historical versions preserve identity, tags, provenance,
+  license/author data, references, technical specifications, checklist state,
+  Entity associations and parent Asset IDs.
+- Structured specifications cover model format and topology, LODs, dimensions,
+  scale, skeleton/material/texture references; rig archetype, skeleton version,
+  bone count and compatibility; and animation semantic state, clip, duration,
+  looping and skeleton compatibility.
+- Production workflow states are `DRAFT`, `CONCEPT_APPROVED`, `IN_PRODUCTION`,
+  `REVIEW`, `VALIDATED`, `RUNTIME_READY` and `ARCHIVED`. Legal forward/review
+  transitions are enforced server-side. Archive/restore are explicit reversible
+  actions; permanent deletion requires the Asset to be archived first.
+- `AssetEntity` associations are workspace-validated and pin the current Asset
+  version. `AssetRelationship` records directed parent/derived lineage. The
+  pattern is ready for an equivalent World association after the canonical World
+  model exists; Asset Library v1 does not invent dangling World IDs.
+- The existing `asset.view` and `asset.manage` permissions remain authoritative.
+  Services re-check workspace membership and permissions, use safe workspace-
+  scoped lookups, validate every foreign Entity/Asset ID, and audit mutations.
+- `/assets` now provides gallery/list modes, search, pagination, type/status/tag/
+  Entity filters and updated/name sorting. Create/edit, detail, immutable history,
+  technical specifications, production checklist, relationships, and archive/
+  restore flows are implemented.
+- SimulationRun capture and playback were not changed. Asset edits do not mutate
+  Entity Visual Profiles or any stored Run input/participant snapshot. Runtime
+  Protocol v1 and Battle mechanics remain byte-for-byte outside this change set.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -297,18 +342,26 @@ placeholder Unreal C++ until that gate passes. The durable bootstrap plan is in
   `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, and `npx next build`
   passed. The build required network access for the existing Google Fonts and
   made no application changes.
+- Web Phase 1 direct `npx vitest run` passed **242 tests in 23 files**, preserving
+  all 232 Phase 7A-A tests and adding 10 Asset Library service tests for CRUD,
+  permissions, workspace isolation, immutable versions, archive/restore, status
+  transitions, Entity and lineage references, provenance/license/reference
+  validation, discovery controls and historical Run non-mutation.
+  `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx next build`,
+  and `git diff --check` passed.
 
 ## Known limits
 
-- Phase 6 accepts URL assignment; it does not implement uploads, an Asset
-  Library database, CDN, immutable binary hosting, marketplace, optimizer,
-  Draco/Meshopt/KTX2 processing, LOD generation, or final production models.
+- Asset Library v1 manages metadata, immutable versions and safe references. It
+  does not upload or host binaries, provide a CDN/marketplace, optimize content,
+  generate Draco/Meshopt/KTX2/LODs, or provide final production models.
 - Remote model inspection depends on CORS, and file-size reporting depends on
   HEAD support. Supported runtime containers are GLTF/GLB. The validation
   summary is deliberately practical rather than a full DCC-grade rig auditor.
 - Visual snapshots preserve metadata and URL identity, not the bytes behind a
-  mutable URL. Production assets should use content-addressed or versioned URLs
-  until Asset Library IDs exist.
+  mutable URL. Asset Library IDs and versions now exist, but wiring them into a
+  future snapshot/protocol version is intentionally deferred so Runtime Protocol
+  v1 and existing Runs remain unchanged. Use content-addressed or versioned URLs.
 - Battle remains the only Viewer adapter. Playback still consumes completed
   saved Runs rather than streaming live simulation.
 - No high-fidelity runtime, Unreal project/parser, public runtime session
@@ -351,14 +404,18 @@ LAST COMPLETED:
   Phase 7A-A — Platform Runtime Protocol v1
   5687430 feat: add SIMVERSE runtime protocol v1
 
-CURRENT:
-  Phase 7A-B — Unreal Runtime Bootstrap
-  STATUS: WAITING FOR UNREAL ENGINE INSTALLATION
+COMMITTED HANDOFF CHECKPOINT:
+  dbfc971 docs: prepare Phase 7A-B Unreal bootstrap
 
-ONLY REMAINING TOOLCHAIN BLOCKER:
-  Unreal Engine 5 is not installed. Phase 7B+ has not started.
+CURRENT:
+  Parallel Platform Track — Web Phase 1: Asset Library v1
+  STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
+
+PAUSED PARALLEL TRACK:
+  Phase 7A-B — Unreal Runtime Bootstrap
+  STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Install one stable compatible Unreal Engine 5 release on D:, then run the
-  Phase 7A-B gate check before creating SIMVERSE-RUNTIME or any Unreal files.
+  Review and approve the Asset Library v1 Platform change set. Do not access D:
+  or resume Unreal work until the external storage is stable.
 ```
