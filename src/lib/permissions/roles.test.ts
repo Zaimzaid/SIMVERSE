@@ -63,6 +63,8 @@ describe("permissions matrix", () => {
     expect(can("VIEWER", "simulation.edit")).toBe(false);
     expect(can("VIEWER", "simulation.duplicate")).toBe(false);
     expect(can("VIEWER", "simulation.archive")).toBe(false);
+    expect(can("VIEWER", "world.view")).toBe(true);
+    expect(can("VIEWER", "world.manage")).toBe(false);
   });
 
   it("ANALYST can view analytics but not edit content", () => {

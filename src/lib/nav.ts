@@ -50,7 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Projects", href: "/projects", icon: FolderKanban, permission: "project.view" },
       { label: "Simulations", href: "/simulations", icon: Swords, permission: "simulation.view" },
       { label: "Entities", href: "/entities", icon: Boxes, permission: "entity.view" },
-      { label: "Worlds", href: "/worlds", icon: Globe2, permission: "simulation.view" },
+      { label: "Worlds", href: "/worlds", icon: Globe2, permission: "world.view" },
       { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "simulation.view" },
     ],
   },

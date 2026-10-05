@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CalendarPlus,
   FolderKanban,
+  Globe2,
   Hash,
   Info,
   Palette,
@@ -378,6 +379,12 @@ export default async function SimulationDetailPage({ params }: PageParams) {
                 </div>
               </div>
               <MetaRow icon={ModeIcon} label="Mode" value={simulation.modeLabel} />
+              {simulation.worldId && simulation.worldVersion ? (
+                <div className="flex items-start gap-2.5">
+                  <Globe2 className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+                  <div className="min-w-0"><p className="text-xs text-muted">World</p><Link href={`/worlds/${simulation.worldId}`} className="text-secondary hover:text-accent">{simulation.worldName ?? "World"} · v{simulation.worldVersion}</Link></div>
+                </div>
+              ) : <MetaRow icon={Globe2} label="World" value="No World Blueprint" />}
               {simulation.createdByName ? (
                 <MetaRow icon={UserIcon} label="Created by" value={simulation.createdByName} />
               ) : null}

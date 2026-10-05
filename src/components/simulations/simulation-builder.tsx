@@ -85,6 +85,8 @@ export interface SimulationBuilderProps {
   initial: SimulationBuilderInitial;
   /** Active projects the simulation may belong to. */
   projects: { id: string; name: string }[];
+  /** Active immutable World versions available to bind to this definition. */
+  worlds: { worldId: string; worldName: string; biome: string; version: number; status: string; current: boolean }[];
   /** Name of the current project, used when it isn't in `projects` (e.g. archived). */
   projectName?: string;
 }
@@ -94,7 +96,7 @@ export interface SimulationBuilderProps {
  * Nothing here runs a simulation: "Ready" means the blueprint is complete and
  * valid; execution availability is determined separately by the engine registry.
  */
-export function SimulationBuilder({ mode, initial, projects, projectName }: SimulationBuilderProps) {
+export function SimulationBuilder({ mode, initial, projects, worlds, projectName }: SimulationBuilderProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -109,6 +111,8 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
   const [general, setGeneral] = useState<SimulationGeneralConfig>(initial.general);
   const [modeConfig, setModeConfig] = useState<Record<string, unknown>>(initial.modeConfig);
   const [presentation, setPresentation] = useState<SimulationPresentationConfig>(initial.presentation);
+  const [worldBinding, setWorldBinding] = useState(initial.worldId && initial.worldVersion
+    ? `${initial.worldId}::${initial.worldVersion}` : "");
 
   const [seedMode, setSeedMode] = useState<SeedMode>(initial.id && initial.seed ? "keep" : "auto");
   const [customSeed, setCustomSeed] = useState(initial.seed);
@@ -168,6 +172,7 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
   }
 
   function buildPayload() {
+    const [worldId, versionText] = worldBinding ? worldBinding.split("::") : ["", ""];
     const payload: Record<string, unknown> = {
       projectId,
       name: name.trim(),
@@ -181,6 +186,8 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
         showLabels: presentation.showLabels,
         showLeaderboard: presentation.showLeaderboard,
       },
+      worldId: worldId || null,
+      worldVersion: versionText ? Number(versionText) : null,
     };
     const seed = seedForPayload();
     if (seed !== undefined) payload.seed = seed;
@@ -532,12 +539,30 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
 
           {/* STEP 4 — ENVIRONMENT (placeholder only) */}
           {step === 4 ? (
-            <EmptyState
-              futurePhase
-              icon={Globe2}
-              title="Environment selection is coming later"
-              description="World selection becomes available in the World System phase. There is nothing to set here yet."
-            />
+            <div className="space-y-5">
+              <Card>
+                <CardHeader>
+                  <CardTitle>World Blueprint version</CardTitle>
+                  <CardDescription>Optional. Every new Run freezes the selected immutable version in its input snapshot.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Field label="Environment" htmlFor="sim-world" error={errors.worldId} hint="Later World edits never rewrite this selection or historical Runs.">
+                    <Select id="sim-world" value={worldBinding} onChange={(event) => setWorldBinding(event.target.value)}>
+                      <option value="">No World Blueprint</option>
+                      {worlds.map((world) => (
+                        <option key={`${world.worldId}:${world.version}`} value={`${world.worldId}::${world.version}`}>
+                          {world.worldName} · v{world.version}{world.current ? " (current)" : ""} · {world.biome.replaceAll("_", " ")}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  {worlds.length === 0 ? <p className="text-sm text-muted">No active Worlds are available. This Simulation can remain unbound.</p> : null}
+                  <Link href="/worlds" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+                    <Globe2 className="size-4" />Open World Library
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
           ) : null}
 
           {/* STEP 5 — PRESENTATION */}
@@ -706,6 +731,15 @@ export function SimulationBuilder({ mode, initial, projects, projectName }: Simu
                   label="Settings"
                   value={`${SIMULATION_SPEED_LABELS[general.speed]} · ${SIMULATION_DIFFICULTY_META[general.difficulty].label}${general.roundLimit ? ` · limit ${general.roundLimit}` : ""}`}
                   onEdit={() => setStep(3)}
+                />
+                <ReviewRow
+                  label="World"
+                  value={worldBinding ? (() => {
+                    const [worldId, version] = worldBinding.split("::");
+                    const selected = worlds.find((world) => world.worldId === worldId && String(world.version) === version);
+                    return selected ? `${selected.worldName} · v${selected.version}` : `Pinned World · v${version}`;
+                  })() : "No World"}
+                  onEdit={() => setStep(4)}
                 />
                 <ReviewRow
                   label="Seed"

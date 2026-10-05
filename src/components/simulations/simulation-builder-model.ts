@@ -36,6 +36,8 @@ export interface SimulationBuilderInitial {
   modeConfig: Record<string, unknown>;
   presentation: SimulationPresentationConfig;
   seed: string;
+  worldId: string;
+  worldVersion: number | null;
 }
 
 /** Blank initializer for a brand-new simulation (optionally preselecting a project). */
@@ -52,6 +54,8 @@ export function emptyBuilderInitial(projectId = ""): SimulationBuilderInitial {
     modeConfig: defaultModeConfig(mode),
     presentation: defaultPresentation(),
     seed: "",
+    worldId: "",
+    worldVersion: null,
   };
 }
 
@@ -73,5 +77,7 @@ export function simulationToBuilderInitial(view: SimulationView): SimulationBuil
     modeConfig: view.configuration.mode,
     presentation: view.presentation,
     seed: view.seed ?? "",
+    worldId: view.worldId ?? "",
+    worldVersion: view.worldVersion,
   };
 }

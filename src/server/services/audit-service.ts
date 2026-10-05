@@ -46,7 +46,12 @@ export type AuditAction =
   | "asset.updated"
   | "asset.archived"
   | "asset.restored"
-  | "asset.deleted";
+  | "asset.deleted"
+  | "world.created"
+  | "world.updated"
+  | "world.archived"
+  | "world.restored"
+  | "world.deleted";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

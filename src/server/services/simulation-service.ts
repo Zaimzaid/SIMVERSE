@@ -73,6 +73,10 @@ export interface SimulationSummary {
   modeLabel: string;
   status: SimulationStatus;
   seed: string | null;
+  worldId: string | null;
+  worldVersion: number | null;
+  worldName: string | null;
+  worldStatus: string | null;
   participantCount: number;
   createdByName: string | null;
   createdAt: Date;
@@ -109,12 +113,14 @@ export interface ListSimulationsResult {
 
 const simulationListInclude = {
   project: { select: { name: true } },
+  world: { select: { name: true, status: true } },
   createdBy: { select: { displayName: true } },
   _count: { select: { entityLinks: true } },
 } satisfies Prisma.SimulationInclude;
 
 const simulationDetailInclude = {
   project: { select: { name: true } },
+  world: { select: { name: true, status: true } },
   createdBy: { select: { displayName: true } },
   entityLinks: {
     orderBy: { position: "asc" },
@@ -150,6 +156,10 @@ function toSimulationSummary(row: SimulationListRow): SimulationSummary {
     modeLabel: resolveMode(row.mode).label,
     status: isSimulationStatus(row.status) ? row.status : "DRAFT",
     seed: row.seed,
+    worldId: row.worldId,
+    worldVersion: row.worldVersion,
+    worldName: row.world?.name ?? null,
+    worldStatus: row.world?.status ?? null,
     participantCount: row._count.entityLinks,
     createdByName: row.createdBy?.displayName ?? null,
     createdAt: row.createdAt,
@@ -189,6 +199,10 @@ function toSimulationView(row: SimulationDetailRow): SimulationView {
     modeLabel: resolveMode(row.mode).label,
     status: isSimulationStatus(row.status) ? row.status : "DRAFT",
     seed: row.seed,
+    worldId: row.worldId,
+    worldVersion: row.worldVersion,
+    worldName: row.world?.name ?? null,
+    worldStatus: row.world?.status ?? null,
     participantCount: participants.length,
     createdByName: row.createdBy?.displayName ?? null,
     createdAt: row.createdAt,
@@ -305,6 +319,7 @@ export async function createSimulation(
   const config = normalizeConfigInput(mode, data.configuration ?? {});
   const presentation = normalizePresentationInput(data.presentation ?? {});
   const participants = await resolveParticipants(workspaceId, data.participants ?? []);
+  const worldBinding = await resolveWorldBinding(workspaceId, data.worldId ?? null, data.worldVersion ?? null);
   const seed = data.seed ?? generateSeed();
 
   const created = await prisma.$transaction(async (tx) => {
@@ -321,6 +336,8 @@ export async function createSimulation(
         configuration: JSON.stringify(config),
         presentation: JSON.stringify(presentation),
         metadata: serializeMetadata(data.metadata),
+        worldId: worldBinding?.worldId ?? null,
+        worldVersion: worldBinding?.worldVersion ?? null,
         createdById: userId,
         entityLinks: {
           create: participants.map((p) => ({
@@ -364,7 +381,7 @@ export async function updateSimulation(
 
   const existing = await prisma.simulation.findFirst({
     where: { id: simulationId, workspaceId },
-    select: { id: true, status: true, mode: true, configuration: true },
+    select: { id: true, status: true, mode: true, configuration: true, worldId: true, worldVersion: true },
   });
   if (!existing) throw new NotFoundError("Simulation not found.");
 
@@ -392,6 +409,12 @@ export async function updateSimulation(
   }
 
   if (has("metadata")) scalar.metadata = serializeMetadata(data.metadata);
+
+  if (has("worldId") || has("worldVersion")) {
+    const binding = await resolveWorldBinding(workspaceId, data.worldId ?? null, data.worldVersion ?? null);
+    scalar.world = binding ? { connect: { id: binding.worldId } } : { disconnect: true };
+    scalar.worldVersion = binding?.worldVersion ?? null;
+  }
 
   // Configuration: validate against the EFFECTIVE mode. When the mode changed
   // without a new config, keep the general settings and reset only the
@@ -421,7 +444,7 @@ export async function updateSimulation(
 
   // A validated (READY) blueprint returns to DRAFT when its validity could change.
   const validityTouched =
-    has("mode") || has("projectId") || has("configuration") || has("participants");
+    has("mode") || has("projectId") || has("configuration") || has("participants") || has("worldId") || has("worldVersion");
   if (existing.status === "READY" && validityTouched) scalar.status = "DRAFT";
 
   await prisma.$transaction(async (tx) => {
@@ -487,6 +510,8 @@ export async function duplicateSimulation(
         configuration: source.configuration,
         presentation: source.presentation,
         metadata: source.metadata,
+        worldId: source.worldId,
+        worldVersion: source.worldVersion,
         createdById: userId,
         entityLinks: {
           create: source.entityLinks.map((link) => ({
@@ -723,6 +748,21 @@ async function assertProjectInWorkspace(
       { path: field, message: "Choose a project from this workspace." },
     ]);
   }
+}
+
+async function resolveWorldBinding(workspaceId: string, worldId: string | null, worldVersion: number | null) {
+  if (worldId === null && worldVersion === null) return null;
+  if (!worldId || !worldVersion) throw new ValidationError("Select both a World and an immutable World version.", [
+    { path: "worldId", message: "Choose a complete World version binding." },
+  ]);
+  const version = await prisma.worldVersion.findFirst({
+    where: { worldId, version: worldVersion, world: { workspaceId } },
+    select: { world: { select: { status: true } } },
+  });
+  if (!version || version.world.status === "ARCHIVED") throw new ValidationError("That World version is not available in this workspace.", [
+    { path: "worldId", message: "Choose an active World and version from this workspace." },
+  ]);
+  return { worldId, worldVersion };
 }
 
 /**

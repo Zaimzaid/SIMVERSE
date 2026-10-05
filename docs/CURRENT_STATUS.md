@@ -4,23 +4,25 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Phase 7A-A — Platform Runtime Protocol v1, committed in
-  `5687430` (`feat: add SIMVERSE runtime protocol v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 1: Asset Library v1**.
-  Implementation is complete and uncommitted, awaiting owner review.
+- **Last completed:** Parallel Platform Track — **Web Phase 1: Asset Library
+  v1**, committed in `99e0b6f` (`feat: add SIMVERSE Asset Library v1`).
+- **Current work:** Parallel Platform Track — **Web Phase 2: World Blueprint
+  Creator v1**. Implementation is complete and uncommitted, awaiting owner
+  review.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `dbfc971`, after Phase 7A-A `5687430`, Phase 6.5
+- **Committed checkpoint:** `99e0b6f`, after Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-04.
+- **Last updated:** 2026-10-05.
 - **Boundary:** Battle remains the only production mechanics module. Core and
   Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
   Runtime Protocol v1 transports completed Battle truth; no Unreal project,
-  World code or Phase 7B work exists in this Platform repository. Runtime
-  Protocol v1 and Battle mechanics are unchanged by the parallel Platform track.
+  rendered World runtime or Phase 7B work exists in this Platform repository.
+  Engine-neutral World Blueprint metadata now exists. Runtime Protocol v1 and
+  Battle mechanics are unchanged by the parallel Platform track.
 
 ## Official architecture and visual direction
 
@@ -305,6 +307,52 @@ durable bootstrap plan remains in
   Entity Visual Profiles or any stored Run input/participant snapshot. Runtime
   Protocol v1 and Battle mechanics remain byte-for-byte outside this change set.
 
+## Parallel Platform Track — Web Phase 2: World Blueprint Creator v1
+
+- `World` is the stable, workspace-scoped searchable identity. `WorldVersion`
+  stores every complete immutable environment definition, its status, tags,
+  Asset and Entity association snapshots, creator, version note and SHA-256
+  content identity. Current normalized `WorldTag`, `WorldAsset` and `WorldEntity`
+  rows support discovery and safe relationships without replacing version truth.
+- Statuses are `DRAFT`, `IN_DESIGN`, `REVIEW`, `VALIDATED`, `RUNTIME_READY` and
+  `ARCHIVED`. Server-side transitions, archive and restore append versions.
+  `RUNTIME_READY` means that the blueprint is ready to bind to a consumer; it
+  does not claim that an Unreal environment exists.
+- World Blueprint v1 validates explicit engine-neutral terrain dimensions and
+  coordinates, elevation/slope/roughness/traversability/surfaces/boundaries,
+  climate units and seasons, weighted weather definitions, static or dynamic
+  time, ecology slots, water, typed zones, named spawn sets, camera definitions,
+  Asset-backed audio channels, compatible Entity categories and presentation
+  policies. It generates no terrain mesh, physics, audio or cinematic output.
+- Biomes cover Savannah, Forest, Rainforest, Desert, Tundra, Mountain,
+  Grassland, Wetland, Ocean, Coastal, Urban, Industrial, Farm, Fantasy, Space
+  and named custom definitions. Original structured presets cover SIMVERSE
+  Savannah, Temperate Forest, Open Desert, Urban Arena and Working Farm.
+- World-to-Asset placement rows pin existing immutable Asset versions, roles,
+  engine-neutral transforms and bounded configuration. Associated Assets and
+  optional native/default Entity links must belong to the workspace and cannot
+  be archived. Large binary content is never stored in World records.
+- The first-class original SIMVERSE Savannah preset includes open grassland,
+  acacia/dry-grass/rock content slots, a watering-hole interaction zone,
+  predator and prey spawn sets, clear/dust/rain weather, dynamic time, camera
+  definitions and wildlife audio metadata. It includes no production models,
+  terrain mesh, Unreal content or cinematic scene.
+- `/worlds` provides gallery/list discovery, search, biome/status/tag/category
+  filters and sorting. Create/edit, detail, immutable history and archive/restore
+  routes use the existing authenticated Platform shell and `world.view` /
+  `world.manage` permissions. The 12-section designer exposes common structured
+  fields and validated JSON for variable engine-neutral definitions; it is not a
+  3D editor.
+- Simulations may optionally pin a workspace World and exact World version.
+  Existing definitions with no World remain valid. Every new World-bound Run
+  copies the complete selected version into its immutable input snapshot, so
+  later World edits do not change historical Run truth. Runtime Protocol v1
+  already has a nullable World binding shape and is unchanged; producing a
+  runtime manifest from a saved blueprint remains future integration work.
+- Prisma continues to use the repository's established `db push` workflow. No
+  migration directory, binary storage, Unreal dependency or new runtime contract
+  was introduced.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -349,12 +397,25 @@ durable bootstrap plan remains in
   validation, discovery controls and historical Run non-mutation.
   `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx next build`,
   and `git diff --check` passed.
+- Web Phase 2 direct `npx vitest run` passed **254 tests in 24 files**, preserving
+  all 242 Asset Library tests and adding 12 World service tests for CRUD,
+  discovery, authorization, workspace isolation, immutable versions,
+  archive/restore, status transitions, Asset/Entity associations, invalid
+  references, zones/spawns, Simulation bindings, legacy definitions and frozen
+  Run snapshots. `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`,
+  `npx next build`, and `git diff --check` passed. Prisma Client v7.10.0 was
+  regenerated successfully.
 
 ## Known limits
 
 - Asset Library v1 manages metadata, immutable versions and safe references. It
   does not upload or host binaries, provide a CDN/marketplace, optimize content,
   generate Draco/Meshopt/KTX2/LODs, or provide final production models.
+- World Blueprint Creator v1 manages validated definitions and immutable
+  relationships. It does not render, generate terrain, stream a live World,
+  automatically spawn associated Entities, or provide an Unreal/Three.js World
+  adapter. Asset and Entity selection lists are currently bounded to 100 active
+  records per designer load; library discovery remains paginated.
 - Remote model inspection depends on CORS, and file-size reporting depends on
   HEAD support. Supported runtime containers are GLTF/GLB. The validation
   summary is deliberately practical rather than a full DCC-grade rig auditor.
@@ -401,14 +462,14 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Phase 7A-A — Platform Runtime Protocol v1
-  5687430 feat: add SIMVERSE runtime protocol v1
+  Parallel Platform Track — Web Phase 1: Asset Library v1
+  99e0b6f feat: add SIMVERSE Asset Library v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  dbfc971 docs: prepare Phase 7A-B Unreal bootstrap
+  99e0b6f feat: add SIMVERSE Asset Library v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 1: Asset Library v1
+  Parallel Platform Track — Web Phase 2: World Blueprint Creator v1
   STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
 
 PAUSED PARALLEL TRACK:
@@ -416,6 +477,6 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the Asset Library v1 Platform change set. Do not access D:
+  Review and approve the World Blueprint Creator v1 Platform change set. Do not access D:
   or resume Unreal work until the external storage is stable.
 ```

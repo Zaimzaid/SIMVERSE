@@ -7,6 +7,7 @@ import { PROJECT_MAX_PAGE_SIZE } from "@/lib/projects/constants";
 import { requirePlatformContext } from "@/server/context";
 import { getSimulation, type SimulationView } from "@/server/services/simulation-service";
 import { getProject, listProjects } from "@/server/services/project-service";
+import { listWorldBindingOptions } from "@/server/services/world-service";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonClasses } from "@/components/ui/button";
@@ -80,11 +81,10 @@ export default async function EditSimulationPage({ params }: PageParams) {
 
   // Projects the simulation can belong to. Include the current project even if it
   // isn't in the active page, so the builder can always display the selection.
-  const projectList = await listProjects(user.id, workspace.id, {
-    status: "ACTIVE",
-    sort: "name_asc",
-    pageSize: PROJECT_MAX_PAGE_SIZE,
-  });
+  const [projectList, worlds] = await Promise.all([
+    listProjects(user.id, workspace.id, { status: "ACTIVE", sort: "name_asc", pageSize: PROJECT_MAX_PAGE_SIZE }),
+    listWorldBindingOptions(user.id, workspace.id),
+  ]);
   const projects = projectList.items.map((p) => ({ id: p.id, name: p.name }));
 
   if (!projects.some((p) => p.id === simulation.projectId)) {
@@ -117,6 +117,7 @@ export default async function EditSimulationPage({ params }: PageParams) {
         mode="edit"
         initial={simulationToBuilderInitial(simulation)}
         projects={projects}
+        worlds={worlds}
         projectName={simulation.projectName ?? undefined}
       />
     </div>

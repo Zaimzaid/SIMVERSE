@@ -297,7 +297,7 @@ const simulationParticipantSchema = z.object({
   overrides: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const createSimulationSchema = z.object({
+const simulationDefinitionSchema = z.object({
   projectId: z.string().trim().min(1, "Choose a project."),
   name: simulationName,
   description: optionalDescription,
@@ -309,10 +309,24 @@ export const createSimulationSchema = z.object({
   configuration: z.record(z.string(), z.unknown()).optional(),
   presentation: z.record(z.string(), z.unknown()).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  worldId: z.string().trim().min(1, "Choose a World.").max(200).nullable().optional(),
+  worldVersion: z.number().int().positive().nullable().optional(),
 });
 
+function validateWorldBinding(data: { worldId?: string | null; worldVersion?: number | null }, context: z.RefinementCtx) {
+  if ((data.worldId == null) !== (data.worldVersion == null)) {
+    context.addIssue({ code: "custom", path: [data.worldId == null ? "worldId" : "worldVersion"], message: "Select both a World and an immutable World version." });
+  }
+}
+
+export const createSimulationSchema = simulationDefinitionSchema.superRefine(validateWorldBinding);
+
 /** Update accepts any subset of the create fields. Status transitions use dedicated actions. */
-export const updateSimulationSchema = createSimulationSchema.partial();
+export const updateSimulationSchema = simulationDefinitionSchema.partial().superRefine((data, context) => {
+  if (Object.prototype.hasOwnProperty.call(data, "worldId") || Object.prototype.hasOwnProperty.call(data, "worldVersion")) {
+    validateWorldBinding(data, context);
+  }
+});
 
 /** Optional new name when duplicating; defaults to "<name> Copy" in the service. */
 export const duplicateSimulationSchema = z.object({

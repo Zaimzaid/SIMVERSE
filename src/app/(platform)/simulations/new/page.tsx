@@ -5,6 +5,7 @@ import { NotFoundError } from "@/lib/errors";
 import { PROJECT_MAX_PAGE_SIZE } from "@/lib/projects/constants";
 import { requirePlatformContext } from "@/server/context";
 import { getProject, listProjects } from "@/server/services/project-service";
+import { listWorldBindingOptions } from "@/server/services/world-service";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonClasses } from "@/components/ui/button";
@@ -50,11 +51,10 @@ export default async function NewSimulationPage({
   }
 
   // Active projects the simulation may belong to (a simulation always lives in a project).
-  const projectList = await listProjects(user.id, workspace.id, {
-    status: "ACTIVE",
-    sort: "name_asc",
-    pageSize: PROJECT_MAX_PAGE_SIZE,
-  });
+  const [projectList, worlds] = await Promise.all([
+    listProjects(user.id, workspace.id, { status: "ACTIVE", sort: "name_asc", pageSize: PROJECT_MAX_PAGE_SIZE }),
+    listWorldBindingOptions(user.id, workspace.id),
+  ]);
   const projects = projectList.items.map((p) => ({ id: p.id, name: p.name }));
 
   // Resolve an optional ?projectId= preselection. It MUST belong to this
@@ -120,6 +120,7 @@ export default async function NewSimulationPage({
           mode="create"
           initial={emptyBuilderInitial(preselectId)}
           projects={projects}
+          worlds={worlds}
           projectName={projectName}
         />
       )}

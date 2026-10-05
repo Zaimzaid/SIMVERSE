@@ -4,6 +4,7 @@ import { SIMULATION_DIFFICULTIES, SIMULATION_SPEEDS } from "@/lib/simulations/co
 import { ENGINE_STATE_VERSION, INPUT_SNAPSHOT_VERSION, RESULT_VERSION } from "./constants";
 import { rngStateSchema } from "./rng";
 import { visualProfileSnapshotSchema } from "@/lib/visuals/profile";
+import { worldRunSnapshotSchema } from "@/lib/worlds/schemas";
 
 export const jsonRecordSchema = z.record(z.string(), z.json());
 export type JsonRecord = z.infer<typeof jsonRecordSchema>;
@@ -82,6 +83,9 @@ export const inputSnapshotSchema = z.object({
   presentation: presentationSnapshotSchema,
   resolvedSeed: z.string().regex(SEED_REGEX),
   participants: z.array(participantSnapshotSchema).max(500),
+  // Optional so Phase 3–7A Runs remain valid. New World-bound Runs freeze the
+  // complete immutable World version instead of reading current World state.
+  world: worldRunSnapshotSchema.nullable().optional(),
 }).strict();
 export type InputSnapshotV1 = z.infer<typeof inputSnapshotSchema>;
 

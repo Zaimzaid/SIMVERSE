@@ -7,6 +7,7 @@ import {
   FileText,
   FolderPlus,
   FolderCog,
+  Globe2,
   LogIn,
   LogOut,
   MinusCircle,
@@ -98,6 +99,16 @@ export function describeAuditAction(
       return { icon: CheckCircle2, label: name ? `Marked simulation “${name}” ready` : "Marked a simulation ready" };
     case "simulation.draft":
       return { icon: FileText, label: name ? `Moved simulation “${name}” to draft` : "Moved a simulation to draft" };
+    case "world.created":
+      return { icon: Globe2, label: name ? `Created World “${name}”` : "Created a World" };
+    case "world.updated":
+      return { icon: Globe2, label: name ? `Updated World “${name}”` : "Updated a World" };
+    case "world.archived":
+      return { icon: Archive, label: name ? `Archived World “${name}”` : "Archived a World" };
+    case "world.restored":
+      return { icon: ArchiveRestore, label: name ? `Restored World “${name}”` : "Restored a World" };
+    case "world.deleted":
+      return { icon: Trash2, label: name ? `Deleted World “${name}”` : "Deleted a World" };
     default:
       return { icon: Boxes, label: action };
   }

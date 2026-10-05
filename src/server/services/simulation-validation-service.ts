@@ -99,5 +99,12 @@ export function validateSimulationForReady(sim: SimulationView): SimulationValid
     });
   }
 
+  // 8. Optional World bindings must remain a complete, active immutable pair.
+  if ((sim.worldId === null) !== (sim.worldVersion === null) || (sim.worldId && !sim.worldName)) {
+    issues.push({ code: "world_invalid", field: "worldId", message: "Choose a valid immutable World version." });
+  } else if (sim.worldId && sim.worldStatus === "ARCHIVED") {
+    issues.push({ code: "world_archived", field: "worldId", message: "Restore the selected World or choose another version." });
+  }
+
   return { ok: issues.length === 0, issues };
 }

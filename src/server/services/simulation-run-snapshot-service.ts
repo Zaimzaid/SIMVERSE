@@ -11,6 +11,7 @@ import { normalizeConfigInput, normalizePresentationInput } from "@/lib/simulati
 import { minEntitiesForMode } from "@/lib/simulations/modes";
 import { isValidSeed } from "@/lib/simulations/seed";
 import { animationProfileSchema } from "@/lib/visuals/profile";
+import { loadWorldRunSnapshot } from "./world-service";
 
 const snapshotInclude = {
   entityLinks: {
@@ -157,6 +158,10 @@ export async function buildRunInputSnapshot(
     });
   });
 
+  const world = simulation.worldId && simulation.worldVersion
+    ? await loadWorldRunSnapshot(tx, workspaceId, simulation.worldId, simulation.worldVersion)
+    : null;
+
   return inputSnapshotSchema.parse({
     version: INPUT_SNAPSHOT_VERSION,
     simulationId: simulation.id,
@@ -167,5 +172,6 @@ export async function buildRunInputSnapshot(
     presentation,
     resolvedSeed: simulation.seed,
     participants,
+    world,
   });
 }

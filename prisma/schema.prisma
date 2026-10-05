@@ -43,6 +43,8 @@ model User {
   createdRuns          SimulationRun[] @relation("RunCreator")
   createdAssets        Asset[]         @relation("AssetCreator")
   createdAssetVersions AssetVersion[]  @relation("AssetVersionCreator")
+  createdWorlds        World[]         @relation("WorldCreator")
+  createdWorldVersions WorldVersion[]  @relation("WorldVersionCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -66,6 +68,7 @@ model Workspace {
   simulations          Simulation[]
   simulationRuns       SimulationRun[]
   assets               Asset[]
+  worlds               World[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -161,6 +164,7 @@ model Entity {
   projectLinks    ProjectEntity[]
   simulationLinks SimulationEntity[]
   assetLinks      AssetEntity[]
+  worldLinks      WorldEntity[]
 
   // Composite indexes keep list/search/filter/sort fast at scale and always
   // begin with workspaceId so every query is tenant-scoped by the leading column.
@@ -257,6 +261,7 @@ model Tag {
   workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   entityTags EntityTag[]
   assetTags  AssetTag[]
+  worldTags  WorldTag[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId])
@@ -304,6 +309,7 @@ model Asset {
   entityLinks  AssetEntity[]
   parentLinks  AssetRelationship[] @relation("AssetRelationshipDerived")
   derivedLinks AssetRelationship[] @relation("AssetRelationshipParent")
+  worldLinks   WorldAsset[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, type])
@@ -390,6 +396,124 @@ model AssetRelationship {
 }
 
 // ============================================================================
+// WORLD BLUEPRINT CREATOR (Web Phase 2 — engine-neutral environment metadata)
+//
+// World is the stable, searchable workspace identity. Every edit appends an
+// immutable WorldVersion containing the complete validated blueprint. Current
+// tag, Asset and Entity joins are projections for discovery and authorization;
+// the version snapshot remains the historical authority.
+// ============================================================================
+
+model World {
+  id                 String    @id @default(cuid())
+  workspaceId        String
+  name               String
+  slug               String
+  description        String?
+  category           String
+  status             String    @default("DRAFT")
+  currentVersion     Int       @default(1)
+  archivedFromStatus String?
+  biome              String
+  thumbnailReference String?
+  visibility         String    @default("WORKSPACE")
+  createdById        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  archivedAt         DateTime?
+
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   User?          @relation("WorldCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  versions    WorldVersion[]
+  worldTags   WorldTag[]
+  assetLinks  WorldAsset[]
+  entityLinks WorldEntity[]
+  simulations Simulation[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, status])
+  @@index([workspaceId, biome])
+  @@index([workspaceId, category])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, name])
+  @@index([createdById])
+}
+
+model WorldVersion {
+  id                 String   @id @default(cuid())
+  worldId            String
+  version            Int
+  blueprintVersion   Int      @default(1)
+  name               String
+  description        String?
+  category           String
+  status             String
+  tags               String
+  biome              String
+  thumbnailReference String?
+  visibility         String
+  blueprint          String
+  assetAssociations  String
+  entityAssociations String
+  contentHash        String
+  changeNote         String?
+  createdById        String?
+  createdAt          DateTime @default(now())
+
+  world     World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("WorldVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([worldId, version])
+  @@index([worldId, createdAt])
+  @@index([createdById])
+}
+
+model WorldTag {
+  worldId String
+  tagId   String
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, tagId])
+  @@index([tagId])
+}
+
+/// Current World-to-Asset projection. Each placement pins an immutable Asset
+/// version and stores only validated engine-neutral placement/configuration.
+model WorldAsset {
+  worldId       String
+  identifier    String
+  assetId       String
+  assetVersion  Int
+  role          String
+  placement     String?
+  configuration String?
+  createdAt     DateTime @default(now())
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([worldId, identifier])
+  @@index([assetId])
+  @@index([worldId, role])
+}
+
+model WorldEntity {
+  worldId       String
+  entityId      String
+  relationship  String
+  configuration String?
+  createdAt     DateTime @default(now())
+
+  world  World  @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  entity Entity @relation(fields: [entityId], references: [id], onDelete: Restrict)
+
+  @@id([worldId, entityId, relationship])
+  @@index([entityId])
+}
+
+// ============================================================================
 // PROJECT SYSTEM (Phase 2 — workspace-owned organizational container)
 //
 // A Project groups existing Entities and Simulations (and, in future phases,
@@ -470,6 +594,8 @@ model Simulation {
   configVersion Int       @default(1) // schema version of `configuration` (SimulationConfigV1)
   configuration String? // serialized JSON (SimulationConfigV1) — validated server-side, never trusted raw
   presentation  String? // serialized JSON (SimulationPresentationConfig) — stored separately from logic config
+  worldId       String?
+  worldVersion  Int?
   metadata      String? // serialized JSON for flexible secondary data
   createdById   String?
   createdAt     DateTime  @default(now())
@@ -481,6 +607,7 @@ model Simulation {
   createdBy   User?              @relation("SimulationCreator", fields: [createdById], references: [id], onDelete: SetNull)
   entityLinks SimulationEntity[]
   runs        SimulationRun[]
+  world       World?             @relation(fields: [worldId], references: [id], onDelete: Restrict)
 
   @@index([workspaceId, projectId])
   @@index([workspaceId, mode])
@@ -488,6 +615,7 @@ model Simulation {
   @@index([workspaceId, updatedAt])
   @@index([projectId])
   @@index([createdById])
+  @@index([worldId, worldVersion])
 }
 
 /// Generic participant link between a Simulation and an existing Entity.
