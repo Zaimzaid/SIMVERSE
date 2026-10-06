@@ -12,6 +12,7 @@ import { minEntitiesForMode } from "@/lib/simulations/modes";
 import { isValidSeed } from "@/lib/simulations/seed";
 import { animationProfileSchema } from "@/lib/visuals/profile";
 import { loadWorldRunSnapshot } from "./world-service";
+import { loadExperienceRunSnapshot } from "./experience-profile-service";
 
 const snapshotInclude = {
   entityLinks: {
@@ -161,6 +162,9 @@ export async function buildRunInputSnapshot(
   const world = simulation.worldId && simulation.worldVersion
     ? await loadWorldRunSnapshot(tx, workspaceId, simulation.worldId, simulation.worldVersion)
     : null;
+  const experienceProfile = simulation.experienceProfileId && simulation.experienceProfileVersion
+    ? await loadExperienceRunSnapshot(tx, workspaceId, simulation.experienceProfileId, simulation.experienceProfileVersion)
+    : null;
 
   return inputSnapshotSchema.parse({
     version: INPUT_SNAPSHOT_VERSION,
@@ -173,5 +177,6 @@ export async function buildRunInputSnapshot(
     resolvedSeed: simulation.seed,
     participants,
     world,
+    experienceProfile,
   });
 }

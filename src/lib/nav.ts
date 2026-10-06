@@ -1,4 +1,5 @@
 import {
+  Aperture,
   BarChart3,
   Boxes,
   Clapperboard,
@@ -51,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Simulations", href: "/simulations", icon: Swords, permission: "simulation.view" },
       { label: "Entities", href: "/entities", icon: Boxes, permission: "entity.view" },
       { label: "Worlds", href: "/worlds", icon: Globe2, permission: "world.view" },
+      { label: "Experiences", href: "/experiences", icon: Aperture, permission: "experience.view" },
       { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "simulation.view" },
     ],
   },

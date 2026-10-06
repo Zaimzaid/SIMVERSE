@@ -1,4 +1,5 @@
 import {
+  Aperture,
   Archive,
   ArchiveRestore,
   Boxes,
@@ -109,6 +110,16 @@ export function describeAuditAction(
       return { icon: ArchiveRestore, label: name ? `Restored World “${name}”` : "Restored a World" };
     case "world.deleted":
       return { icon: Trash2, label: name ? `Deleted World “${name}”` : "Deleted a World" };
+    case "experience.created":
+      return { icon: Aperture, label: name ? `Created Experience Profile “${name}”` : "Created an Experience Profile" };
+    case "experience.updated":
+      return { icon: Aperture, label: name ? `Updated Experience Profile “${name}”` : "Updated an Experience Profile" };
+    case "experience.archived":
+      return { icon: Archive, label: name ? `Archived Experience Profile “${name}”` : "Archived an Experience Profile" };
+    case "experience.restored":
+      return { icon: ArchiveRestore, label: name ? `Restored Experience Profile “${name}”` : "Restored an Experience Profile" };
+    case "experience.deleted":
+      return { icon: Trash2, label: name ? `Deleted Experience Profile “${name}”` : "Deleted an Experience Profile" };
     default:
       return { icon: Boxes, label: action };
   }

@@ -38,6 +38,8 @@ export interface SimulationBuilderInitial {
   seed: string;
   worldId: string;
   worldVersion: number | null;
+  experienceProfileId: string;
+  experienceProfileVersion: number | null;
 }
 
 /** Blank initializer for a brand-new simulation (optionally preselecting a project). */
@@ -56,6 +58,8 @@ export function emptyBuilderInitial(projectId = ""): SimulationBuilderInitial {
     seed: "",
     worldId: "",
     worldVersion: null,
+    experienceProfileId: "",
+    experienceProfileVersion: null,
   };
 }
 
@@ -79,5 +83,7 @@ export function simulationToBuilderInitial(view: SimulationView): SimulationBuil
     seed: view.seed ?? "",
     worldId: view.worldId ?? "",
     worldVersion: view.worldVersion,
+    experienceProfileId: view.experienceProfileId ?? "",
+    experienceProfileVersion: view.experienceProfileVersion,
   };
 }

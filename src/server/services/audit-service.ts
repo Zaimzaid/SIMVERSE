@@ -51,7 +51,12 @@ export type AuditAction =
   | "world.updated"
   | "world.archived"
   | "world.restored"
-  | "world.deleted";
+  | "world.deleted"
+  | "experience.created"
+  | "experience.updated"
+  | "experience.archived"
+  | "experience.restored"
+  | "experience.deleted";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

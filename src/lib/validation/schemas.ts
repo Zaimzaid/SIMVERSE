@@ -311,6 +311,8 @@ const simulationDefinitionSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
   worldId: z.string().trim().min(1, "Choose a World.").max(200).nullable().optional(),
   worldVersion: z.number().int().positive().nullable().optional(),
+  experienceProfileId: z.string().trim().min(1, "Choose an Experience Profile.").max(200).nullable().optional(),
+  experienceProfileVersion: z.number().int().positive().nullable().optional(),
 });
 
 function validateWorldBinding(data: { worldId?: string | null; worldVersion?: number | null }, context: z.RefinementCtx) {
@@ -319,12 +321,23 @@ function validateWorldBinding(data: { worldId?: string | null; worldVersion?: nu
   }
 }
 
-export const createSimulationSchema = simulationDefinitionSchema.superRefine(validateWorldBinding);
+function validateExperienceBinding(data: { experienceProfileId?: string | null; experienceProfileVersion?: number | null }, context: z.RefinementCtx) {
+  if ((data.experienceProfileId == null) !== (data.experienceProfileVersion == null)) {
+    context.addIssue({ code: "custom", path: [data.experienceProfileId == null ? "experienceProfileId" : "experienceProfileVersion"], message: "Select both an Experience Profile and an immutable version." });
+  }
+}
+
+export const createSimulationSchema = simulationDefinitionSchema.superRefine((data, context) => {
+  validateWorldBinding(data, context); validateExperienceBinding(data, context);
+});
 
 /** Update accepts any subset of the create fields. Status transitions use dedicated actions. */
 export const updateSimulationSchema = simulationDefinitionSchema.partial().superRefine((data, context) => {
   if (Object.prototype.hasOwnProperty.call(data, "worldId") || Object.prototype.hasOwnProperty.call(data, "worldVersion")) {
     validateWorldBinding(data, context);
+  }
+  if (Object.prototype.hasOwnProperty.call(data, "experienceProfileId") || Object.prototype.hasOwnProperty.call(data, "experienceProfileVersion")) {
+    validateExperienceBinding(data, context);
   }
 });
 

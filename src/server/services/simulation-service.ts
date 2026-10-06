@@ -77,6 +77,10 @@ export interface SimulationSummary {
   worldVersion: number | null;
   worldName: string | null;
   worldStatus: string | null;
+  experienceProfileId: string | null;
+  experienceProfileVersion: number | null;
+  experienceProfileName: string | null;
+  experienceProfileStatus: string | null;
   participantCount: number;
   createdByName: string | null;
   createdAt: Date;
@@ -114,6 +118,7 @@ export interface ListSimulationsResult {
 const simulationListInclude = {
   project: { select: { name: true } },
   world: { select: { name: true, status: true } },
+  experienceProfile: { select: { name: true, status: true } },
   createdBy: { select: { displayName: true } },
   _count: { select: { entityLinks: true } },
 } satisfies Prisma.SimulationInclude;
@@ -121,6 +126,7 @@ const simulationListInclude = {
 const simulationDetailInclude = {
   project: { select: { name: true } },
   world: { select: { name: true, status: true } },
+  experienceProfile: { select: { name: true, status: true } },
   createdBy: { select: { displayName: true } },
   entityLinks: {
     orderBy: { position: "asc" },
@@ -160,6 +166,10 @@ function toSimulationSummary(row: SimulationListRow): SimulationSummary {
     worldVersion: row.worldVersion,
     worldName: row.world?.name ?? null,
     worldStatus: row.world?.status ?? null,
+    experienceProfileId: row.experienceProfileId,
+    experienceProfileVersion: row.experienceProfileVersion,
+    experienceProfileName: row.experienceProfile?.name ?? null,
+    experienceProfileStatus: row.experienceProfile?.status ?? null,
     participantCount: row._count.entityLinks,
     createdByName: row.createdBy?.displayName ?? null,
     createdAt: row.createdAt,
@@ -203,6 +213,10 @@ function toSimulationView(row: SimulationDetailRow): SimulationView {
     worldVersion: row.worldVersion,
     worldName: row.world?.name ?? null,
     worldStatus: row.world?.status ?? null,
+    experienceProfileId: row.experienceProfileId,
+    experienceProfileVersion: row.experienceProfileVersion,
+    experienceProfileName: row.experienceProfile?.name ?? null,
+    experienceProfileStatus: row.experienceProfile?.status ?? null,
     participantCount: participants.length,
     createdByName: row.createdBy?.displayName ?? null,
     createdAt: row.createdAt,
@@ -320,6 +334,7 @@ export async function createSimulation(
   const presentation = normalizePresentationInput(data.presentation ?? {});
   const participants = await resolveParticipants(workspaceId, data.participants ?? []);
   const worldBinding = await resolveWorldBinding(workspaceId, data.worldId ?? null, data.worldVersion ?? null);
+  const experienceBinding = await resolveExperienceProfileBinding(workspaceId, data.experienceProfileId ?? null, data.experienceProfileVersion ?? null, mode);
   const seed = data.seed ?? generateSeed();
 
   const created = await prisma.$transaction(async (tx) => {
@@ -338,6 +353,8 @@ export async function createSimulation(
         metadata: serializeMetadata(data.metadata),
         worldId: worldBinding?.worldId ?? null,
         worldVersion: worldBinding?.worldVersion ?? null,
+        experienceProfileId: experienceBinding?.experienceProfileId ?? null,
+        experienceProfileVersion: experienceBinding?.experienceProfileVersion ?? null,
         createdById: userId,
         entityLinks: {
           create: participants.map((p) => ({
@@ -381,7 +398,7 @@ export async function updateSimulation(
 
   const existing = await prisma.simulation.findFirst({
     where: { id: simulationId, workspaceId },
-    select: { id: true, status: true, mode: true, configuration: true, worldId: true, worldVersion: true },
+    select: { id: true, status: true, mode: true, configuration: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true },
   });
   if (!existing) throw new NotFoundError("Simulation not found.");
 
@@ -416,6 +433,14 @@ export async function updateSimulation(
     scalar.worldVersion = binding?.worldVersion ?? null;
   }
 
+  if (has("experienceProfileId") || has("experienceProfileVersion")) {
+    const binding = await resolveExperienceProfileBinding(workspaceId, data.experienceProfileId ?? null, data.experienceProfileVersion ?? null, effectiveMode);
+    scalar.experienceProfile = binding ? { connect: { id: binding.experienceProfileId } } : { disconnect: true };
+    scalar.experienceProfileVersion = binding?.experienceProfileVersion ?? null;
+  } else if (modeChanged && existing.experienceProfileId && existing.experienceProfileVersion) {
+    await resolveExperienceProfileBinding(workspaceId, existing.experienceProfileId, existing.experienceProfileVersion, effectiveMode);
+  }
+
   // Configuration: validate against the EFFECTIVE mode. When the mode changed
   // without a new config, keep the general settings and reset only the
   // mode-specific placeholders to that mode's defaults.
@@ -444,7 +469,7 @@ export async function updateSimulation(
 
   // A validated (READY) blueprint returns to DRAFT when its validity could change.
   const validityTouched =
-    has("mode") || has("projectId") || has("configuration") || has("participants") || has("worldId") || has("worldVersion");
+    has("mode") || has("projectId") || has("configuration") || has("participants") || has("worldId") || has("worldVersion") || has("experienceProfileId") || has("experienceProfileVersion");
   if (existing.status === "READY" && validityTouched) scalar.status = "DRAFT";
 
   await prisma.$transaction(async (tx) => {
@@ -512,6 +537,8 @@ export async function duplicateSimulation(
         metadata: source.metadata,
         worldId: source.worldId,
         worldVersion: source.worldVersion,
+        experienceProfileId: source.experienceProfileId,
+        experienceProfileVersion: source.experienceProfileVersion,
         createdById: userId,
         entityLinks: {
           create: source.entityLinks.map((link) => ({
@@ -763,6 +790,33 @@ async function resolveWorldBinding(workspaceId: string, worldId: string | null, 
     { path: "worldId", message: "Choose an active World and version from this workspace." },
   ]);
   return { worldId, worldVersion };
+}
+
+async function resolveExperienceProfileBinding(
+  workspaceId: string,
+  experienceProfileId: string | null,
+  experienceProfileVersion: number | null,
+  mode: string,
+) {
+  if (experienceProfileId === null && experienceProfileVersion === null) return null;
+  if (!experienceProfileId || !experienceProfileVersion) throw new ValidationError("Select both an Experience Profile and an immutable version.", [
+    { path: "experienceProfileId", message: "Choose a complete Experience Profile version binding." },
+  ]);
+  const version = await prisma.experienceProfileVersion.findFirst({
+    where: { experienceProfileId, version: experienceProfileVersion, experienceProfile: { workspaceId } },
+    select: { status: true, modeCompatibility: true, experienceProfile: { select: { status: true } } },
+  });
+  let compatible = false;
+  if (version) {
+    try {
+      const modes: unknown = JSON.parse(version.modeCompatibility);
+      compatible = Array.isArray(modes) && modes.includes(mode);
+    } catch { compatible = false; }
+  }
+  if (!version || version.status === "ARCHIVED" || version.experienceProfile.status === "ARCHIVED" || !compatible) throw new ValidationError("That Experience Profile version is not available for this simulation.", [
+    { path: "experienceProfileId", message: "Choose an active compatible Experience Profile version from this workspace." },
+  ]);
+  return { experienceProfileId, experienceProfileVersion };
 }
 
 /**

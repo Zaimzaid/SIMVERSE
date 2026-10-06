@@ -106,5 +106,12 @@ export function validateSimulationForReady(sim: SimulationView): SimulationValid
     issues.push({ code: "world_archived", field: "worldId", message: "Restore the selected World or choose another version." });
   }
 
+  // 9. Optional Experience Profile bindings must remain complete and active.
+  if ((sim.experienceProfileId === null) !== (sim.experienceProfileVersion === null) || (sim.experienceProfileId && !sim.experienceProfileName)) {
+    issues.push({ code: "experience_invalid", field: "experienceProfileId", message: "Choose a valid immutable Experience Profile version." });
+  } else if (sim.experienceProfileId && sim.experienceProfileStatus === "ARCHIVED") {
+    issues.push({ code: "experience_archived", field: "experienceProfileId", message: "Restore the selected Experience Profile or choose another version." });
+  }
+
   return { ok: issues.length === 0, issues };
 }

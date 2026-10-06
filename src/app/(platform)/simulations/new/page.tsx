@@ -6,6 +6,7 @@ import { PROJECT_MAX_PAGE_SIZE } from "@/lib/projects/constants";
 import { requirePlatformContext } from "@/server/context";
 import { getProject, listProjects } from "@/server/services/project-service";
 import { listWorldBindingOptions } from "@/server/services/world-service";
+import { listExperienceBindingOptions } from "@/server/services/experience-profile-service";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buttonClasses } from "@/components/ui/button";
@@ -51,9 +52,10 @@ export default async function NewSimulationPage({
   }
 
   // Active projects the simulation may belong to (a simulation always lives in a project).
-  const [projectList, worlds] = await Promise.all([
+  const [projectList, worlds, experiences] = await Promise.all([
     listProjects(user.id, workspace.id, { status: "ACTIVE", sort: "name_asc", pageSize: PROJECT_MAX_PAGE_SIZE }),
     listWorldBindingOptions(user.id, workspace.id),
+    listExperienceBindingOptions(user.id, workspace.id),
   ]);
   const projects = projectList.items.map((p) => ({ id: p.id, name: p.name }));
 
@@ -121,6 +123,7 @@ export default async function NewSimulationPage({
           initial={emptyBuilderInitial(preselectId)}
           projects={projects}
           worlds={worlds}
+          experiences={experiences}
           projectName={projectName}
         />
       )}

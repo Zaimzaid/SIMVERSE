@@ -45,6 +45,8 @@ model User {
   createdAssetVersions AssetVersion[]  @relation("AssetVersionCreator")
   createdWorlds        World[]         @relation("WorldCreator")
   createdWorldVersions WorldVersion[]  @relation("WorldVersionCreator")
+  createdExperienceProfiles ExperienceProfile[]        @relation("ExperienceProfileCreator")
+  createdExperienceVersions ExperienceProfileVersion[] @relation("ExperienceProfileVersionCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -69,6 +71,7 @@ model Workspace {
   simulationRuns       SimulationRun[]
   assets               Asset[]
   worlds               World[]
+  experienceProfiles   ExperienceProfile[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -165,6 +168,7 @@ model Entity {
   simulationLinks SimulationEntity[]
   assetLinks      AssetEntity[]
   worldLinks      WorldEntity[]
+  experienceLinks ExperienceEntity[]
 
   // Composite indexes keep list/search/filter/sort fast at scale and always
   // begin with workspaceId so every query is tenant-scoped by the leading column.
@@ -262,6 +266,7 @@ model Tag {
   entityTags EntityTag[]
   assetTags  AssetTag[]
   worldTags  WorldTag[]
+  experienceProfileTags ExperienceProfileTag[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId])
@@ -310,6 +315,7 @@ model Asset {
   parentLinks  AssetRelationship[] @relation("AssetRelationshipDerived")
   derivedLinks AssetRelationship[] @relation("AssetRelationshipParent")
   worldLinks   WorldAsset[]
+  experienceLinks ExperienceAsset[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, type])
@@ -429,6 +435,7 @@ model World {
   assetLinks  WorldAsset[]
   entityLinks WorldEntity[]
   simulations Simulation[]
+  experienceLinks ExperienceWorld[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId, status])
@@ -514,6 +521,146 @@ model WorldEntity {
 }
 
 // ============================================================================
+// EXPERIENCE PROFILES (Web Phase 3 — engine-neutral presentation direction)
+//
+// Core and Modules remain authoritative. Experience Profiles only map saved
+// events to animation, camera, VFX, audio, HUD and pacing semantics. Every
+// change appends a complete immutable version; current join rows are searchable
+// and workspace-validating projections rather than historical authority.
+// ============================================================================
+
+model ExperienceProfile {
+  id                    String    @id @default(cuid())
+  workspaceId           String
+  name                  String
+  slug                  String
+  description           String?
+  status                String    @default("DRAFT")
+  currentVersion        Int       @default(1)
+  archivedFromStatus    String?
+  preset                String    @default("CUSTOM")
+  moduleCompatibility   String
+  modeCompatibility     String
+  thumbnailReference    String?
+  createdById           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  archivedAt            DateTime?
+
+  workspace     Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User?                      @relation("ExperienceProfileCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  versions      ExperienceProfileVersion[]
+  profileTags   ExperienceProfileTag[]
+  eventBindings ExperienceEventBinding[]
+  assetLinks    ExperienceAsset[]
+  entityLinks   ExperienceEntity[]
+  worldLinks    ExperienceWorld[]
+  simulations   Simulation[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, status])
+  @@index([workspaceId, preset])
+  @@index([workspaceId, updatedAt])
+  @@index([workspaceId, name])
+  @@index([createdById])
+}
+
+model ExperienceProfileVersion {
+  id                    String   @id @default(cuid())
+  experienceProfileId   String
+  version               Int
+  schemaVersion         Int      @default(1)
+  name                  String
+  description           String?
+  status                String
+  tags                  String
+  preset                String
+  moduleCompatibility   String
+  modeCompatibility     String
+  thumbnailReference    String?
+  definition            String
+  contentHash           String
+  changeNote            String?
+  createdById           String?
+  createdAt             DateTime @default(now())
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+  createdBy         User?             @relation("ExperienceProfileVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([experienceProfileId, version])
+  @@index([experienceProfileId, createdAt])
+  @@index([createdById])
+}
+
+model ExperienceProfileTag {
+  experienceProfileId String
+  tagId                String
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+  tag               Tag               @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([experienceProfileId, tagId])
+  @@index([tagId])
+}
+
+/// Current normalized event-binding projection. The complete authoritative
+/// binding set is also frozen inside every ExperienceProfileVersion.
+model ExperienceEventBinding {
+  experienceProfileId String
+  identifier          String
+  eventType           String
+  priority            Int      @default(0)
+  binding             String
+  createdAt           DateTime @default(now())
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+
+  @@id([experienceProfileId, identifier])
+  @@index([experienceProfileId, eventType])
+}
+
+model ExperienceAsset {
+  experienceProfileId String
+  identifier          String
+  assetId              String
+  assetVersion         Int
+  role                 String
+  createdAt            DateTime @default(now())
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+  asset             Asset             @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@id([experienceProfileId, identifier])
+  @@index([assetId])
+  @@index([experienceProfileId, role])
+}
+
+model ExperienceEntity {
+  experienceProfileId String
+  entityId             String
+  createdAt            DateTime @default(now())
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+  entity            Entity            @relation(fields: [entityId], references: [id], onDelete: Restrict)
+
+  @@id([experienceProfileId, entityId])
+  @@index([entityId])
+}
+
+model ExperienceWorld {
+  experienceProfileId String
+  worldId              String
+  worldVersion         Int
+  createdAt            DateTime @default(now())
+
+  experienceProfile ExperienceProfile @relation(fields: [experienceProfileId], references: [id], onDelete: Cascade)
+  world             World             @relation(fields: [worldId], references: [id], onDelete: Restrict)
+
+  @@id([experienceProfileId, worldId, worldVersion])
+  @@index([worldId])
+}
+
+// ============================================================================
 // PROJECT SYSTEM (Phase 2 — workspace-owned organizational container)
 //
 // A Project groups existing Entities and Simulations (and, in future phases,
@@ -596,6 +743,8 @@ model Simulation {
   presentation  String? // serialized JSON (SimulationPresentationConfig) — stored separately from logic config
   worldId       String?
   worldVersion  Int?
+  experienceProfileId      String?
+  experienceProfileVersion Int?
   metadata      String? // serialized JSON for flexible secondary data
   createdById   String?
   createdAt     DateTime  @default(now())
@@ -608,6 +757,7 @@ model Simulation {
   entityLinks SimulationEntity[]
   runs        SimulationRun[]
   world       World?             @relation(fields: [worldId], references: [id], onDelete: Restrict)
+  experienceProfile ExperienceProfile? @relation(fields: [experienceProfileId], references: [id], onDelete: Restrict)
 
   @@index([workspaceId, projectId])
   @@index([workspaceId, mode])
@@ -616,6 +766,7 @@ model Simulation {
   @@index([projectId])
   @@index([createdById])
   @@index([worldId, worldVersion])
+  @@index([experienceProfileId, experienceProfileVersion])
 }
 
 /// Generic participant link between a Simulation and an existing Entity.

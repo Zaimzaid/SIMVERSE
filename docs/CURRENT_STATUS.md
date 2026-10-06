@@ -4,25 +4,27 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 1: Asset Library
-  v1**, committed in `99e0b6f` (`feat: add SIMVERSE Asset Library v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 2: World Blueprint
-  Creator v1**. Implementation is complete and uncommitted, awaiting owner
-  review.
+- **Last completed:** Parallel Platform Track — **Web Phase 2: World Blueprint
+  Creator v1**, committed in `f4c253c` (`feat: add SIMVERSE World Blueprint
+  Creator v1`).
+- **Current work:** Parallel Platform Track — **Web Phase 3: Presentation /
+  Experience Profiles v1**. Implementation is complete and uncommitted,
+  awaiting owner review.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `99e0b6f`, after Phase 7A-A `5687430`, Phase 6.5
-  `a432b7b`, Phase 6
+- **Committed checkpoint:** `f4c253c`, after Asset Library v1 `99e0b6f`, Phase
+  7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-05.
+- **Last updated:** 2026-10-06.
 - **Boundary:** Battle remains the only production mechanics module. Core and
   Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
   Runtime Protocol v1 transports completed Battle truth; no Unreal project,
   rendered World runtime or Phase 7B work exists in this Platform repository.
-  Engine-neutral World Blueprint metadata now exists. Runtime Protocol v1 and
-  Battle mechanics are unchanged by the parallel Platform track.
+  Engine-neutral World Blueprint metadata and Experience Profile presentation
+  direction now exist. Runtime Protocol v1 and Battle mechanics are unchanged
+  by the parallel Platform track.
 
 ## Official architecture and visual direction
 
@@ -353,6 +355,53 @@ durable bootstrap plan remains in
   migration directory, binary storage, Unreal dependency or new runtime contract
   was introduced.
 
+## Parallel Platform Track — Web Phase 3: Presentation / Experience Profiles v1
+
+- `ExperienceProfile` is the stable workspace-scoped identity. Every create,
+  meaningful edit, workflow transition, archive and restore appends a complete
+  immutable `ExperienceProfileVersion` with a monotonic version number and
+  deterministic SHA-256 content identity. Current tag, event, Asset, Entity and
+  World links are validated searchable projections; old version records never
+  change.
+- The authority boundary is explicit: **Core determines what happens**, an
+  **Experience Profile describes how saved truth should be presented**, and a
+  **runtime resolves and renders those presentation instructions**. Profiles
+  cannot choose actions, targets, damage, elimination, ranking or winners, and
+  cannot change ticks, simulated time, event sequence or outcome order.
+- Experience Definition v1 uses the existing semantic animation vocabulary and
+  engine-neutral camera, VFX, audio and HUD cue sets. Normalized intensity,
+  bounded timing, optional Entity/archetype/category overrides and constrained
+  declarative conditions can reference only fields already present in the
+  authoritative event payload.
+- Battle v1 mappings accept exactly `battle.started`, `battle.attack`,
+  `battle.defend`, `battle.dodged`, `battle.critical_hit`, `battle.damage`,
+  `battle.eliminated`, `battle.timeout` and `battle.completed`. The original
+  **SIMVERSE Cinematic Battle v1** reference maps all nine event types, and
+  Competitive, Broadcast, Minimal, Dramatic, Documentary and Cinematic presets
+  provide reusable starting points. No Unreal asset name or Battle rule is
+  embedded in a Profile.
+- Asset associations pin authorized immutable workspace Asset versions for
+  audio, VFX, UI and graphic cues; audio and VFX roles also validate compatible
+  Asset types. Entity overrides validate active workspace Entities and known
+  visual archetypes without duplicating `EntityVisualProfile`. Optional World
+  interactions pin World versions and validate camera/result zones while
+  keeping the World Blueprint immutable.
+- Simulations may optionally pin a Profile and exact version. Existing
+  Simulations without one remain valid. Every new bound Run copies the complete
+  selected version, content hash and definition into its immutable input
+  snapshot. Later Profile edits or archival cannot rewrite historical Runs.
+- `/experiences` provides searchable/filterable discovery, detail, structured
+  create/edit, immutable history and archive/restore flows. The editor covers
+  event mappings, semantic animation, cameras, VFX, audio, HUD, intensity,
+  timing, conditions, overrides, Assets and Worlds without requiring ordinary
+  users to edit raw JSON. Server services and routes enforce `experience.view`
+  and `experience.manage` through the existing workspace authorization model.
+- Runtime Protocol v1 remains unchanged. Its event/result truth is sufficient
+  for future consumers to resolve independently versioned Experience Profile
+  direction, while this phase stores the complete Profile only in the Platform
+  Run input snapshot. Prisma continues to use `db push`; no migration history,
+  binary storage, rendering engine dependency or cinematic timeline was added.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -405,9 +454,24 @@ durable bootstrap plan remains in
   Run snapshots. `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`,
   `npx next build`, and `git diff --check` passed. Prisma Client v7.10.0 was
   regenerated successfully.
+- Web Phase 3 direct `npx vitest run` passed **268 tests in 25 files**, preserving
+  all 254 World Blueprint tests and adding 14 Experience Profile/service and
+  permission checks for CRUD, discovery, authorization, workspace isolation,
+  immutable versions, deterministic hashing, archive/restore, status
+  transitions, event/cue/condition bounds, Asset/Entity/World references,
+  presets, Simulation bindings, legacy definitions and immutable Run snapshots.
+  `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx prisma
+  generate`, `npx next build`, and `git diff --check` passed. Prisma Client
+  v7.10.0 was regenerated successfully; the build used network access only for
+  the repository's existing Google Fonts.
 
 ## Known limits
 
+- Experience Profiles v1 store validated presentation direction and immutable
+  references. They do not render effects, mix audio, schedule a cinematic
+  timeline, resolve engine clips, or change the current Web Viewer. Only Battle
+  event vocabulary is supported in v1; new modules must add their own reviewed
+  authoritative event vocabulary and presentation mappings later.
 - Asset Library v1 manages metadata, immutable versions and safe references. It
   does not upload or host binaries, provide a CDN/marketplace, optimize content,
   generate Draco/Meshopt/KTX2/LODs, or provide final production models.
@@ -462,14 +526,14 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Parallel Platform Track — Web Phase 1: Asset Library v1
-  99e0b6f feat: add SIMVERSE Asset Library v1
+  Parallel Platform Track — Web Phase 2: World Blueprint Creator v1
+  f4c253c feat: add SIMVERSE World Blueprint Creator v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  99e0b6f feat: add SIMVERSE Asset Library v1
+  f4c253c feat: add SIMVERSE World Blueprint Creator v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 2: World Blueprint Creator v1
+  Parallel Platform Track — Web Phase 3: Presentation / Experience Profiles v1
   STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
 
 PAUSED PARALLEL TRACK:
@@ -477,6 +541,6 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the World Blueprint Creator v1 Platform change set. Do not access D:
-  or resume Unreal work until the external storage is stable.
+  Review and approve the Presentation / Experience Profiles v1 Platform change set.
+  Do not access D: or resume Unreal work until the external storage is stable.
 ```

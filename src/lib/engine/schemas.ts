@@ -5,6 +5,7 @@ import { ENGINE_STATE_VERSION, INPUT_SNAPSHOT_VERSION, RESULT_VERSION } from "./
 import { rngStateSchema } from "./rng";
 import { visualProfileSnapshotSchema } from "@/lib/visuals/profile";
 import { worldRunSnapshotSchema } from "@/lib/worlds/schemas";
+import { experienceRunSnapshotSchema } from "@/lib/experiences/schemas";
 
 export const jsonRecordSchema = z.record(z.string(), z.json());
 export type JsonRecord = z.infer<typeof jsonRecordSchema>;
@@ -86,6 +87,9 @@ export const inputSnapshotSchema = z.object({
   // Optional so Phase 3–7A Runs remain valid. New World-bound Runs freeze the
   // complete immutable World version instead of reading current World state.
   world: worldRunSnapshotSchema.nullable().optional(),
+  // Optional for every earlier Run. New bound Runs freeze the complete immutable
+  // Experience Profile while Core events and results remain authoritative.
+  experienceProfile: experienceRunSnapshotSchema.nullable().optional(),
 }).strict();
 export type InputSnapshotV1 = z.infer<typeof inputSnapshotSchema>;
 

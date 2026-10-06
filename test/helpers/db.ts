@@ -11,6 +11,13 @@ export async function resetDb(): Promise<void> {
   // Simulation system (Phase 2): participant links, then simulations.
   await prisma.simulationEntity.deleteMany();
   await prisma.simulation.deleteMany();
+  await prisma.experienceEventBinding.deleteMany();
+  await prisma.experienceAsset.deleteMany();
+  await prisma.experienceEntity.deleteMany();
+  await prisma.experienceWorld.deleteMany();
+  await prisma.experienceProfileTag.deleteMany();
+  await prisma.experienceProfileVersion.deleteMany();
+  await prisma.experienceProfile.deleteMany();
   await prisma.worldAsset.deleteMany();
   await prisma.worldEntity.deleteMany();
   await prisma.worldTag.deleteMany();

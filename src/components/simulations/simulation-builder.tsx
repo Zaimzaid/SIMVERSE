@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  Aperture,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -87,6 +88,8 @@ export interface SimulationBuilderProps {
   projects: { id: string; name: string }[];
   /** Active immutable World versions available to bind to this definition. */
   worlds: { worldId: string; worldName: string; biome: string; version: number; status: string; current: boolean }[];
+  /** Active immutable Experience Profile versions available to this definition. */
+  experiences: { experienceProfileId: string; experienceProfileName: string; preset: string; version: number; status: string; current: boolean; modeCompatibility: string[] }[];
   /** Name of the current project, used when it isn't in `projects` (e.g. archived). */
   projectName?: string;
 }
@@ -96,7 +99,7 @@ export interface SimulationBuilderProps {
  * Nothing here runs a simulation: "Ready" means the blueprint is complete and
  * valid; execution availability is determined separately by the engine registry.
  */
-export function SimulationBuilder({ mode, initial, projects, worlds, projectName }: SimulationBuilderProps) {
+export function SimulationBuilder({ mode, initial, projects, worlds, experiences, projectName }: SimulationBuilderProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -113,6 +116,8 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
   const [presentation, setPresentation] = useState<SimulationPresentationConfig>(initial.presentation);
   const [worldBinding, setWorldBinding] = useState(initial.worldId && initial.worldVersion
     ? `${initial.worldId}::${initial.worldVersion}` : "");
+  const [experienceBinding, setExperienceBinding] = useState(initial.experienceProfileId && initial.experienceProfileVersion
+    ? `${initial.experienceProfileId}::${initial.experienceProfileVersion}` : "");
 
   const [seedMode, setSeedMode] = useState<SeedMode>(initial.id && initial.seed ? "keep" : "auto");
   const [customSeed, setCustomSeed] = useState(initial.seed);
@@ -163,6 +168,11 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
     // Reset only the mode-specific placeholders to the new mode's defaults; the
     // general settings are mode-agnostic and carry over.
     setModeConfig(defaultModeConfig(next));
+    setExperienceBinding((current) => {
+      if (!current) return current;
+      const [profileId, version] = current.split("::");
+      return experiences.some((profile) => profile.experienceProfileId === profileId && String(profile.version) === version && profile.modeCompatibility.includes(next)) ? current : "";
+    });
   }
 
   function seedForPayload(): string | undefined {
@@ -173,6 +183,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
 
   function buildPayload() {
     const [worldId, versionText] = worldBinding ? worldBinding.split("::") : ["", ""];
+    const [experienceProfileId, experienceVersionText] = experienceBinding ? experienceBinding.split("::") : ["", ""];
     const payload: Record<string, unknown> = {
       projectId,
       name: name.trim(),
@@ -188,6 +199,8 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
       },
       worldId: worldId || null,
       worldVersion: versionText ? Number(versionText) : null,
+      experienceProfileId: experienceProfileId || null,
+      experienceProfileVersion: experienceVersionText ? Number(experienceVersionText) : null,
     };
     const seed = seedForPayload();
     if (seed !== undefined) payload.seed = seed;
@@ -568,6 +581,27 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
           {/* STEP 5 — PRESENTATION */}
           {step === 5 ? (
             <div className="space-y-5">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Experience Profile version</CardTitle>
+                  <CardDescription>Optional. Chooses how authoritative events should be presented; it never changes simulation outcomes.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Field label="Experience direction" htmlFor="sim-experience" error={errors.experienceProfileId} hint="Every new Run freezes the selected immutable Profile version.">
+                    <Select id="sim-experience" value={experienceBinding} onChange={(event) => setExperienceBinding(event.target.value)}>
+                      <option value="">Default runtime presentation</option>
+                      {experiences.filter((profile) => profile.modeCompatibility.includes(simMode)).map((profile) => (
+                        <option key={`${profile.experienceProfileId}:${profile.version}`} value={`${profile.experienceProfileId}::${profile.version}`}>
+                          {profile.experienceProfileName} · v{profile.version}{profile.current ? " (current)" : ""} · {profile.preset.replaceAll("_", " ")}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Link href="/experiences" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+                    <Aperture className="size-4" />Open Experience Library
+                  </Link>
+                </CardContent>
+              </Card>
               <Field
                 label="Display title"
                 htmlFor="sim-display-title"
@@ -740,6 +774,15 @@ export function SimulationBuilder({ mode, initial, projects, worlds, projectName
                     return selected ? `${selected.worldName} · v${selected.version}` : `Pinned World · v${version}`;
                   })() : "No World"}
                   onEdit={() => setStep(4)}
+                />
+                <ReviewRow
+                  label="Experience"
+                  value={experienceBinding ? (() => {
+                    const [profileId, version] = experienceBinding.split("::");
+                    const selected = experiences.find((profile) => profile.experienceProfileId === profileId && String(profile.version) === version);
+                    return selected ? `${selected.experienceProfileName} · v${selected.version}` : `Pinned Experience · v${version}`;
+                  })() : "Default runtime presentation"}
+                  onEdit={() => setStep(5)}
                 />
                 <ReviewRow
                   label="Seed"

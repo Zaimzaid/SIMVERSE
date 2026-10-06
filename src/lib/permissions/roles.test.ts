@@ -65,6 +65,15 @@ describe("permissions matrix", () => {
     expect(can("VIEWER", "simulation.archive")).toBe(false);
     expect(can("VIEWER", "world.view")).toBe(true);
     expect(can("VIEWER", "world.manage")).toBe(false);
+    expect(can("VIEWER", "experience.view")).toBe(true);
+    expect(can("VIEWER", "experience.manage")).toBe(false);
+  });
+
+  it("CREATOR and EDITOR can manage Experience Profiles", () => {
+    expect(can("CREATOR", "experience.view")).toBe(true);
+    expect(can("CREATOR", "experience.manage")).toBe(true);
+    expect(can("EDITOR", "experience.view")).toBe(true);
+    expect(can("EDITOR", "experience.manage")).toBe(true);
   });
 
   it("ANALYST can view analytics but not edit content", () => {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  Aperture,
   ArrowLeft,
   CalendarClock,
   CalendarPlus,
@@ -385,6 +386,12 @@ export default async function SimulationDetailPage({ params }: PageParams) {
                   <div className="min-w-0"><p className="text-xs text-muted">World</p><Link href={`/worlds/${simulation.worldId}`} className="text-secondary hover:text-accent">{simulation.worldName ?? "World"} · v{simulation.worldVersion}</Link></div>
                 </div>
               ) : <MetaRow icon={Globe2} label="World" value="No World Blueprint" />}
+              {simulation.experienceProfileId && simulation.experienceProfileVersion ? (
+                <div className="flex items-start gap-2.5">
+                  <Aperture className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+                  <div className="min-w-0"><p className="text-xs text-muted">Experience Profile</p><Link href={`/experiences/${simulation.experienceProfileId}`} className="text-secondary hover:text-accent">{simulation.experienceProfileName ?? "Experience Profile"} · v{simulation.experienceProfileVersion}</Link></div>
+                </div>
+              ) : <MetaRow icon={Aperture} label="Experience Profile" value="Default runtime presentation" />}
               {simulation.createdByName ? (
                 <MetaRow icon={UserIcon} label="Created by" value={simulation.createdByName} />
               ) : null}
