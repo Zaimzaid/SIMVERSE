@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Entities", href: "/entities", icon: Boxes, permission: "entity.view" },
       { label: "Worlds", href: "/worlds", icon: Globe2, permission: "world.view" },
       { label: "Experiences", href: "/experiences", icon: Aperture, permission: "experience.view" },
-      { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "simulation.view" },
+      { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "tournament.view" },
     ],
   },
   {

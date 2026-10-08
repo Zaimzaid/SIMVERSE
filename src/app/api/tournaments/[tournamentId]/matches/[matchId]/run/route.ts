@@ -1,0 +1,3 @@
+import { requireApiContext } from "@/server/api/context"; import { dataResponse, errorResponse } from "@/server/api/response"; import { runTournamentMatch } from "@/server/services/tournament-service";
+interface Context { params: Promise<{ tournamentId: string; matchId: string }> }
+export async function POST(_request: Request, context: Context) { try { const { userId, workspaceId } = await requireApiContext(); const { tournamentId, matchId } = await context.params; return dataResponse({ tournament: await runTournamentMatch(userId, workspaceId, tournamentId, matchId) }); } catch (error) { return errorResponse(error); } }

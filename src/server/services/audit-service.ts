@@ -56,7 +56,23 @@ export type AuditAction =
   | "experience.updated"
   | "experience.archived"
   | "experience.restored"
-  | "experience.deleted";
+  | "experience.deleted"
+  | "tournament.created"
+  | "tournament.updated"
+  | "tournament.participants_updated"
+  | "tournament.structure_generated"
+  | "tournament.ready"
+  | "tournament.started"
+  | "tournament.paused"
+  | "tournament.resumed"
+  | "tournament.cancelled"
+  | "tournament.match_run_created"
+  | "tournament.result_accepted"
+  | "tournament.participant_advanced"
+  | "tournament.completed"
+  | "tournament.archived"
+  | "tournament.restored"
+  | "tournament.deleted";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

@@ -4,17 +4,17 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 2: World Blueprint
-  Creator v1**, committed in `f4c253c` (`feat: add SIMVERSE World Blueprint
-  Creator v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 3: Presentation /
-  Experience Profiles v1**. Implementation is complete and uncommitted,
-  awaiting owner review.
+- **Last completed:** Parallel Platform Track — **Web Phase 3: Presentation /
+  Experience Profiles v1**, committed in `775a01b` (`feat: add SIMVERSE
+  Experience Profiles v1`).
+- **Current work:** Parallel Platform Track — **Web Phase 4: Tournament System
+  v1**. Implementation is complete and uncommitted, awaiting owner review.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `f4c253c`, after Asset Library v1 `99e0b6f`, Phase
+- **Committed checkpoint:** `775a01b`, after World Blueprint Creator v1
+  `f4c253c`, Asset Library v1 `99e0b6f`, Phase
   7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
 - **Last updated:** 2026-10-06.
@@ -22,9 +22,9 @@
   Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
   Runtime Protocol v1 transports completed Battle truth; no Unreal project,
   rendered World runtime or Phase 7B work exists in this Platform repository.
-  Engine-neutral World Blueprint metadata and Experience Profile presentation
-  direction now exist. Runtime Protocol v1 and Battle mechanics are unchanged
-  by the parallel Platform track.
+  Engine-neutral World Blueprint metadata, Experience Profile presentation
+  direction, and generic Tournament orchestration now exist. Runtime Protocol
+  v1 and Battle mechanics are unchanged by the parallel Platform track.
 
 ## Official architecture and visual direction
 
@@ -402,6 +402,70 @@ durable bootstrap plan remains in
   Run input snapshot. Prisma continues to use `db push`; no migration history,
   binary storage, rendering engine dependency or cinematic timeline was added.
 
+## Parallel Platform Track — Web Phase 4: Tournament System v1
+
+- A Tournament is a workspace-scoped competition coordinator above ordinary
+  Simulations and SimulationRuns. The authority path is **Tournament → Round →
+  Match → derived Simulation → authoritative SimulationRun → module result
+  adapter → advancement / standings → final outcome**. Tournament code never
+  calculates Battle damage, targets, ranking, ties or winners.
+- v1 fully implements `SINGLE_ELIMINATION` and `ROUND_ROBIN` for generic Entity
+  participants. Participant rows freeze display identity, deterministic seed,
+  position and optional metadata. Single elimination accepts arbitrary counts,
+  uses standard seeded bracket positions, advances real BYEs without creating
+  dummy Runs, and links every winner slot explicitly. Round robin uses the
+  deterministic circle schedule, supports odd fields, and creates every pairing
+  exactly once.
+- Manual seeding follows creator order. Random seeding uses the existing
+  versioned seeded RNG and a stored `SV-XXXXXXXX` seed, so it is reproducible.
+  `RANKED` remains reserved until SIMVERSE has an authoritative ranking source.
+- A READY Battle duel Simulation is selected as the Match template. Structure
+  generation freezes one validated Tournament-level snapshot of its mode,
+  configuration, presentation, project, seed provenance and pinned World /
+  Experience Profile versions. Each runnable Match derives one normal READY
+  Simulation with its two Entity participants, then creates, starts and executes
+  a normal SimulationRun through the existing Core service. Later template edits
+  cannot change Match construction from the frozen snapshot.
+- `TournamentModuleResultAdapter` is the generic module boundary.
+  `BattleTournamentResultAdapter` is the only v1 implementation and validates a
+  completed `battle-v1` Run, maps immutable Run participants back to Tournament
+  participants, and projects winner, ties, ranking and completion reason. It
+  imports the existing Battle result schema but does not modify or duplicate
+  Battle mechanics.
+- Elimination ties never invent a winner. `REPLAY_MATCH` appends a new linked
+  Match while retaining the original Run/result; `NO_TIES_ALLOWED` accepts the
+  historical result, pauses the Tournament and surfaces a resolution error.
+  Result acceptance and advancement are state-checked and idempotent.
+- Round-robin standings are derived from immutable completed Match result
+  snapshots. Configurable win/tie/loss points and ordered `POINTS`, `WINS`, and
+  `HEAD_TO_HEAD` tiebreakers produce played/win/loss/tie/points/rank views. A
+  still-unresolved top group is recorded as tied champions instead of fabricating
+  a single champion. Final standings are frozen on completion.
+- Lifecycle states are `DRAFT`, `CONFIGURING`, `READY`, `IN_PROGRESS`, `PAUSED`,
+  `COMPLETED`, `CANCELLED`, and `ARCHIVED`. Structural edits are limited to Draft
+  and Configuring and clear generated structure. Pause, resume, cancel, archive
+  and restore preserve completed Matches and Runs. Hard deletion is allowed only
+  while no authoritative Run/result history exists.
+- Server services enforce `tournament.view`, `tournament.manage`, and
+  `tournament.run` with workspace-scoped safe lookups. Significant lifecycle,
+  structure, Run, result, archive and deletion actions use the existing audit
+  system. Unique constraints plus conditional state updates protect generation,
+  Match launch, Run linkage and advancement from duplicate processing.
+- `/tournaments`, `/tournaments/new`, `/tournaments/[tournamentId]`, and
+  `/tournaments/[tournamentId]/edit` provide discovery, the ten-step structured
+  creator flow, readable elimination brackets or round-robin schedules,
+  participants, Matches, standings, Run/result links, lifecycle history, and
+  archive/restore actions. Run Match is available only to authorized runners
+  while the Tournament is in progress.
+- Optional start, Round start, and Match scheduling fields are metadata only.
+  v1 intentionally omits background scheduling and bulk Run Round execution.
+  World and Experience Profile bindings are pinned defaults; presentation never
+  affects competition outcomes. Runtime Protocol v1 and Battle mechanics are
+  unchanged, and no Tournament-wide runtime protocol was added.
+- Prisma continues the repository's established `db push` convention. The
+  Tournament schema stores orchestration metadata and JSON snapshots only; it
+  stores no binaries and introduces no migration history.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -464,8 +528,25 @@ durable bootstrap plan remains in
   generate`, `npx next build`, and `git diff --check` passed. Prisma Client
   v7.10.0 was regenerated successfully; the build used network access only for
   the repository's existing Google Fonts.
+- Web Phase 4 direct `npx vitest run` passes **281 tests in 26 files**, preserving
+  all 268 Experience Profile tests and adding 13 Tournament service/adapter
+  integration tests for CRUD, authorization, tenant isolation, participant
+  validation, manual/random seeding, arbitrary elimination fields, BYEs,
+  duplicate-generation protection, odd round robin scheduling, lifecycle
+  locking, pause/resume/cancel, normal Battle Run integration, World/Experience
+  inheritance, frozen template/result history, replay/blocked tie policies,
+  standings/scoring and invalid result mappings. `npx tsc --noEmit`, `npx eslint
+  .`, `npx prisma validate`, `npx prisma generate`, `npx next build`, and `git
+  diff --check` pass. Prisma Client v7.10.0 regenerates successfully.
 
 ## Known limits
+
+- Tournament System v1 supports Entity participants, single elimination and one
+  round-robin cycle with Battle duel Matches. It does not yet implement Teams,
+  ranked seeding, double elimination, Swiss, group stages, seasons, per-Match
+  World/Profile overrides, automated scheduling, bulk Run Round, or a
+  Tournament-wide runtime/presentation protocol. Future module integrations
+  require a reviewed result adapter; they do not belong in Tournament Core.
 
 - Experience Profiles v1 store validated presentation direction and immutable
   references. They do not render effects, mix audio, schedule a cinematic
@@ -526,14 +607,14 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Parallel Platform Track — Web Phase 2: World Blueprint Creator v1
-  f4c253c feat: add SIMVERSE World Blueprint Creator v1
+  Parallel Platform Track — Web Phase 3: Presentation / Experience Profiles v1
+  775a01b feat: add SIMVERSE Experience Profiles v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  f4c253c feat: add SIMVERSE World Blueprint Creator v1
+  775a01b feat: add SIMVERSE Experience Profiles v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 3: Presentation / Experience Profiles v1
+  Parallel Platform Track — Web Phase 4: Tournament System v1
   STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
 
 PAUSED PARALLEL TRACK:
@@ -541,6 +622,6 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the Presentation / Experience Profiles v1 Platform change set.
+  Review and approve the Tournament System v1 Platform change set.
   Do not access D: or resume Unreal work until the external storage is stable.
 ```

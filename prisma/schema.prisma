@@ -47,6 +47,7 @@ model User {
   createdWorldVersions WorldVersion[]  @relation("WorldVersionCreator")
   createdExperienceProfiles ExperienceProfile[]        @relation("ExperienceProfileCreator")
   createdExperienceVersions ExperienceProfileVersion[] @relation("ExperienceProfileVersionCreator")
+  createdTournaments        Tournament[]                @relation("TournamentCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -72,6 +73,7 @@ model Workspace {
   assets               Asset[]
   worlds               World[]
   experienceProfiles   ExperienceProfile[]
+  tournaments          Tournament[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -169,6 +171,7 @@ model Entity {
   assetLinks      AssetEntity[]
   worldLinks      WorldEntity[]
   experienceLinks ExperienceEntity[]
+  tournamentParticipants TournamentParticipant[]
 
   // Composite indexes keep list/search/filter/sort fast at scale and always
   // begin with workspaceId so every query is tenant-scoped by the leading column.
@@ -436,6 +439,7 @@ model World {
   entityLinks WorldEntity[]
   simulations Simulation[]
   experienceLinks ExperienceWorld[]
+  tournaments Tournament[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId, status])
@@ -556,6 +560,7 @@ model ExperienceProfile {
   entityLinks   ExperienceEntity[]
   worldLinks    ExperienceWorld[]
   simulations   Simulation[]
+  tournaments   Tournament[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId, status])
@@ -661,6 +666,165 @@ model ExperienceWorld {
 }
 
 // ============================================================================
+// TOURNAMENT SYSTEM (Parallel Platform Web Phase 4)
+//
+// Tournaments orchestrate normal Simulation definitions and SimulationRuns.
+// Match results are immutable snapshots of authoritative module output; the
+// Tournament never calculates a module winner itself.
+// ============================================================================
+
+model Tournament {
+  id                            String    @id @default(cuid())
+  workspaceId                   String
+  projectId                     String?
+  simulationTemplateId          String
+  name                          String
+  slug                          String
+  description                   String?
+  status                        String    @default("DRAFT")
+  archivedFromStatus            String?
+  format                        String
+  participantType               String    @default("ENTITY")
+  moduleKey                     String
+  seedingMethod                 String
+  randomSeed                    String
+  tiePolicy                     String
+  winPoints                     Int       @default(3)
+  tiePoints                     Int       @default(1)
+  lossPoints                    Int       @default(0)
+  tiebreakers                   String
+  scheduledStartAt              DateTime?
+  worldId                       String?
+  worldVersion                  Int?
+  experienceProfileId           String?
+  experienceProfileVersion      Int?
+  simulationSnapshot            String?
+  championParticipantId         String?
+  tiedChampionParticipantIds    String?
+  finalStandingsSnapshot        String?
+  executionError                String?
+  createdById                   String?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
+  startedAt                     DateTime?
+  pausedAt                      DateTime?
+  completedAt                   DateTime?
+  cancelledAt                   DateTime?
+  archivedAt                    DateTime?
+
+  workspace          Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project            Project?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  simulationTemplate Simulation         @relation("TournamentTemplateSimulation", fields: [simulationTemplateId], references: [id], onDelete: Restrict)
+  world              World?             @relation(fields: [worldId], references: [id], onDelete: Restrict)
+  experienceProfile  ExperienceProfile? @relation(fields: [experienceProfileId], references: [id], onDelete: Restrict)
+  createdBy          User?              @relation("TournamentCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  participants       TournamentParticipant[]
+  rounds             TournamentRound[]
+  matches            TournamentMatch[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, status])
+  @@index([workspaceId, format])
+  @@index([workspaceId, moduleKey])
+  @@index([workspaceId, updatedAt])
+  @@index([projectId])
+  @@index([simulationTemplateId])
+  @@index([worldId, worldVersion])
+  @@index([experienceProfileId, experienceProfileVersion])
+  @@index([createdById])
+}
+
+model TournamentParticipant {
+  id               String   @id @default(cuid())
+  tournamentId     String
+  sourceType       String   @default("ENTITY")
+  entityId         String
+  displayName      String
+  seed             Int
+  position         Int
+  status           String   @default("ACTIVE")
+  teamMetadata     String?
+  snapshotMetadata String?
+  createdAt        DateTime @default(now())
+
+  tournament       Tournament       @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  entity           Entity           @relation(fields: [entityId], references: [id], onDelete: Restrict)
+  slotOneMatches   TournamentMatch[] @relation("TournamentMatchParticipantOne")
+  slotTwoMatches   TournamentMatch[] @relation("TournamentMatchParticipantTwo")
+  wonMatches       TournamentMatch[] @relation("TournamentMatchWinner")
+
+  @@unique([tournamentId, entityId])
+  @@unique([tournamentId, seed])
+  @@unique([tournamentId, position])
+  @@index([entityId])
+  @@index([tournamentId, status])
+}
+
+model TournamentRound {
+  id          String    @id @default(cuid())
+  tournamentId String
+  number      Int
+  label       String
+  state       String    @default("PENDING")
+  startsAt    DateTime?
+  completedAt DateTime?
+  metadata    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tournament Tournament       @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matches    TournamentMatch[]
+
+  @@unique([tournamentId, number])
+  @@index([tournamentId, state])
+}
+
+model TournamentMatch {
+  id                       String    @id @default(cuid())
+  tournamentId             String
+  roundId                  String
+  matchNumber              Int
+  state                    String    @default("PENDING")
+  participantOneId         String?
+  participantTwoId         String?
+  winnerParticipantId      String?
+  nextMatchId              String?
+  nextSlot                 Int?
+  replayOfMatchId          String?
+  simulationId             String?   @unique
+  simulationRunId          String?   @unique
+  resultSnapshot           String?
+  resultHash               String?
+  scheduledAt              DateTime?
+  startedAt                DateTime?
+  completedAt              DateTime?
+  metadata                 String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  tournament      Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  round           TournamentRound       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  participantOne  TournamentParticipant? @relation("TournamentMatchParticipantOne", fields: [participantOneId], references: [id], onDelete: Restrict)
+  participantTwo  TournamentParticipant? @relation("TournamentMatchParticipantTwo", fields: [participantTwoId], references: [id], onDelete: Restrict)
+  winner          TournamentParticipant? @relation("TournamentMatchWinner", fields: [winnerParticipantId], references: [id], onDelete: Restrict)
+  nextMatch       TournamentMatch?       @relation("TournamentMatchAdvancement", fields: [nextMatchId], references: [id], onDelete: SetNull)
+  previousMatches TournamentMatch[]      @relation("TournamentMatchAdvancement")
+  replayOf        TournamentMatch?       @relation("TournamentMatchReplay", fields: [replayOfMatchId], references: [id], onDelete: SetNull)
+  replays         TournamentMatch[]      @relation("TournamentMatchReplay")
+  simulation      Simulation?            @relation("TournamentMatchSimulation", fields: [simulationId], references: [id], onDelete: Restrict)
+  simulationRun   SimulationRun?         @relation("TournamentMatchRun", fields: [simulationRunId], references: [id], onDelete: Restrict)
+
+  @@unique([tournamentId, matchNumber])
+  @@index([tournamentId, state])
+  @@index([roundId])
+  @@index([participantOneId])
+  @@index([participantTwoId])
+  @@index([winnerParticipantId])
+  @@index([nextMatchId])
+  @@index([replayOfMatchId])
+}
+
+// ============================================================================
 // PROJECT SYSTEM (Phase 2 — workspace-owned organizational container)
 //
 // A Project groups existing Entities and Simulations (and, in future phases,
@@ -691,6 +855,7 @@ model Project {
   createdBy   User?           @relation("ProjectCreator", fields: [createdById], references: [id], onDelete: SetNull)
   entityLinks ProjectEntity[]
   simulations Simulation[]
+  tournaments Tournament[]
 
   // Every index leads with workspaceId so all list/search/sort queries stay tenant-scoped.
   @@index([workspaceId, status])
@@ -758,6 +923,8 @@ model Simulation {
   runs        SimulationRun[]
   world       World?             @relation(fields: [worldId], references: [id], onDelete: Restrict)
   experienceProfile ExperienceProfile? @relation(fields: [experienceProfileId], references: [id], onDelete: Restrict)
+  tournamentTemplates Tournament[]      @relation("TournamentTemplateSimulation")
+  tournamentMatches   TournamentMatch[] @relation("TournamentMatchSimulation")
 
   @@index([workspaceId, projectId])
   @@index([workspaceId, mode])
@@ -840,6 +1007,7 @@ model SimulationRun {
   participants SimulationRunParticipant[]
   actions      SimulationRunAction[]
   events       SimulationRunEvent[]
+  tournamentMatch TournamentMatch?      @relation("TournamentMatchRun")
 
   @@index([workspaceId, simulationId, createdAt])
   @@index([workspaceId, status, createdAt])

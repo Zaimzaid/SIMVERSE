@@ -17,8 +17,11 @@ import {
   PlusCircle,
   SlidersHorizontal,
   Sparkles,
+  Swords,
   Trash2,
+  Trophy,
   UserPlus,
+  Users,
   Building2,
   Wand2,
   type LucideIcon,
@@ -120,6 +123,38 @@ export function describeAuditAction(
       return { icon: ArchiveRestore, label: name ? `Restored Experience Profile “${name}”` : "Restored an Experience Profile" };
     case "experience.deleted":
       return { icon: Trash2, label: name ? `Deleted Experience Profile “${name}”` : "Deleted an Experience Profile" };
+    case "tournament.created":
+      return { icon: Trophy, label: name ? `Created Tournament ${name}` : "Created a Tournament" };
+    case "tournament.updated":
+      return { icon: Trophy, label: name ? `Updated Tournament ${name}` : "Updated a Tournament" };
+    case "tournament.participants_updated":
+      return { icon: Users, label: "Updated Tournament participants" };
+    case "tournament.structure_generated":
+      return { icon: Trophy, label: "Generated Tournament bracket or schedule" };
+    case "tournament.ready":
+      return { icon: CheckCircle2, label: "Marked Tournament ready" };
+    case "tournament.started":
+      return { icon: Trophy, label: "Started Tournament" };
+    case "tournament.paused":
+      return { icon: Trophy, label: "Paused Tournament" };
+    case "tournament.resumed":
+      return { icon: Trophy, label: "Resumed Tournament" };
+    case "tournament.cancelled":
+      return { icon: MinusCircle, label: "Cancelled Tournament" };
+    case "tournament.match_run_created":
+      return { icon: Swords, label: "Launched Tournament Match Run" };
+    case "tournament.result_accepted":
+      return { icon: CheckCircle2, label: "Accepted authoritative Tournament Match result" };
+    case "tournament.participant_advanced":
+      return { icon: Trophy, label: "Advanced Tournament participant" };
+    case "tournament.completed":
+      return { icon: Trophy, label: "Completed Tournament" };
+    case "tournament.archived":
+      return { icon: Archive, label: name ? `Archived Tournament ${name}` : "Archived a Tournament" };
+    case "tournament.restored":
+      return { icon: ArchiveRestore, label: name ? `Restored Tournament ${name}` : "Restored a Tournament" };
+    case "tournament.deleted":
+      return { icon: Trash2, label: name ? `Deleted Tournament ${name}` : "Deleted a Tournament" };
     default:
       return { icon: Boxes, label: action };
   }
