@@ -25,8 +25,6 @@ import {
 import {
   BATTLE_FORMATS,
   BATTLE_FORMAT_LABELS,
-  RACE_STYLES,
-  RACE_STYLE_LABELS,
   ROUND_LIMIT_MAX,
   SIMULATION_DIFFICULTIES,
   SIMULATION_DIFFICULTY_META,
@@ -40,6 +38,12 @@ import {
   type SimulationGeneralConfig,
   type SimulationPresentationConfig,
 } from "@/lib/simulations/config";
+import {
+  DEFAULT_RACE_CHECKPOINTS, DEFAULT_RACE_STAT_MAPPING, RACE_DISTANCE_UNITS,
+  RACE_DISTANCE_UNIT_LABELS, RACE_MAX_CHECKPOINTS, RACE_MAX_DISTANCE, RACE_MAX_LAPS,
+  RACE_MAX_TICKS, RACE_MODES, RACE_MODE_LABELS, defaultRaceConfigV1, raceConfigV1Schema,
+  type RaceConfigV1,
+} from "@/lib/modules/race/config";
 import { minEntitiesForMode, resolveMode, selectableModes } from "@/lib/simulations/modes";
 import { generateSeed, isValidSeed, normalizeSeed } from "@/lib/simulations/seed";
 import { apiFetch, fieldErrorsFrom } from "@/lib/client/api";
@@ -452,6 +456,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Speed" htmlFor="sim-speed" hint={simMode === "battle"
                   ? "A presentation preference; Battle v1 turn order uses Entity Speed attributes."
+                  : simMode === "race" ? "A presentation preference; Race v1 pace uses the configured Entity Speed attribute."
                   : "A stored preference for this mode."}>
                   <Select
                     id="sim-speed"
@@ -489,6 +494,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 error={errors["configuration.general.roundLimit"]}
                 hint={simMode === "battle"
                   ? "Battle v1 treats this as a tick limit. Blank means 120 ticks; values above 160 execute with a 160-tick cap."
+                  : simMode === "race" ? "Stored for compatibility. Race v1 uses its explicit maximum tick setting below."
                   : `Optional cap on rounds/turns. Leave blank for no explicit limit (max ${ROUND_LIMIT_MAX.toLocaleString()}).`}
               >
                 <Input
@@ -522,6 +528,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                     </label>
                     <span className="block text-xs text-muted">{simMode === "battle"
                       ? "Stored preference. Battle v1 still uses seeded combat variation and records combat events."
+                      : simMode === "race" ? "Stored preference. Race v1 uses only its bounded seeded variability setting below."
                       : "Stored preference for a future execution module."}</span>
                   </div>
                   <Switch
@@ -536,7 +543,9 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                     <label htmlFor="sim-allow-ties" className="block text-sm font-medium text-foreground">
                       Allow ties
                     </label>
-                    <span className="block text-xs text-muted">Whether a tie is an acceptable outcome.</span>
+                    <span className="block text-xs text-muted">{simMode === "race"
+                      ? "Race v1 always preserves exact authoritative ties."
+                      : "Whether a tie is an acceptable outcome."}</span>
                   </div>
                   <Switch
                     id="sim-allow-ties"
@@ -917,8 +926,9 @@ interface ModeSettingsProps {
   onChange: (next: Record<string, unknown>) => void;
 }
 
-/** Mode-specific configuration; Battle v1 consumes its format during execution. */
+/** Mode-specific configuration consumed by registered execution modules. */
 function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
+  if (mode === "race") return <RaceSettings value={value} onChange={onChange} />;
   const field = modeSettingField(mode);
   if (!field) {
     return (
@@ -947,14 +957,79 @@ function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
   );
 }
 
+function RaceSettings({ value, onChange }: Pick<ModeSettingsProps, "value" | "onChange">) {
+  const parsed = raceConfigV1Schema.safeParse(value);
+  const config = parsed.success ? parsed.data : defaultRaceConfigV1();
+  const patch = (next: Partial<RaceConfigV1>) => onChange({ ...config, ...next });
+  const updateMapping = (key: keyof RaceConfigV1["statMapping"], next: string) => patch({
+    statMapping: { ...config.statMapping, [key]: next.trim().toLowerCase() || DEFAULT_RACE_STAT_MAPPING[key] },
+  });
+  return (
+    <div className="space-y-5 rounded-xl border border-border bg-surface p-4">
+      <div>
+        <p className="text-sm font-medium text-foreground">Race v1 authority</p>
+        <p className="mt-1 text-xs text-muted">Distance, fixed ticks, frozen participant stats and seeded variability determine progress. A pinned World remains presentation context.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Field label="Race mode" htmlFor="race-mode">
+          <Select id="race-mode" value={config.mode} onChange={(event) => {
+            const next = event.target.value as RaceConfigV1["mode"];
+            patch({ mode: next, laps: next === "SPRINT" ? 1 : Math.max(2, config.laps) });
+          }}>
+            {RACE_MODES.map((item) => <option key={item} value={item}>{RACE_MODE_LABELS[item]}</option>)}
+          </Select>
+        </Field>
+        <Field label="Course distance" htmlFor="race-distance" hint="Up to three decimal places.">
+          <Input id="race-distance" type="number" min="0.001" max={RACE_MAX_DISTANCE} step="0.001" value={config.distance}
+            onChange={(event) => { const next = Number(event.target.value); if (Number.isFinite(next) && next > 0) patch({ distance: Math.min(RACE_MAX_DISTANCE, next) }); }} />
+        </Field>
+        <Field label="Distance unit" htmlFor="race-distance-unit">
+          <Select id="race-distance-unit" value={config.distanceUnit} onChange={(event) => patch({ distanceUnit: event.target.value as RaceConfigV1["distanceUnit"] })}>
+            {RACE_DISTANCE_UNITS.map((item) => <option key={item} value={item}>{RACE_DISTANCE_UNIT_LABELS[item]}</option>)}
+          </Select>
+        </Field>
+        <Field label="Laps" htmlFor="race-laps" hint={config.mode === "SPRINT" ? "Sprint uses exactly one lap." : `Circuit supports 2–${RACE_MAX_LAPS} laps.`}>
+          <Input id="race-laps" type="number" min={config.mode === "SPRINT" ? 1 : 2} max={RACE_MAX_LAPS} value={config.laps} disabled={config.mode === "SPRINT"}
+            onChange={(event) => { const next = Number.parseInt(event.target.value, 10); if (Number.isFinite(next)) patch({ laps: Math.max(2, Math.min(RACE_MAX_LAPS, next)) }); }} />
+        </Field>
+        <Field label="Maximum ticks" htmlFor="race-max-ticks" hint={`100 ms fixed ticks; maximum ${RACE_MAX_TICKS.toLocaleString()}.`}>
+          <Input id="race-max-ticks" type="number" min="1" max={RACE_MAX_TICKS} value={config.maxTicks}
+            onChange={(event) => { const next = Number.parseInt(event.target.value, 10); if (Number.isFinite(next)) patch({ maxTicks: Math.max(1, Math.min(RACE_MAX_TICKS, next)) }); }} />
+        </Field>
+        <Field label="Seeded variability" htmlFor="race-variability" hint="0–100 intensity; skill remains primary.">
+          <Input id="race-variability" type="number" min="0" max="100" value={config.variability}
+            onChange={(event) => { const next = Number.parseInt(event.target.value, 10); if (Number.isFinite(next)) patch({ variability: Math.max(0, Math.min(100, next)) }); }} />
+        </Field>
+      </div>
+      <Field label="Checkpoint percentages" htmlFor="race-checkpoints" hint={`Comma-separated whole percentages from 1–99; maximum ${RACE_MAX_CHECKPOINTS}. Each lap uses the same checkpoints.`}>
+        <Input id="race-checkpoints" value={config.checkpoints.join(", ")} placeholder={DEFAULT_RACE_CHECKPOINTS.join(", ")}
+          onChange={(event) => {
+            const checkpoints = event.target.value.split(",").map((item) => Number.parseInt(item.trim(), 10))
+              .filter((item) => Number.isInteger(item) && item >= 1 && item <= 99).slice(0, RACE_MAX_CHECKPOINTS);
+            patch({ checkpoints: [...new Set(checkpoints)].sort((a, b) => a - b) });
+          }} />
+      </Field>
+      <div>
+        <p className="text-sm font-medium text-foreground">Entity stat mapping</p>
+        <p className="mt-1 text-xs text-muted">Each key resolves one frozen NUMBER attribute. Missing attributes default to 50; present values round and clamp to 0–100.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {(Object.keys(DEFAULT_RACE_STAT_MAPPING) as Array<keyof RaceConfigV1["statMapping"]>).map((key) => (
+            <Field key={key} label={key.charAt(0).toUpperCase() + key.slice(1)} htmlFor={`race-stat-${key}`}>
+              <Input id={`race-stat-${key}`} value={config.statMapping[key]} onChange={(event) => updateMapping(key, event.target.value)} />
+            </Field>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function modeSettingField(
   mode: string,
 ): { key: string; label: string; options: readonly string[]; labels: Record<string, string> } | null {
   switch (mode) {
     case "battle":
       return { key: "format", label: "Battle format", options: BATTLE_FORMATS, labels: BATTLE_FORMAT_LABELS };
-    case "race":
-      return { key: "raceStyle", label: "Race style", options: RACE_STYLES, labels: RACE_STYLE_LABELS };
     case "tournament":
       return { key: "format", label: "Tournament format", options: TOURNAMENT_FORMATS, labels: TOURNAMENT_FORMAT_LABELS };
     case "survival":

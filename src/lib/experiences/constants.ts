@@ -39,6 +39,18 @@ export const BATTLE_EXPERIENCE_EVENT_TYPES = [
 ] as const;
 export type BattleExperienceEventType = (typeof BATTLE_EXPERIENCE_EVENT_TYPES)[number];
 
+export const RACE_EXPERIENCE_EVENT_TYPES = [
+  "race.started", "race.progress", "race.lead_changed", "race.checkpoint",
+  "race.finished", "race.timeout", "race.completed",
+] as const;
+export type RaceExperienceEventType = (typeof RACE_EXPERIENCE_EVENT_TYPES)[number];
+
+export const EXPERIENCE_EVENT_TYPES = [
+  ...BATTLE_EXPERIENCE_EVENT_TYPES,
+  ...RACE_EXPERIENCE_EVENT_TYPES,
+] as const;
+export type ExperienceEventType = (typeof EXPERIENCE_EVENT_TYPES)[number];
+
 export const CAMERA_CUES = [
   "DEFAULT", "OVERVIEW", "FOLLOW_ACTOR", "FOLLOW_TARGET", "TRACK_ACTION", "ATTACK_CLOSE",
   "REACTION_CLOSE", "DUEL_WIDE", "ELIMINATION_FOCUS", "WINNER_CLOSEUP", "RESULT_OVERVIEW",

@@ -63,7 +63,7 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Gauge,
     minEntities: 2,
     availability: "available",
-    executionAvailability: "future",
+    executionAvailability: "available",
     moduleRef: "modules/race",
     isBuiltIn: true,
   },

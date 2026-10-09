@@ -4,8 +4,9 @@ import { ANIMATION_STATES, VISUAL_ARCHETYPES } from "@/lib/visuals/profile";
 import {
   AUDIO_CUES, BATTLE_EXPERIENCE_EVENT_TYPES, CAMERA_ANGLES, CAMERA_CUES, CAMERA_DISTANCES,
   CAMERA_SUBJECTS, EXPERIENCE_ASSET_ROLES, EXPERIENCE_OVERRIDE_KINDS,
-  EXPERIENCE_PRESET_TYPES, EXPERIENCE_PROFILE_SCHEMA_VERSION, EXPERIENCE_PROFILE_STATUSES,
-  HUD_CUES, VFX_CUES,
+  EXPERIENCE_EVENT_TYPES, EXPERIENCE_PRESET_TYPES, EXPERIENCE_PROFILE_SCHEMA_VERSION,
+  EXPERIENCE_PROFILE_STATUSES, HUD_CUES, RACE_EXPERIENCE_EVENT_TYPES, VFX_CUES,
+  type ExperienceEventType,
 } from "./constants";
 
 const optionalText = (max: number) => z.union([z.literal(""), z.string().trim().max(max)]).optional()
@@ -44,6 +45,10 @@ const conditionField = z.enum([
   "payload.targetHealthBefore", "payload.targetHealthAfter", "payload.targetHealth", "payload.amount",
   "payload.healthBefore", "payload.healthAfter", "payload.eliminationTick", "payload.eliminationRank",
   "payload.survivors", "payload.completionReason", "payload.winnerRunParticipantId",
+  "payload.distance", "payload.distanceUnit", "payload.laps", "payload.totalDistanceMilli",
+  "payload.checkpointPercent", "payload.lap", "payload.progressMilli", "payload.finishTimeMicros",
+  "payload.finishPosition", "payload.lapsCompleted", "payload.finishedCount", "payload.unfinishedCount",
+  "payload.leaderRunParticipantIds", "payload.newLeaderRunParticipantIds",
 ]);
 const conditionSchema = z.object({
   field: conditionField,
@@ -55,7 +60,7 @@ const conditionSchema = z.object({
   if (["GT", "GTE", "LT", "LTE"].includes(value.operator) && typeof value.value !== "number") context.addIssue({ code: "custom", path: ["value"], message: "Ordered comparisons require a number." });
 });
 
-const CONDITION_FIELDS_BY_EVENT: Record<(typeof BATTLE_EXPERIENCE_EVENT_TYPES)[number], readonly string[]> = {
+const CONDITION_FIELDS_BY_EVENT: Record<ExperienceEventType, readonly string[]> = {
   "battle.started": ["payload.format", "payload.maxTicks"],
   "battle.attack": ["payload.baseDamage", "payload.critical", "payload.dodged", "payload.guarded", "payload.finalDamage", "payload.targetHealthBefore", "payload.targetHealthAfter"],
   "battle.defend": ["payload.health", "payload.reason"],
@@ -65,6 +70,13 @@ const CONDITION_FIELDS_BY_EVENT: Record<(typeof BATTLE_EXPERIENCE_EVENT_TYPES)[n
   "battle.eliminated": ["payload.eliminationTick", "payload.eliminationRank"],
   "battle.timeout": ["payload.maxTicks", "payload.survivors"],
   "battle.completed": ["payload.completionReason", "payload.winnerRunParticipantId"],
+  "race.started": ["payload.distance", "payload.distanceUnit", "payload.laps", "payload.totalDistanceMilli", "payload.maxTicks"],
+  "race.progress": ["payload.leaderRunParticipantIds"],
+  "race.lead_changed": ["payload.newLeaderRunParticipantIds"],
+  "race.checkpoint": ["payload.checkpointPercent", "payload.lap", "payload.progressMilli"],
+  "race.finished": ["payload.finishTimeMicros", "payload.finishPosition", "payload.lapsCompleted"],
+  "race.timeout": ["payload.maxTicks", "payload.finishedCount", "payload.unfinishedCount"],
+  "race.completed": ["payload.completionReason", "payload.winnerRunParticipantId"],
 };
 
 const overrideSchema = z.object({
@@ -86,7 +98,7 @@ const cameraCueSchema = z.object({
 
 export const experienceEventBindingSchema = z.object({
   identifier,
-  eventType: z.enum(BATTLE_EXPERIENCE_EVENT_TYPES),
+  eventType: z.enum(EXPERIENCE_EVENT_TYPES),
   priority: z.number().int().min(-1000).max(1000).default(0),
   condition: conditionSchema.optional(),
   override: overrideSchema.optional(),
@@ -121,8 +133,15 @@ export const experienceDefinitionSchema = z.object({
     selectors.add(selector);
   });
   const assets = new Map(value.assetAssociations.map((item) => [item.identifier, item.role]));
-  if (!value.moduleCompatibility.includes("battle")) context.addIssue({ code: "custom", path: ["moduleCompatibility"], message: "Battle event bindings require Battle module compatibility." });
-  if (!value.simulationModeCompatibility.includes("battle")) context.addIssue({ code: "custom", path: ["simulationModeCompatibility"], message: "Battle event bindings require Battle simulation-mode compatibility." });
+  const eventTypes = new Set(value.eventBindings.map((binding) => binding.eventType));
+  if (BATTLE_EXPERIENCE_EVENT_TYPES.some((eventType) => eventTypes.has(eventType))) {
+    if (!value.moduleCompatibility.includes("battle")) context.addIssue({ code: "custom", path: ["moduleCompatibility"], message: "Battle event bindings require Battle module compatibility." });
+    if (!value.simulationModeCompatibility.includes("battle")) context.addIssue({ code: "custom", path: ["simulationModeCompatibility"], message: "Battle event bindings require Battle simulation-mode compatibility." });
+  }
+  if (RACE_EXPERIENCE_EVENT_TYPES.some((eventType) => eventTypes.has(eventType))) {
+    if (!value.moduleCompatibility.includes("race")) context.addIssue({ code: "custom", path: ["moduleCompatibility"], message: "Race event bindings require Race module compatibility." });
+    if (!value.simulationModeCompatibility.includes("race")) context.addIssue({ code: "custom", path: ["simulationModeCompatibility"], message: "Race event bindings require Race simulation-mode compatibility." });
+  }
   value.eventBindings.forEach((binding, index) => {
     for (const [identifierValue, role, path] of [
       [binding.vfx?.assetIdentifier, "VFX", "vfx"], [binding.audio?.assetIdentifier, "AUDIO", "audio"], [binding.hud?.uiAssetIdentifier, "UI", "hud"],

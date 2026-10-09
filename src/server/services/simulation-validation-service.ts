@@ -1,6 +1,7 @@
 import type { SimulationView } from "./simulation-service";
 
 import { normalizeConfigInput } from "@/lib/simulations/config";
+import { raceExecutionIssue } from "@/lib/modules/race/config";
 import { minEntitiesForMode, resolveMode } from "@/lib/simulations/modes";
 import { isValidSeed } from "@/lib/simulations/seed";
 
@@ -88,6 +89,11 @@ export function validateSimulationForReady(sim: SimulationView): SimulationValid
       field: "configuration",
       message: "Some settings are invalid. Revisit Rules & Settings.",
     });
+  }
+
+  if (sim.mode === "race") {
+    const issue = raceExecutionIssue(sim.configuration.mode, sim.participants.length);
+    if (issue) issues.push({ code: "race_execution_invalid", field: "configuration", message: issue });
   }
 
   // 7. Seed is a well-formed label (metadata only; nothing consumes it yet).

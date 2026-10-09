@@ -86,6 +86,43 @@ export const CINEMATIC_BATTLE_BINDINGS: ExperienceEventBinding[] = [
   }),
 ];
 
+export const CINEMATIC_RACE_BINDINGS: ExperienceEventBinding[] = [
+  binding("race_intro", "race.started", {
+    animation: { actor: "INTRO" },
+    camera: { mode: "INTRO_ESTABLISHING", priority: 60, durationMs: 2200, blendDurationMs: 450, subject: "ALL_PARTICIPANTS", distanceClass: "EXTREME_WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0, framingPreference: "Establish the course, field and start" },
+    audio: { cue: "INTRO" }, hud: { cues: ["SHOW_NAMES", "SHOW_TIMER", "SHOW_RANKING"] }, timing: timing(650),
+  }),
+  binding("race_progress", "race.progress", {
+    camera: { mode: "OVERVIEW", priority: 15, durationMs: 700, blendDurationMs: 250, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0 },
+    audio: { cue: "AMBIENT" }, hud: { cues: ["SHOW_TIMER", "SHOW_RANKING"] }, intensity: intensity(0.25), timing: timing(80),
+  }),
+  binding("lead_change", "race.lead_changed", {
+    camera: { mode: "TRACK_ACTION", priority: 65, durationMs: 1100, blendDurationMs: 180, subject: "WINNER", distanceClass: "MEDIUM", anglePreference: "DYNAMIC", shakeIntensity: 0.15 },
+    vfx: { cue: "DUST" }, audio: { cue: "CUSTOM" }, hud: { cues: ["SHOW_RANKING", "SHOW_EVENT_MESSAGE"] }, timing: timing(300),
+  }),
+  binding("race_checkpoint", "race.checkpoint", {
+    camera: { mode: "FOLLOW_ACTOR", priority: 35, durationMs: 700, blendDurationMs: 140, subject: "ACTOR", distanceClass: "MEDIUM", anglePreference: "DYNAMIC", shakeIntensity: 0.05 },
+    vfx: { cue: "SPARK" }, audio: { cue: "CUSTOM" }, hud: { cues: ["SHOW_EVENT_MESSAGE", "SHOW_RANKING"] }, timing: timing(160),
+  }),
+  binding("race_finish", "race.finished", {
+    animation: { actor: "VICTORY" }, camera: { mode: "WINNER_CLOSEUP", priority: 85, durationMs: 1500, blendDurationMs: 220, subject: "ACTOR", distanceClass: "CLOSE", anglePreference: "LOW", shakeIntensity: 0.1 },
+    vfx: { cue: "VICTORY" }, audio: { cue: "VICTORY" }, hud: { cues: ["SHOW_EVENT_MESSAGE", "SHOW_RANKING"] }, timing: timing(500),
+  }),
+  binding("race_timeout", "race.timeout", {
+    camera: { mode: "RESULT_OVERVIEW", priority: 80, durationMs: 1300, blendDurationMs: 300, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "HIGH", shakeIntensity: 0 },
+    audio: { cue: "RESULT" }, hud: { cues: ["SHOW_TIMER", "SHOW_RANKING"] }, timing: timing(400),
+  }),
+  binding("race_result", "race.completed", {
+    camera: { mode: "RESULT_OVERVIEW", priority: 95, durationMs: 2000, blendDurationMs: 350, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0 },
+    audio: { cue: "RESULT" }, hud: { cues: ["SHOW_RESULT", "SHOW_RANKING"] }, timing: timing(900),
+  }),
+  binding("race_winner", "race.completed", {
+    priority: 100, condition: { field: "payload.winnerRunParticipantId", operator: "PRESENT" },
+    animation: { actor: "VICTORY" }, camera: { mode: "WINNER_CLOSEUP", priority: 100, durationMs: 2400, blendDurationMs: 300, subject: "WINNER", distanceClass: "CLOSE", anglePreference: "LOW", shakeIntensity: 0.1 },
+    vfx: { cue: "VICTORY" }, audio: { cue: "VICTORY" }, hud: { cues: ["SHOW_RESULT"] }, timing: timing(1200),
+  }),
+];
+
 function definition(preset: ExperiencePresetType, scale: number, bindings = CINEMATIC_BATTLE_BINDINGS): ExperienceDefinitionV1 {
   return {
     schemaVersion: 1, preset, moduleCompatibility: ["battle"], simulationModeCompatibility: ["battle"],
@@ -97,12 +134,18 @@ function definition(preset: ExperiencePresetType, scale: number, bindings = CINE
   };
 }
 
+function raceDefinition(preset: ExperiencePresetType, scale: number): ExperienceDefinitionV1 {
+  const result = definition(preset, scale, CINEMATIC_RACE_BINDINGS);
+  return { ...result, moduleCompatibility: ["race"], simulationModeCompatibility: ["race"] };
+}
+
 export interface ExperiencePreset {
   id: string; name: string; description: string; tags: string[]; definition: ExperienceDefinitionV1;
 }
 
 export const EXPERIENCE_PRESETS: ExperiencePreset[] = [
   { id: "simverse-cinematic-battle-v1", name: "SIMVERSE Cinematic Battle v1", description: "Reference Battle presentation with directed shots, semantic animation, effects, sound, readable HUD and result emphasis.", tags: ["battle", "cinematic", "reference"], definition: definition("CINEMATIC", 1) },
+  { id: "simverse-cinematic-race-v1", name: "SIMVERSE Cinematic Race v1", description: "Original Race presentation direction with establishing coverage, leader and checkpoint focus, finish emphasis, audio, effects and ranking HUD.", tags: ["race", "cinematic", "reference"], definition: raceDefinition("CINEMATIC", 1) },
   { id: "competitive", name: "Competitive", description: "Clear state, restrained camera interruption and strong health, timer and ranking visibility.", tags: ["competitive", "clear"], definition: definition("COMPETITIVE", 0.45) },
   { id: "broadcast", name: "Broadcast", description: "Wide readable coverage, event messaging and ranking emphasis for spectators.", tags: ["broadcast", "spectator"], definition: definition("BROADCAST", 0.65) },
   { id: "minimal", name: "Minimal", description: "Simple camera direction with reduced effects and presentation overhead.", tags: ["minimal", "lightweight"], definition: definition("MINIMAL", 0.2) },

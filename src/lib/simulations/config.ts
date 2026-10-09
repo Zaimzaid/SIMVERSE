@@ -21,6 +21,7 @@
 
 import { z } from "zod";
 import { ValidationError, type FieldIssue } from "@/lib/errors";
+import { defaultRaceConfigV1, raceConfigV1Schema } from "@/lib/modules/race/config";
 import { SIMULATION_CONFIG_VERSION } from "./constants";
 
 // ---------------------------------------------------------------------------
@@ -69,14 +70,6 @@ export const BATTLE_FORMAT_LABELS: Record<BattleFormat, string> = {
   free_for_all: "Free-for-all",
   duel: "Duel (1v1)",
   team: "Team vs team",
-};
-
-export const RACE_STYLES = ["sprint", "endurance", "circuit"] as const;
-export type RaceStyle = (typeof RACE_STYLES)[number];
-export const RACE_STYLE_LABELS: Record<RaceStyle, string> = {
-  sprint: "Sprint",
-  endurance: "Endurance",
-  circuit: "Circuit (laps)",
 };
 
 export const TOURNAMENT_FORMATS = ["single_elimination", "double_elimination", "round_robin"] as const;
@@ -135,7 +128,7 @@ export function defaultModeConfig(mode: string): Record<string, unknown> {
     case "battle":
       return { format: "free_for_all" satisfies BattleFormat };
     case "race":
-      return { raceStyle: "sprint" satisfies RaceStyle };
+      return defaultRaceConfigV1();
     case "tournament":
       return { format: "single_elimination" satisfies TournamentFormat };
     case "survival":
@@ -192,7 +185,7 @@ const presentationSchema = z.object({
  */
 export const MODE_CONFIG_SCHEMAS: Record<string, z.ZodType<Record<string, unknown>>> = {
   battle: z.object({ format: z.enum(BATTLE_FORMATS).default("free_for_all") }),
-  race: z.object({ raceStyle: z.enum(RACE_STYLES).default("sprint") }),
+  race: raceConfigV1Schema,
   tournament: z.object({ format: z.enum(TOURNAMENT_FORMATS).default("single_elimination") }),
   survival: z.object({ scenarioType: z.enum(SURVIVAL_SCENARIOS).default("elimination") }),
 };

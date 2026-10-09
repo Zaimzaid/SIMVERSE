@@ -4,27 +4,27 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 3: Presentation /
-  Experience Profiles v1**, committed in `775a01b` (`feat: add SIMVERSE
-  Experience Profiles v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 4: Tournament System
-  v1**. Implementation is complete and uncommitted, awaiting owner review.
+- **Last completed:** Parallel Platform Track — **Web Phase 4: Tournament System
+  v1**, committed in `49eff48` (`feat: add SIMVERSE Tournament System v1`).
+- **Current work:** Parallel Platform Track — **Web Phase 5: Race Module v1**.
+  Implementation is complete and uncommitted, awaiting owner review.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `775a01b`, after World Blueprint Creator v1
-  `f4c253c`, Asset Library v1 `99e0b6f`, Phase
+- **Committed checkpoint:** `49eff48`, after Experience Profiles v1 `775a01b`,
+  World Blueprint Creator v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase
   7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-06.
-- **Boundary:** Battle remains the only production mechanics module. Core and
-  Modules remain authoritative. Three.js is the Web Preview Viewer. Platform
-  Runtime Protocol v1 transports completed Battle truth; no Unreal project,
+- **Last updated:** 2026-10-09.
+- **Boundary:** Battle v1 and Race v1 are production mechanics modules. Core and
+  Modules remain authoritative. Three.js is the Web Preview Viewer; Race uses a
+  truthful lightweight progress/results view rather than fabricated 3D. Platform
+  Runtime Protocol v1 transports completed Battle truth only; no Unreal project,
   rendered World runtime or Phase 7B work exists in this Platform repository.
   Engine-neutral World Blueprint metadata, Experience Profile presentation
   direction, and generic Tournament orchestration now exist. Runtime Protocol
-  v1 and Battle mechanics are unchanged by the parallel Platform track.
+  v1 and Battle mechanics are unchanged by Race Module v1.
 
 ## Official architecture and visual direction
 
@@ -419,19 +419,19 @@ durable bootstrap plan remains in
 - Manual seeding follows creator order. Random seeding uses the existing
   versioned seeded RNG and a stored `SV-XXXXXXXX` seed, so it is reproducible.
   `RANKED` remains reserved until SIMVERSE has an authoritative ranking source.
-- A READY Battle duel Simulation is selected as the Match template. Structure
+- A READY Battle duel or Race v1 Simulation is selected as the Match template.
+  Tournament Match v1 remains head-to-head, including Race Matches. Structure
   generation freezes one validated Tournament-level snapshot of its mode,
   configuration, presentation, project, seed provenance and pinned World /
   Experience Profile versions. Each runnable Match derives one normal READY
   Simulation with its two Entity participants, then creates, starts and executes
   a normal SimulationRun through the existing Core service. Later template edits
   cannot change Match construction from the frozen snapshot.
-- `TournamentModuleResultAdapter` is the generic module boundary.
-  `BattleTournamentResultAdapter` is the only v1 implementation and validates a
-  completed `battle-v1` Run, maps immutable Run participants back to Tournament
-  participants, and projects winner, ties, ranking and completion reason. It
-  imports the existing Battle result schema but does not modify or duplicate
-  Battle mechanics.
+- `TournamentModuleResultAdapter` is the generic module boundary. The Battle and
+  Race adapters validate completed `battle-v1` or `race-v1` Runs, map immutable
+  Run participants back to Tournament participants, and project winner, ties,
+  ranking and completion reason. They interpret saved module results and never
+  recalculate either module's mechanics.
 - Elimination ties never invent a winner. `REPLAY_MATCH` appends a new linked
   Match while retaining the original Run/result; `NO_TIES_ALLOWED` accepts the
   historical result, pauses the Tournament and surfaces a resolution error.
@@ -465,6 +465,75 @@ durable bootstrap plan remains in
 - Prisma continues the repository's established `db push` convention. The
   Tournament schema stores orchestration metadata and JSON snapshots only; it
   stores no binaries and introduces no migration history.
+
+## Parallel Platform Track — Web Phase 5: Race Module v1
+
+- `race` / `race-v1` is a deterministic, server-authoritative production module
+  registered through the existing Core engine registry. It advances only on the
+  100 ms fixed tick, uses the existing serialized `mulberry32-v1` seeded RNG,
+  and resolves all participant stats once from the immutable Run snapshot. It
+  never reads current Entity state during execution.
+- `RaceConfigV1` supports `SPRINT` and `CIRCUIT`, `METER`, `KILOMETER`, and
+  `ABSTRACT_UNIT`, course distance, lap count, maximum ticks, bounded variability,
+  ordered percentage checkpoints, and configurable Entity attribute keys for
+  speed, acceleration, handling, stamina, and luck. Missing stats default to 50;
+  present numeric values round and clamp to 0–100. Distinct lowercase mapping
+  keys are required.
+- Progress uses integer milli-distance units. Per 100 ms tick, base pace is
+  `4,000 + speed * 80`. Acceleration is
+  `min(10,000, 3,500 + tick * (150 + acceleration * 5))` basis points. Fatigue
+  begins after 60% of total distance and reaches at most
+  `(100 - stamina) * 25` basis points. Seeded variance is scaled by the configured
+  0–100 intensity and bounded to ±10%; handling reduces only its negative side
+  (halved at handling 100), while luck shifts it by at most ±1%. Each stage floors
+  to an integer and an active participant advances at least one milli-unit.
+  Variability zero consumes no RNG value, so equal profiles can tie exactly.
+- State v1 stores tick/time, normalized config, resolved profiles, progress,
+  last pace delta, lap/checkpoint state, finished state, precise finish time,
+  shared-rank standings, leaders and completion reason. Crossing time is
+  interpolated from previous progress, the current integer delta and remaining
+  distance, then rounded up to one microsecond within the crossing tick.
+- The typed event vocabulary is `race.started`, `race.progress`,
+  `race.lead_changed`, `race.checkpoint`, `race.finished`, `race.timeout`, and
+  `race.completed`. One aggregate progress snapshot is emitted on tick 1, every
+  five ticks, and on meaningful lead/checkpoint/finish/completion ticks. This is
+  sufficient for later interpolation without one database event per participant
+  on every tick. Completion emits exactly once.
+- `RaceResultV1` identifies `race` / `race-v1` and records the mode, course,
+  completion reason, singular or tied winners, shared-rank final ordering,
+  finished/DNF state, nullable finish times, achieved distance, completed laps,
+  frozen profiles, tick count and simulated duration. `ALL_FINISHED` and
+  `TIME_LIMIT` are the only completion reasons.
+- Finished participants rank by exact finish microseconds. DNF participants rank
+  after finishers by achieved progress. Equal authoritative values keep the same
+  rank and tie flag; stable snapshot position affects JSON ordering only and
+  never breaks a tie. At the tick limit, finishers keep their positions and DNF
+  entries receive no fabricated finish time.
+- The Simulation Builder now provides structured Race fields and no ordinary
+  Race workflow requires raw JSON. READY validation enforces executable config
+  and 2–64 unique participants. Bounds are distance 0.001–1,000,000 with at most
+  three decimals, 1–100 laps (Sprint exactly 1; Circuit at least 2), 1–5,000
+  ticks, 0–100 variability, and at most 12 unique checkpoints from 1–99%.
+- Optional pinned World/version remains immutable presentation context and does
+  not alter Race mechanics. Race-compatible Experience Profiles may map the real
+  Race event vocabulary; the original **SIMVERSE Cinematic Race v1** preset adds
+  semantic camera, animation, VFX, audio and HUD direction without affecting
+  outcomes. Run snapshots preserve both bindings and later edits cannot change
+  historical Race truth.
+- Race Run pages expose authoritative status, leaders, progress, distance, laps,
+  finish times, ranking and completion reason with a lightweight progress view.
+  Start/advance/pause/resume use existing bounded Run endpoints. Serialized state
+  includes RNG position, so replay and pause/resume reproduce identical actions,
+  events, standings and results.
+- `RaceTournamentResultAdapter` consumes only a completed validated
+  `RaceResultV1`; it projects winner, tied winners, ranking and completion reason
+  into `CompetitionMatchResult` without recalculation. Existing Tournament v1
+  keeps two participants per Match, and head-to-head Race works with current
+  elimination/tie policy and round-robin scoring.
+- No Race-specific Prisma table, migration or binary asset requirement was
+  introduced. Runtime Protocol v1 remains Battle-focused and unchanged; Race
+  package export requires a future Protocol v2 or reviewed compatible extension.
+  Battle formulas, events, results and seeded behavior are unchanged.
 
 ## Verification and QA
 
@@ -538,11 +607,22 @@ durable bootstrap plan remains in
   standings/scoring and invalid result mappings. `npx tsc --noEmit`, `npx eslint
   .`, `npx prisma validate`, `npx prisma generate`, `npx next build`, and `git
   diff --check` pass. Prisma Client v7.10.0 regenerates successfully.
+- Web Phase 5 direct `npx vitest run` passes **299 tests in 28 files**, preserving
+  all 281 Tournament baseline tests and adding 18 Race module and persisted Run
+  integration tests for config/stat validation, deterministic fixed-tick
+  execution, two-person and multi-participant Sprint, Circuit laps, attribute
+  effects, bounded RNG, checkpoints, lead changes, exact ties, precise finish
+  ordering, timeout/DNF ranking, event/result schemas, replay, pause/resume,
+  immutable snapshots, workspace boundaries, World/Profile bindings and
+  head-to-head Tournament round robin. `npx tsc --noEmit`, `npx eslint .`,
+  `npx prisma validate`, `npx prisma generate`, `npx next build`, and `git diff
+  --check` pass. Prisma Client v7.10.0 regenerates successfully.
 
 ## Known limits
 
 - Tournament System v1 supports Entity participants, single elimination and one
-  round-robin cycle with Battle duel Matches. It does not yet implement Teams,
+  round-robin cycle with Battle duel or head-to-head Race Matches. It does not
+  yet implement multi-participant Race Matches, Teams,
   ranked seeding, double elimination, Swiss, group stages, seasons, per-Match
   World/Profile overrides, automated scheduling, bulk Run Round, or a
   Tournament-wide runtime/presentation protocol. Future module integrations
@@ -550,9 +630,9 @@ durable bootstrap plan remains in
 
 - Experience Profiles v1 store validated presentation direction and immutable
   references. They do not render effects, mix audio, schedule a cinematic
-  timeline, resolve engine clips, or change the current Web Viewer. Only Battle
-  event vocabulary is supported in v1; new modules must add their own reviewed
-  authoritative event vocabulary and presentation mappings later.
+  timeline, resolve engine clips, or change the current Web Viewer. Battle and
+  Race event vocabularies are supported; later modules must add their own
+  reviewed authoritative event vocabulary and presentation mappings.
 - Asset Library v1 manages metadata, immutable versions and safe references. It
   does not upload or host binaries, provide a CDN/marketplace, optimize content,
   generate Draco/Meshopt/KTX2/LODs, or provide final production models.
@@ -568,12 +648,13 @@ durable bootstrap plan remains in
   mutable URL. Asset Library IDs and versions now exist, but wiring them into a
   future snapshot/protocol version is intentionally deferred so Runtime Protocol
   v1 and existing Runs remain unchanged. Use content-addressed or versioned URLs.
-- Battle remains the only Viewer adapter. Playback still consumes completed
-  saved Runs rather than streaming live simulation.
+- Battle remains the only 3D Viewer adapter. Race has an authoritative
+  progress/result UI; it does not fabricate 3D playback. Viewer playback still
+  consumes completed saved Runs rather than streaming live simulation.
 - No high-fidelity runtime, Unreal project/parser, public runtime session
   endpoint, production character pipeline, World runtime, cloud-streaming
   deployment or live event transport exists yet. Animation Studio, Video
-  Studio, new modules, and new Battle rules also remain future work.
+  Studio, additional modules, and new Battle or Race rules remain future work.
 
 ## Committed Phase 6 checkpoint
 
@@ -607,14 +688,14 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Parallel Platform Track — Web Phase 3: Presentation / Experience Profiles v1
-  775a01b feat: add SIMVERSE Experience Profiles v1
+  Parallel Platform Track — Web Phase 4: Tournament System v1
+  49eff48 feat: add SIMVERSE Tournament System v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  775a01b feat: add SIMVERSE Experience Profiles v1
+  49eff48 feat: add SIMVERSE Tournament System v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 4: Tournament System v1
+  Parallel Platform Track — Web Phase 5: Race Module v1
   STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
 
 PAUSED PARALLEL TRACK:
@@ -622,6 +703,6 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the Tournament System v1 Platform change set.
+  Review and approve the Race Module v1 Platform change set.
   Do not access D: or resume Unreal work until the external storage is stable.
 ```

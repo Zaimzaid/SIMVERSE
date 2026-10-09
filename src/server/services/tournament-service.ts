@@ -2,6 +2,8 @@ import { createHash, randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { SeededRng } from "@/lib/engine/rng";
+import { productionEngineRegistry } from "@/lib/engine/registry";
+import { raceExecutionIssue } from "@/lib/modules/race/config";
 import { parseStoredConfig, parseStoredPresentation } from "@/lib/simulations/config";
 import { generateSeed } from "@/lib/simulations/seed";
 import {
@@ -74,6 +76,37 @@ export interface TournamentView {
 export interface ListTournamentsParams {
   search?: string; status?: TournamentStatusFilter; format?: TournamentFormat; module?: string;
   projectId?: string; creatorId?: string; sort?: TournamentSort; page?: number; pageSize?: number;
+}
+
+function validatedTournamentTemplateConfig(template: {
+  status: string;
+  mode: string;
+  configuration: string | null;
+}) {
+  if (template.status !== "READY") {
+    throw new ValidationError("Choose a READY supported Simulation template from this workspace.");
+  }
+  const config = parseStoredConfig(template.configuration, template.mode);
+  const module = productionEngineRegistry.forMode(template.mode);
+  if (!module) {
+    throw new ValidationError("Choose a READY supported Simulation template from this workspace.");
+  }
+  try {
+    resultAdapterFor(module.id, module.version);
+  } catch {
+    throw new ValidationError("That Simulation module cannot provide Tournament results.");
+  }
+  if (template.mode === "battle") {
+    if (config.mode.format !== "duel") {
+      throw new ValidationError("Tournament Battle templates must use duel format.");
+    }
+  } else if (template.mode === "race") {
+    const issue = raceExecutionIssue(config.mode, 2);
+    if (issue) throw new ValidationError(issue);
+  } else {
+    throw new ValidationError("That Simulation mode is not supported for Tournament matches.");
+  }
+  return config;
 }
 
 function storedStatus(value: string): TournamentStatus {
@@ -220,18 +253,21 @@ export async function listTournamentCreationOptions(userId: string, workspaceId:
   const [entities, projects, simulations, worlds, experiences] = await Promise.all([
     prisma.entity.findMany({ where: { workspaceId, status: "ACTIVE" }, select: { id: true, name: true, category: true }, orderBy: { name: "asc" } }),
     prisma.project.findMany({ where: { workspaceId, status: "ACTIVE" }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.simulation.findMany({ where: { workspaceId, status: "READY", mode: "battle" }, select: { id: true, name: true, projectId: true, configuration: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true }, orderBy: { name: "asc" } }),
+    prisma.simulation.findMany({ where: { workspaceId, status: "READY", mode: { in: ["battle", "race"] } }, select: { id: true, name: true, mode: true, status: true, projectId: true, configuration: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true }, orderBy: { name: "asc" } }),
     prisma.world.findMany({ where: { workspaceId, status: { not: "ARCHIVED" } }, select: { id: true, name: true, versions: { select: { version: true, status: true }, orderBy: { version: "desc" } } }, orderBy: { name: "asc" } }),
     prisma.experienceProfile.findMany({ where: { workspaceId, status: { not: "ARCHIVED" } }, select: { id: true, name: true, versions: { select: { version: true, status: true, modeCompatibility: true }, orderBy: { version: "desc" } } }, orderBy: { name: "asc" } }),
   ]);
   return {
     entities,
     projects,
-    simulations: simulations.filter((simulation) => parseStoredConfig(simulation.configuration, "battle").mode.format === "duel"),
+    simulations: simulations.filter((simulation) => {
+      try { validatedTournamentTemplateConfig(simulation); return true; }
+      catch { return false; }
+    }),
     worlds: worlds.flatMap((world) => world.versions.filter((version) => version.status !== "ARCHIVED").map((version) => ({ worldId: world.id, worldName: world.name, version: version.version }))),
     experiences: experiences.flatMap((profile) => profile.versions.filter((version) => {
       if (version.status === "ARCHIVED") return false;
-      try { const modes: unknown = JSON.parse(version.modeCompatibility); return Array.isArray(modes) && modes.includes("battle"); } catch { return false; }
+      try { const modes: unknown = JSON.parse(version.modeCompatibility); return Array.isArray(modes) && modes.some((mode) => mode === "battle" || mode === "race"); } catch { return false; }
     }).map((version) => ({ experienceProfileId: profile.id, experienceProfileName: profile.name, version: version.version }))),
   };
 }
@@ -244,9 +280,8 @@ async function availableSlug(tx: Prisma.TransactionClient, workspaceId: string, 
 
 async function validateBindings(tx: Prisma.TransactionClient, workspaceId: string, data: CreateTournamentInput) {
   const template = await tx.simulation.findFirst({ where: { id: data.simulationTemplateId, workspaceId }, select: { id: true, name: true, projectId: true, mode: true, status: true, seed: true, configVersion: true, configuration: true, presentation: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true } });
-  if (!template || template.status !== "READY" || template.mode !== "battle") throw new ValidationError("Choose a READY Battle Simulation template from this workspace.");
-  const config = parseStoredConfig(template.configuration, template.mode);
-  if (config.mode.format !== "duel") throw new ValidationError("Tournament Battle templates must use duel format.");
+  if (!template) throw new ValidationError("Choose a READY supported Simulation template from this workspace.");
+  validatedTournamentTemplateConfig(template);
   if (data.projectId && !(await tx.project.findFirst({ where: { id: data.projectId, workspaceId, status: { not: "ARCHIVED" } }, select: { id: true } }))) throw new ValidationError("Choose an active Project from this workspace.");
   const entityIds = [...new Set(data.participants.map((participant) => participant.entityId))];
   const entities = await tx.entity.findMany({ where: { id: { in: entityIds }, workspaceId }, select: { id: true, name: true, category: true, status: true } });
@@ -285,7 +320,7 @@ export async function createTournament(userId: string, workspaceId: string, inpu
     return tx.tournament.create({ data: {
       workspaceId, projectId: data.projectId ?? null, simulationTemplateId: data.simulationTemplateId,
       name: data.name, slug: await availableSlug(tx, workspaceId, data.name), description: data.description ?? null,
-      format: data.format, participantType: "ENTITY", moduleKey: "battle", seedingMethod: data.seedingMethod,
+      format: data.format, participantType: "ENTITY", moduleKey: validated.template.mode, seedingMethod: data.seedingMethod,
       randomSeed: data.randomSeed, tiePolicy: data.tiePolicy, winPoints: data.winPoints, tiePoints: data.tiePoints,
       lossPoints: data.lossPoints, tiebreakers: JSON.stringify(data.tiebreakers), scheduledStartAt: data.scheduledStartAt ?? null,
       worldId: validated.worldId, worldVersion: validated.worldVersion,
@@ -325,7 +360,7 @@ export async function updateTournament(userId: string, workspaceId: string, tour
     await tx.tournament.update({ where: { id: tournamentId }, data: {
       projectId: normalized.projectId ?? null, simulationTemplateId: normalized.simulationTemplateId,
       name: normalized.name, slug: await availableSlug(tx, workspaceId, normalized.name, tournamentId), description: normalized.description ?? null,
-      status: "DRAFT", format: normalized.format, seedingMethod: normalized.seedingMethod, randomSeed: normalized.randomSeed,
+      status: "DRAFT", format: normalized.format, moduleKey: validated.template.mode, seedingMethod: normalized.seedingMethod, randomSeed: normalized.randomSeed,
       tiePolicy: normalized.tiePolicy, winPoints: normalized.winPoints, tiePoints: normalized.tiePoints, lossPoints: normalized.lossPoints,
       tiebreakers: JSON.stringify(normalized.tiebreakers), scheduledStartAt: normalized.scheduledStartAt ?? null,
       worldId: validated.worldId, worldVersion: validated.worldVersion,
@@ -409,9 +444,7 @@ export async function generateTournamentStructure(userId: string, workspaceId: s
     if (row.status !== "DRAFT" && row.status !== "CONFIGURING") throw new ConflictError("Tournament structure is locked.");
     if (await tx.tournamentMatch.count({ where: { tournamentId } })) throw new ConflictError("Tournament structure has already been generated.");
     if (row.participants.length < 2) throw new ValidationError("At least two participants are required.");
-    if (row.simulationTemplate.status !== "READY" || row.simulationTemplate.mode !== "battle") throw new ValidationError("The selected Simulation template is no longer ready or compatible.");
-    const config = parseStoredConfig(row.simulationTemplate.configuration, row.simulationTemplate.mode);
-    if (config.mode.format !== "duel") throw new ValidationError("Tournament Battle templates must use duel format.");
+    const config = validatedTournamentTemplateConfig(row.simulationTemplate);
     const snapshot = tournamentSimulationSnapshotSchema.parse({ snapshotVersion: TOURNAMENT_SNAPSHOT_VERSION, sourceSimulationId: row.simulationTemplate.id, sourceSimulationName: row.simulationTemplate.name, projectId: row.projectId ?? row.simulationTemplate.projectId, mode: row.simulationTemplate.mode, seed: row.simulationTemplate.seed ?? row.randomSeed, configVersion: row.simulationTemplate.configVersion, configuration: config, presentation: parseStoredPresentation(row.simulationTemplate.presentation), worldId: row.worldId, worldVersion: row.worldVersion, experienceProfileId: row.experienceProfileId, experienceProfileVersion: row.experienceProfileVersion });
     const structure = row.format === "SINGLE_ELIMINATION" ? eliminationStructure(row.participants) : roundRobinStructure(row.participants);
     await tx.tournamentRound.createMany({ data: structure.rounds.map((round) => ({ ...round, tournamentId, state: structure.matches.filter((match) => match.roundId === round.id).every((match) => match.state === "BYE") ? "COMPLETED" : structure.matches.some((match) => match.roundId === round.id && match.state === "READY") ? "READY" : "PENDING", completedAt: structure.matches.filter((match) => match.roundId === round.id).every((match) => match.state === "BYE") ? new Date() : null })) });

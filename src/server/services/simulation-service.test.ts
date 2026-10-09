@@ -361,7 +361,7 @@ describe("updateSimulation", () => {
     // General settings are preserved…
     expect(switched.configuration.general.speed).toBe("fast");
     // …while the mode placeholder resets to race's default.
-    expect(switched.configuration.mode).toEqual({ raceStyle: "sprint" });
+    expect(switched.configuration.mode).toMatchObject({ version: 1, mode: "SPRINT", distance: 1_000, laps: 1 });
   });
 });
 

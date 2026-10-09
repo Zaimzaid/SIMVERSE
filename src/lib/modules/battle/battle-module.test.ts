@@ -76,9 +76,10 @@ function rolls(...values: number[]) {
 }
 
 describe("production Battle v1", () => {
-  it("registers only Battle among the catalog mechanics", () => {
+  it("keeps Battle registered beside Race while unfinished modules remain unavailable", () => {
     expect(productionEngineRegistry.forMode("battle")).toBe(battleModule);
-    for (const mode of ["race", "tournament", "survival"]) expect(productionEngineRegistry.canExecute(mode)).toBe(false);
+    expect(productionEngineRegistry.canExecute("race")).toBe(true);
+    for (const mode of ["tournament", "survival"]) expect(productionEngineRegistry.canExecute(mode)).toBe(false);
   });
 
   it("resolves stable snapshot keys, defaults missing stats and clamps imported numbers", () => {

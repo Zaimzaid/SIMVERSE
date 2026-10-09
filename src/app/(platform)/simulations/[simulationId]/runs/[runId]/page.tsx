@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarClock, Play, Users } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
+import { DEFAULT_RACE_MAX_TICKS, RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
+import { raceStateSchema } from "@/lib/modules/race/schemas";
 import { formatRelativeTime } from "@/lib/utils";
 import { requirePlatformContext } from "@/server/context";
 import { getSimulationRun, listSimulationRunEvents } from "@/server/services/simulation-run-service";
@@ -11,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BattleRunControls } from "@/components/battle/battle-run-controls";
 import { BattleRunSummary, battleEventDescription } from "@/components/battle/battle-run-summary";
+import { RaceRunControls } from "@/components/race/race-run-controls";
+import { RaceRunSummary, raceEventDescription } from "@/components/race/race-run-summary";
 import { buttonClasses } from "@/components/ui/button";
 
 interface PageProps {
@@ -40,6 +44,8 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
   const names = new Map(run.participants.map((participant) => [participant.runParticipantId, participant.name]));
   const statusVariant = run.status === "COMPLETED" ? "success" : run.status === "FAILED" ? "danger" : "neutral";
   const battleV1 = run.moduleId === BATTLE_MODULE_ID && run.moduleVersion === BATTLE_MODULE_VERSION;
+  const raceV1 = run.moduleId === RACE_MODULE_ID && run.moduleVersion === RACE_MODULE_VERSION;
+  const raceState = raceV1 ? raceStateSchema.safeParse(run.state.moduleState) : null;
   const activeStatus = run.status === "CREATED" || run.status === "RUNNING" || run.status === "PAUSED"
     ? run.status : null;
 
@@ -70,6 +76,10 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
 
       {battleV1 && activeStatus && permissions.includes("simulation.run") ? (
         <BattleRunControls simulationId={simulationId} runId={run.id} status={activeStatus} />
+      ) : null}
+      {raceV1 && activeStatus && permissions.includes("simulation.run") ? (
+        <RaceRunControls simulationId={simulationId} runId={run.id} status={activeStatus}
+          currentTick={run.currentTick} maxTicks={raceState?.success ? raceState.data.config.maxTicks : DEFAULT_RACE_MAX_TICKS} />
       ) : null}
 
       {battleV1 && run.status === "COMPLETED" ? (
@@ -111,8 +121,9 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
       </div>
 
       {battleV1 ? <BattleRunSummary run={run} /> : null}
+      {raceV1 ? <RaceRunSummary run={run} /> : null}
 
-      {run.result && !battleV1 ? (
+      {run.result && !battleV1 && !raceV1 ? (
         <Card as="section">
           <CardHeader><CardTitle>Result</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
@@ -139,8 +150,8 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
               {events.items.map((event) => (
                 <li key={event.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-border bg-background/40 p-3 text-sm">
                   <div>
-                    <p className="font-medium text-foreground">{battleV1 ? battleEventDescription(event, names) : event.type}</p>
-                    {battleV1 ? <p className="text-xs text-muted">{event.type}</p> : null}
+                    <p className="font-medium text-foreground">{battleV1 ? battleEventDescription(event, names) : raceV1 ? raceEventDescription(event, names) : event.type}</p>
+                    {battleV1 || raceV1 ? <p className="text-xs text-muted">{event.type}</p> : null}
                     {event.actorRunParticipantId ? <p className="text-xs text-muted">Actor: {names.get(event.actorRunParticipantId) ?? "Participant"}</p> : null}
                   </div>
                   <p className="text-xs text-muted">#{event.sequence} · tick {event.tick} · {event.simulatedTimeMs} ms</p>

@@ -21,12 +21,14 @@ import {
 import { NotFoundError } from "@/lib/errors";
 import { productionEngineRegistry } from "@/lib/engine/registry";
 import { battleExecutionIssue, DEFAULT_BATTLE_MAX_TICKS, MAX_BATTLE_TICKS } from "@/lib/modules/battle/config";
+import {
+  RACE_DISTANCE_UNIT_LABELS, RACE_MODE_LABELS, raceConfigV1Schema, raceExecutionIssue,
+} from "@/lib/modules/race/config";
 import { resolveCategory } from "@/lib/entities/categories";
 import { resolveMode } from "@/lib/simulations/modes";
 import { SIMULATION_STATUS_META } from "@/lib/simulations/constants";
 import {
   BATTLE_FORMAT_LABELS,
-  RACE_STYLE_LABELS,
   SIMULATION_DIFFICULTY_META,
   SIMULATION_SPEED_LABELS,
   SURVIVAL_SCENARIO_LABELS,
@@ -46,6 +48,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimulationActions } from "@/components/simulations/simulation-actions";
 import { BattleRunControls } from "@/components/battle/battle-run-controls";
+import { RaceRunControls } from "@/components/race/race-run-controls";
 
 interface PageParams {
   params: Promise<{ simulationId: string }>;
@@ -104,8 +107,18 @@ function modeSettingRows(mode: string, config: Record<string, unknown>): { label
       return v ? [{ label: "Format", value: BATTLE_FORMAT_LABELS[v as keyof typeof BATTLE_FORMAT_LABELS] ?? v }] : [];
     }
     case "race": {
-      const v = str(config.raceStyle);
-      return v ? [{ label: "Race style", value: RACE_STYLE_LABELS[v as keyof typeof RACE_STYLE_LABELS] ?? v }] : [];
+      const parsed = raceConfigV1Schema.safeParse(config);
+      if (!parsed.success) return [];
+      const race = parsed.data;
+      return [
+        { label: "Race mode", value: RACE_MODE_LABELS[race.mode] },
+        { label: "Course distance", value: `${race.distance.toLocaleString()} ${RACE_DISTANCE_UNIT_LABELS[race.distanceUnit]}` },
+        { label: "Laps", value: String(race.laps) },
+        { label: "Maximum ticks", value: race.maxTicks.toLocaleString() },
+        { label: "Seeded variability", value: `${race.variability}%` },
+        { label: "Checkpoints", value: race.checkpoints.length ? race.checkpoints.map((checkpoint) => `${checkpoint}%`).join(", ") : "None" },
+        { label: "Stat mapping", value: Object.entries(race.statMapping).map(([stat, key]) => `${stat}: ${key}`).join(" · ") },
+      ];
     }
     case "tournament": {
       const v = str(config.format);
@@ -141,7 +154,11 @@ export default async function SimulationDetailPage({ params }: PageParams) {
 
   const battleIssue = simulation.mode === "battle"
     ? battleExecutionIssue(simulation.configuration.mode.format, simulation.participants.length) : null;
-  const canRun = isReady && simulation.mode === "battle" && !battleIssue && permissions.includes("simulation.run");
+  const raceIssue = simulation.mode === "race"
+    ? raceExecutionIssue(simulation.configuration.mode, simulation.participants.length) : null;
+  const executionIssue = battleIssue ?? raceIssue;
+  const canRun = isReady && executionAvailable && !executionIssue && permissions.includes("simulation.run");
+  const raceConfig = simulation.mode === "race" ? raceConfigV1Schema.safeParse(simulation.configuration.mode) : null;
   const generalRows = generalSettingRows(simulation.configuration, simulation.mode);
   const modeRows = modeSettingRows(simulation.mode, simulation.configuration.mode);
   const presentation = simulation.presentation;
@@ -206,23 +223,26 @@ export default async function SimulationDetailPage({ params }: PageParams) {
         <Rocket className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
         <div className="min-w-0 text-sm">
           <p className="font-medium text-foreground">
-            {!isReady ? "This configuration is not ready yet." : battleIssue
-              ? "Battle execution is not available for this configuration."
+            {!isReady ? "This configuration is not ready yet." : executionIssue
+              ? `${mode.label} execution is not available for this configuration.`
               : executionAvailable ? "This mode supports execution." : `${mode.label} execution is not available yet.`}
           </p>
           <p className="mt-0.5 text-secondary">
             {!isReady
               ? "Set up the mode, participants and settings, then mark this configuration ready."
-              : battleIssue ? battleIssue
+              : executionIssue ? executionIssue
               : executionAvailable
                 ? simulation.mode === "battle"
                   ? "Battle v1 uses your saved participants and settings. Runs keep an immutable snapshot."
+                  : simulation.mode === "race"
+                    ? "Race v1 uses fixed ticks, the saved seed and immutable participant snapshots."
                   : "Run history and execution details appear below."
                 : "The Core engine is in place. This mode needs its execution module before you can run it."}
           </p>
-          {canRun ? <div className="mt-3"><BattleRunControls simulationId={simulation.id} /></div> : null}
-          {isReady && simulation.mode === "battle" && !battleIssue && !permissions.includes("simulation.run") ? (
-            <p className="mt-2 text-xs text-muted">Your workspace role can view this Battle but cannot start runs.</p>
+          {canRun && simulation.mode === "battle" ? <div className="mt-3"><BattleRunControls simulationId={simulation.id} /></div> : null}
+          {canRun && simulation.mode === "race" && raceConfig?.success ? <div className="mt-3"><RaceRunControls simulationId={simulation.id} maxTicks={raceConfig.data.maxTicks} /></div> : null}
+          {isReady && executionAvailable && !executionIssue && !permissions.includes("simulation.run") ? (
+            <p className="mt-2 text-xs text-muted">Your workspace role can view this {mode.label} but cannot start runs.</p>
           ) : null}
         </div>
       </div>

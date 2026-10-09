@@ -1,8 +1,9 @@
 import type { EngineModule } from "./module";
 import { battleModule } from "@/lib/modules/battle/battle-module";
+import { raceModule } from "@/lib/modules/race/race-module";
 
 /** Configuration availability lives in the Mode Catalog; this registry alone
- * determines execution availability. Battle v1 is the first production module. */
+ * determines execution availability. */
 export class EngineModuleRegistry {
   private readonly byMode: ReadonlyMap<string, EngineModule>;
 
@@ -31,4 +32,4 @@ export class EngineModuleRegistry {
   }
 }
 
-export const productionEngineRegistry = new EngineModuleRegistry([battleModule]);
+export const productionEngineRegistry = new EngineModuleRegistry([battleModule, raceModule]);
