@@ -30,8 +30,6 @@ import {
   SIMULATION_DIFFICULTY_META,
   SIMULATION_SPEEDS,
   SIMULATION_SPEED_LABELS,
-  SURVIVAL_SCENARIOS,
-  SURVIVAL_SCENARIO_LABELS,
   TOURNAMENT_FORMATS,
   TOURNAMENT_FORMAT_LABELS,
   defaultModeConfig,
@@ -44,6 +42,21 @@ import {
   RACE_MAX_TICKS, RACE_MODES, RACE_MODE_LABELS, defaultRaceConfigV1, raceConfigV1Schema,
   type RaceConfigV1,
 } from "@/lib/modules/race/config";
+import {
+  DEFAULT_SURVIVAL_STAT_MAPPING,
+  SURVIVAL_CONDITION_MAX,
+  SURVIVAL_MAX_DEPLETION_PENALTY,
+  SURVIVAL_MAX_DRAIN,
+  SURVIVAL_MAX_RECOVERY,
+  SURVIVAL_MAX_RECOVERY_INTERVAL,
+  SURVIVAL_MAX_TICKS,
+  SURVIVAL_MODES,
+  SURVIVAL_MODE_LABELS,
+  SURVIVAL_RESOURCE_MAX,
+  defaultSurvivalConfigV1,
+  survivalConfigV1Schema,
+  type SurvivalConfigV1,
+} from "@/lib/modules/survival/config";
 import { minEntitiesForMode, resolveMode, selectableModes } from "@/lib/simulations/modes";
 import { generateSeed, isValidSeed, normalizeSeed } from "@/lib/simulations/seed";
 import { apiFetch, fieldErrorsFrom } from "@/lib/client/api";
@@ -457,6 +470,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 <Field label="Speed" htmlFor="sim-speed" hint={simMode === "battle"
                   ? "A presentation preference; Battle v1 turn order uses Entity Speed attributes."
                   : simMode === "race" ? "A presentation preference; Race v1 pace uses the configured Entity Speed attribute."
+                  : simMode === "survival" ? "A presentation preference; Survival v1 uses its configured frozen attributes below."
                   : "A stored preference for this mode."}>
                   <Select
                     id="sim-speed"
@@ -495,6 +509,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 hint={simMode === "battle"
                   ? "Battle v1 treats this as a tick limit. Blank means 120 ticks; values above 160 execute with a 160-tick cap."
                   : simMode === "race" ? "Stored for compatibility. Race v1 uses its explicit maximum tick setting below."
+                  : simMode === "survival" ? "Stored for compatibility. Survival v1 uses its explicit maximum tick setting below."
                   : `Optional cap on rounds/turns. Leave blank for no explicit limit (max ${ROUND_LIMIT_MAX.toLocaleString()}).`}
               >
                 <Input
@@ -529,6 +544,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                     <span className="block text-xs text-muted">{simMode === "battle"
                       ? "Stored preference. Battle v1 still uses seeded combat variation and records combat events."
                       : simMode === "race" ? "Stored preference. Race v1 uses only its bounded seeded variability setting below."
+                      : simMode === "survival" ? "Stored preference. Survival v1 uses the explicit seeded hazard and variability settings below."
                       : "Stored preference for a future execution module."}</span>
                   </div>
                   <Switch
@@ -543,8 +559,8 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                     <label htmlFor="sim-allow-ties" className="block text-sm font-medium text-foreground">
                       Allow ties
                     </label>
-                    <span className="block text-xs text-muted">{simMode === "race"
-                      ? "Race v1 always preserves exact authoritative ties."
+                    <span className="block text-xs text-muted">{simMode === "race" || simMode === "survival"
+                      ? `${simMode === "race" ? "Race" : "Survival"} v1 always preserves exact authoritative ties.`
                       : "Whether a tie is an acceptable outcome."}</span>
                   </div>
                   <Switch
@@ -929,6 +945,7 @@ interface ModeSettingsProps {
 /** Mode-specific configuration consumed by registered execution modules. */
 function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
   if (mode === "race") return <RaceSettings value={value} onChange={onChange} />;
+  if (mode === "survival") return <SurvivalSettings value={value} onChange={onChange} />;
   const field = modeSettingField(mode);
   if (!field) {
     return (
@@ -954,6 +971,130 @@ function ModeSettings({ mode, value, onChange }: ModeSettingsProps) {
         ))}
       </Select>
     </Field>
+  );
+}
+
+function SurvivalSettings({ value, onChange }: Pick<ModeSettingsProps, "value" | "onChange">) {
+  const parsed = survivalConfigV1Schema.safeParse(value);
+  const config = parsed.success ? parsed.data : defaultSurvivalConfigV1();
+  const patch = (next: Partial<SurvivalConfigV1>) => onChange({ ...config, ...next });
+  const updateResource = (next: Partial<SurvivalConfigV1["resources"]>) => patch({
+    resources: { ...config.resources, ...next },
+  });
+  const updateRecovery = (next: Partial<SurvivalConfigV1["recovery"]>) => patch({
+    recovery: { ...config.recovery, ...next },
+  });
+  const updateMapping = (key: keyof SurvivalConfigV1["statMapping"], next: string) => patch({
+    statMapping: {
+      ...config.statMapping,
+      [key]: next.trim().toLowerCase() || DEFAULT_SURVIVAL_STAT_MAPPING[key],
+    },
+  });
+  const integer = (text: string, minimum: number, maximum: number): number | null => {
+    const next = Number.parseInt(text, 10);
+    return Number.isFinite(next) ? Math.max(minimum, Math.min(maximum, next)) : null;
+  };
+
+  return (
+    <div className="space-y-5 rounded-xl border border-border bg-surface p-4">
+      <div>
+        <p className="text-sm font-medium text-foreground">Survival v1 authority</p>
+        <p className="mt-1 text-xs text-muted">Fixed ticks, frozen participant stats, explicit resources and seeded hazards determine outcomes. A pinned World remains presentation context.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Field label="Survival mode" htmlFor="survival-mode">
+          <Select id="survival-mode" value={config.mode} onChange={(event) => patch({ mode: event.target.value as SurvivalConfigV1["mode"] })}>
+            {SURVIVAL_MODES.map((item) => <option key={item} value={item}>{SURVIVAL_MODE_LABELS[item]}</option>)}
+          </Select>
+        </Field>
+        <Field label="Maximum ticks" htmlFor="survival-max-ticks" hint={`100 ms fixed ticks; maximum ${SURVIVAL_MAX_TICKS.toLocaleString()}.`}>
+          <Input id="survival-max-ticks" type="number" min="1" max={SURVIVAL_MAX_TICKS} value={config.maxTicks}
+            onChange={(event) => { const next = integer(event.target.value, 1, SURVIVAL_MAX_TICKS); if (next !== null) patch({ maxTicks: next }); }} />
+        </Field>
+        <Field label="Condition drain" htmlFor="survival-condition-drain" hint="Base fixed-point loss per tick before Endurance reduction.">
+          <Input id="survival-condition-drain" type="number" min="0" max={SURVIVAL_MAX_DRAIN} value={config.baseConditionDrain}
+            onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_MAX_DRAIN); if (next !== null) patch({ baseConditionDrain: next }); }} />
+        </Field>
+        <Field label="Elimination threshold" htmlFor="survival-threshold" hint={`Condition at or below this value is terminal; maximum ${(SURVIVAL_CONDITION_MAX - 1).toLocaleString()}.`}>
+          <Input id="survival-threshold" type="number" min="0" max={SURVIVAL_CONDITION_MAX - 1} value={config.eliminationThreshold}
+            onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_CONDITION_MAX - 1); if (next !== null) patch({ eliminationThreshold: next }); }} />
+        </Field>
+        <Field label="Hazard frequency" htmlFor="survival-hazard-frequency" hint="0–100 percent chance per tick.">
+          <Input id="survival-hazard-frequency" type="number" min="0" max="100" value={config.hazardFrequency}
+            onChange={(event) => { const next = integer(event.target.value, 0, 100); if (next !== null) patch({ hazardFrequency: next, hazardIntensity: next > 0 && config.hazardIntensity === 0 ? 1 : config.hazardIntensity }); }} />
+        </Field>
+        <Field label="Hazard intensity" htmlFor="survival-hazard-intensity" hint="0–100; must be positive while hazards are enabled.">
+          <Input id="survival-hazard-intensity" type="number" min={config.hazardFrequency > 0 ? 1 : 0} max="100" value={config.hazardIntensity}
+            onChange={(event) => { const next = integer(event.target.value, config.hazardFrequency > 0 ? 1 : 0, 100); if (next !== null) patch({ hazardIntensity: next }); }} />
+        </Field>
+        <Field label="Seeded variability" htmlFor="survival-variability" hint="0–100 intensity; primary stats remain decisive.">
+          <Input id="survival-variability" type="number" min="0" max="100" value={config.variability}
+            onChange={(event) => { const next = integer(event.target.value, 0, 100); if (next !== null) patch({ variability: next }); }} />
+        </Field>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-foreground">Resources</p>
+        <p className="mt-1 text-xs text-muted">Energy and supplies are abstract integer resources. Depletion increases condition loss; it does not directly eliminate a participant.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Field label="Initial energy" htmlFor="survival-initial-energy">
+            <Input id="survival-initial-energy" type="number" min="0" max={SURVIVAL_RESOURCE_MAX} value={config.resources.initialEnergy}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_RESOURCE_MAX); if (next !== null) updateResource({ initialEnergy: next }); }} />
+          </Field>
+          <Field label="Initial supplies" htmlFor="survival-initial-supplies">
+            <Input id="survival-initial-supplies" type="number" min="0" max={SURVIVAL_RESOURCE_MAX} value={config.resources.initialSupplies}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_RESOURCE_MAX); if (next !== null) updateResource({ initialSupplies: next }); }} />
+          </Field>
+          <Field label="Energy drain" htmlFor="survival-energy-drain">
+            <Input id="survival-energy-drain" type="number" min="1" max={SURVIVAL_MAX_DRAIN} value={config.resources.baseEnergyDrain}
+              onChange={(event) => { const next = integer(event.target.value, 1, SURVIVAL_MAX_DRAIN); if (next !== null) updateResource({ baseEnergyDrain: next }); }} />
+          </Field>
+          <Field label="Supplies drain" htmlFor="survival-supplies-drain">
+            <Input id="survival-supplies-drain" type="number" min="1" max={SURVIVAL_MAX_DRAIN} value={config.resources.baseSuppliesDrain}
+              onChange={(event) => { const next = integer(event.target.value, 1, SURVIVAL_MAX_DRAIN); if (next !== null) updateResource({ baseSuppliesDrain: next }); }} />
+          </Field>
+          <Field label="Depletion condition penalty" htmlFor="survival-depletion-penalty" hint="Applied per exhausted resource on each tick.">
+            <Input id="survival-depletion-penalty" type="number" min="0" max={SURVIVAL_MAX_DEPLETION_PENALTY} value={config.resources.depletionConditionPenalty}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_MAX_DEPLETION_PENALTY); if (next !== null) updateResource({ depletionConditionPenalty: next }); }} />
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-foreground">Recovery</p>
+        <p className="mt-1 text-xs text-muted">Eligible active participants recover at the interval by consuming configured resources.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Recovery amount" htmlFor="survival-recovery-amount">
+            <Input id="survival-recovery-amount" type="number" min="0" max={SURVIVAL_MAX_RECOVERY} value={config.recovery.amount}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_MAX_RECOVERY); if (next !== null) updateRecovery({ amount: next }); }} />
+          </Field>
+          <Field label="Interval (ticks)" htmlFor="survival-recovery-interval">
+            <Input id="survival-recovery-interval" type="number" min="1" max={SURVIVAL_MAX_RECOVERY_INTERVAL} value={config.recovery.intervalTicks}
+              onChange={(event) => { const next = integer(event.target.value, 1, SURVIVAL_MAX_RECOVERY_INTERVAL); if (next !== null) updateRecovery({ intervalTicks: next }); }} />
+          </Field>
+          <Field label="Energy cost" htmlFor="survival-recovery-energy">
+            <Input id="survival-recovery-energy" type="number" min="0" max={SURVIVAL_MAX_DRAIN} value={config.recovery.energyCost}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_MAX_DRAIN); if (next !== null) updateRecovery({ energyCost: next }); }} />
+          </Field>
+          <Field label="Supplies cost" htmlFor="survival-recovery-supplies">
+            <Input id="survival-recovery-supplies" type="number" min="0" max={SURVIVAL_MAX_DRAIN} value={config.recovery.suppliesCost}
+              onChange={(event) => { const next = integer(event.target.value, 0, SURVIVAL_MAX_DRAIN); if (next !== null) updateRecovery({ suppliesCost: next }); }} />
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-foreground">Entity stat mapping</p>
+        <p className="mt-1 text-xs text-muted">Each key resolves one frozen NUMBER attribute. Missing attributes default to 50; present values round and clamp to 0–100.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(Object.keys(DEFAULT_SURVIVAL_STAT_MAPPING) as Array<keyof SurvivalConfigV1["statMapping"]>).map((key) => (
+            <Field key={key} label={key.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase())} htmlFor={`survival-stat-${key}`}>
+              <Input id={`survival-stat-${key}`} value={config.statMapping[key]} onChange={(event) => updateMapping(key, event.target.value)} />
+            </Field>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1032,8 +1173,6 @@ function modeSettingField(
       return { key: "format", label: "Battle format", options: BATTLE_FORMATS, labels: BATTLE_FORMAT_LABELS };
     case "tournament":
       return { key: "format", label: "Tournament format", options: TOURNAMENT_FORMATS, labels: TOURNAMENT_FORMAT_LABELS };
-    case "survival":
-      return { key: "scenarioType", label: "Survival scenario", options: SURVIVAL_SCENARIOS, labels: SURVIVAL_SCENARIO_LABELS };
     default:
       return null;
   }

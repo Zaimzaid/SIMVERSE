@@ -2,6 +2,8 @@ import { ValidationError } from "@/lib/errors";
 import { battleResultSchema } from "@/lib/modules/battle/schemas";
 import { RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
 import { raceResultSchema } from "@/lib/modules/race/schemas";
+import { SURVIVAL_MODULE_ID, SURVIVAL_MODULE_VERSION } from "@/lib/modules/survival/config";
+import { survivalResultSchema } from "@/lib/modules/survival/schemas";
 import type { RunView } from "@/server/services/simulation-run-service";
 import { TOURNAMENT_RESULT_SNAPSHOT_VERSION } from "./constants";
 import { competitionMatchResultSchema, type CompetitionMatchResult } from "./schemas";
@@ -96,7 +98,45 @@ export const raceTournamentResultAdapter: TournamentModuleResultAdapter = {
   },
 };
 
-const adapters: readonly TournamentModuleResultAdapter[] = [battleTournamentResultAdapter, raceTournamentResultAdapter];
+/** Survival mechanics remain authoritative; Tournament maps only a validated two-participant result. */
+export const survivalTournamentResultAdapter: TournamentModuleResultAdapter = {
+  supports: (moduleId, moduleVersion) => moduleId === SURVIVAL_MODULE_ID && moduleVersion === SURVIVAL_MODULE_VERSION,
+  interpret(run, participants) {
+    if (run.status !== "COMPLETED" || !run.result) throw new ValidationError("Only a completed authoritative Run result can be accepted.");
+    if (run.result.resultType !== "survival.result" || run.result.modulePayloadVersion !== 1) throw new ValidationError("The Run does not contain a supported Survival result.");
+    const survival = survivalResultSchema.safeParse(run.result.modulePayload);
+    if (!survival.success) throw new ValidationError("The authoritative Survival result is invalid.");
+    const byRun = participantMapping(run, participants);
+    const mapId = (id: string) => {
+      const mapped = byRun.get(id);
+      if (!mapped) throw new ValidationError("The Survival result references a participant outside this Match.");
+      return mapped;
+    };
+    const winner = survival.data.winnerRunParticipantId ? mapId(survival.data.winnerRunParticipantId) : null;
+    const tied = survival.data.tiedParticipantIds.map(mapId);
+    const ranking = survival.data.ranking.map((entry) => mapId(entry.runParticipantId));
+    if (new Set(ranking).size !== participants.length || ranking.length !== participants.length) throw new ValidationError("The Survival ranking does not map exactly to this Match.");
+    if (winner && tied.length) throw new ValidationError("The Survival result cannot contain both a winner and tied participants.");
+    return competitionMatchResultSchema.parse({
+      snapshotVersion: TOURNAMENT_RESULT_SNAPSHOT_VERSION,
+      winnerTournamentParticipantId: winner,
+      tiedTournamentParticipantIds: tied,
+      ranking,
+      completed: true,
+      sourceRunId: run.id,
+      sourceModule: run.moduleId,
+      sourceModuleVersion: run.moduleVersion,
+      completionReason: survival.data.completionReason,
+      metadata: { resultType: run.result.resultType, resultVersion: run.resultVersion },
+    });
+  },
+};
+
+const adapters: readonly TournamentModuleResultAdapter[] = [
+  battleTournamentResultAdapter,
+  raceTournamentResultAdapter,
+  survivalTournamentResultAdapter,
+];
 
 export function resultAdapterFor(moduleId: string, moduleVersion: string): TournamentModuleResultAdapter {
   const adapter = adapters.find((candidate) => candidate.supports(moduleId, moduleVersion));

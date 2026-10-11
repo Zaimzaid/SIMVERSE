@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { AuthorizationError, NotFoundError, ValidationError } from "@/lib/errors";
-import { BATTLE_EXPERIENCE_EVENT_TYPES, RACE_EXPERIENCE_EVENT_TYPES } from "@/lib/experiences/constants";
-import { CINEMATIC_BATTLE_BINDINGS, CINEMATIC_RACE_BINDINGS, EXPERIENCE_PRESETS } from "@/lib/experiences/presets";
+import { BATTLE_EXPERIENCE_EVENT_TYPES, RACE_EXPERIENCE_EVENT_TYPES, SURVIVAL_EXPERIENCE_EVENT_TYPES } from "@/lib/experiences/constants";
+import { CINEMATIC_BATTLE_BINDINGS, CINEMATIC_RACE_BINDINGS, CINEMATIC_SURVIVAL_BINDINGS, EXPERIENCE_PRESETS } from "@/lib/experiences/presets";
 import type { ExperienceDefinitionV1 } from "@/lib/experiences/schemas";
 import type { WorkspaceRole } from "@/lib/permissions";
 import { ANIMATION_STATES } from "@/lib/visuals/profile";
@@ -347,10 +347,11 @@ describe("Experience Profile semantic validation and presets", () => {
       .rejects.toBeInstanceOf(ValidationError);
   });
 
-  it("ships original presets covering every authoritative Battle and Race v1 event", () => {
+  it("ships original presets covering every authoritative Battle, Race and Survival v1 event", () => {
     expect(EXPERIENCE_PRESETS.map((preset) => preset.id)).toEqual([
       "simverse-cinematic-battle-v1",
       "simverse-cinematic-race-v1",
+      "simverse-cinematic-survival-v1",
       "competitive",
       "broadcast",
       "minimal",
@@ -362,7 +363,9 @@ describe("Experience Profile semantic validation and presets", () => {
       .toEqual(new Set(BATTLE_EXPERIENCE_EVENT_TYPES));
     expect(new Set(CINEMATIC_RACE_BINDINGS.map((binding) => binding.eventType)))
       .toEqual(new Set(RACE_EXPERIENCE_EVENT_TYPES));
-    for (const binding of [...CINEMATIC_BATTLE_BINDINGS, ...CINEMATIC_RACE_BINDINGS]) {
+    expect(new Set(CINEMATIC_SURVIVAL_BINDINGS.map((binding) => binding.eventType)))
+      .toEqual(new Set(SURVIVAL_EXPERIENCE_EVENT_TYPES));
+    for (const binding of [...CINEMATIC_BATTLE_BINDINGS, ...CINEMATIC_RACE_BINDINGS, ...CINEMATIC_SURVIVAL_BINDINGS]) {
       for (const animation of [binding.animation?.actor, binding.animation?.target]) {
         if (animation) expect(ANIMATION_STATES).toContain(animation);
       }

@@ -79,7 +79,8 @@ describe("production Battle v1", () => {
   it("keeps Battle registered beside Race while unfinished modules remain unavailable", () => {
     expect(productionEngineRegistry.forMode("battle")).toBe(battleModule);
     expect(productionEngineRegistry.canExecute("race")).toBe(true);
-    for (const mode of ["tournament", "survival"]) expect(productionEngineRegistry.canExecute(mode)).toBe(false);
+    expect(productionEngineRegistry.canExecute("survival")).toBe(true);
+    expect(productionEngineRegistry.canExecute("tournament")).toBe(false);
   });
 
   it("resolves stable snapshot keys, defaults missing stats and clamps imported numbers", () => {

@@ -85,7 +85,7 @@ export const SIMULATION_MODES: readonly SimulationMode[] = [
     icon: Flame,
     minEntities: 2,
     availability: "available",
-    executionAvailability: "future",
+    executionAvailability: "available",
     moduleRef: "modules/survival",
     isBuiltIn: true,
   },

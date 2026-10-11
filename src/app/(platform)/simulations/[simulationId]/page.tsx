@@ -24,6 +24,9 @@ import { battleExecutionIssue, DEFAULT_BATTLE_MAX_TICKS, MAX_BATTLE_TICKS } from
 import {
   RACE_DISTANCE_UNIT_LABELS, RACE_MODE_LABELS, raceConfigV1Schema, raceExecutionIssue,
 } from "@/lib/modules/race/config";
+import {
+  SURVIVAL_MODE_LABELS, survivalConfigV1Schema, survivalExecutionIssue,
+} from "@/lib/modules/survival/config";
 import { resolveCategory } from "@/lib/entities/categories";
 import { resolveMode } from "@/lib/simulations/modes";
 import { SIMULATION_STATUS_META } from "@/lib/simulations/constants";
@@ -31,7 +34,6 @@ import {
   BATTLE_FORMAT_LABELS,
   SIMULATION_DIFFICULTY_META,
   SIMULATION_SPEED_LABELS,
-  SURVIVAL_SCENARIO_LABELS,
   TOURNAMENT_FORMAT_LABELS,
   type SimulationConfigV1,
 } from "@/lib/simulations/config";
@@ -49,6 +51,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimulationActions } from "@/components/simulations/simulation-actions";
 import { BattleRunControls } from "@/components/battle/battle-run-controls";
 import { RaceRunControls } from "@/components/race/race-run-controls";
+import { SurvivalRunControls } from "@/components/survival/survival-run-controls";
 
 interface PageParams {
   params: Promise<{ simulationId: string }>;
@@ -127,10 +130,21 @@ function modeSettingRows(mode: string, config: Record<string, unknown>): { label
         : [];
     }
     case "survival": {
-      const v = str(config.scenarioType);
-      return v
-        ? [{ label: "Scenario", value: SURVIVAL_SCENARIO_LABELS[v as keyof typeof SURVIVAL_SCENARIO_LABELS] ?? v }]
-        : [];
+      const parsed = survivalConfigV1Schema.safeParse(config);
+      if (!parsed.success) return [];
+      const survival = parsed.data;
+      return [
+        { label: "Survival mode", value: SURVIVAL_MODE_LABELS[survival.mode] },
+        { label: "Maximum ticks", value: survival.maxTicks.toLocaleString() },
+        { label: "Condition drain", value: survival.baseConditionDrain.toLocaleString() },
+        { label: "Elimination threshold", value: survival.eliminationThreshold.toLocaleString() },
+        { label: "Hazards", value: `${survival.hazardFrequency}% frequency · ${survival.hazardIntensity} intensity` },
+        { label: "Seeded variability", value: `${survival.variability}%` },
+        { label: "Initial resources", value: `${survival.resources.initialEnergy.toLocaleString()} energy · ${survival.resources.initialSupplies.toLocaleString()} supplies` },
+        { label: "Resource drain", value: `${survival.resources.baseEnergyDrain.toLocaleString()} energy · ${survival.resources.baseSuppliesDrain.toLocaleString()} supplies per tick` },
+        { label: "Recovery", value: `${survival.recovery.amount.toLocaleString()} every ${survival.recovery.intervalTicks} ticks for ${survival.recovery.energyCost} energy + ${survival.recovery.suppliesCost} supplies` },
+        { label: "Stat mapping", value: Object.entries(survival.statMapping).map(([stat, key]) => `${stat}: ${key}`).join(" · ") },
+      ];
     }
     default:
       return [];
@@ -156,9 +170,12 @@ export default async function SimulationDetailPage({ params }: PageParams) {
     ? battleExecutionIssue(simulation.configuration.mode.format, simulation.participants.length) : null;
   const raceIssue = simulation.mode === "race"
     ? raceExecutionIssue(simulation.configuration.mode, simulation.participants.length) : null;
-  const executionIssue = battleIssue ?? raceIssue;
+  const survivalIssue = simulation.mode === "survival"
+    ? survivalExecutionIssue(simulation.configuration.mode, simulation.participants.length) : null;
+  const executionIssue = battleIssue ?? raceIssue ?? survivalIssue;
   const canRun = isReady && executionAvailable && !executionIssue && permissions.includes("simulation.run");
   const raceConfig = simulation.mode === "race" ? raceConfigV1Schema.safeParse(simulation.configuration.mode) : null;
+  const survivalConfig = simulation.mode === "survival" ? survivalConfigV1Schema.safeParse(simulation.configuration.mode) : null;
   const generalRows = generalSettingRows(simulation.configuration, simulation.mode);
   const modeRows = modeSettingRows(simulation.mode, simulation.configuration.mode);
   const presentation = simulation.presentation;
@@ -236,11 +253,14 @@ export default async function SimulationDetailPage({ params }: PageParams) {
                   ? "Battle v1 uses your saved participants and settings. Runs keep an immutable snapshot."
                   : simulation.mode === "race"
                     ? "Race v1 uses fixed ticks, the saved seed and immutable participant snapshots."
+                    : simulation.mode === "survival"
+                      ? "Survival v1 uses fixed ticks, explicit resources, the saved seed and immutable participant snapshots."
                   : "Run history and execution details appear below."
                 : "The Core engine is in place. This mode needs its execution module before you can run it."}
           </p>
           {canRun && simulation.mode === "battle" ? <div className="mt-3"><BattleRunControls simulationId={simulation.id} /></div> : null}
           {canRun && simulation.mode === "race" && raceConfig?.success ? <div className="mt-3"><RaceRunControls simulationId={simulation.id} maxTicks={raceConfig.data.maxTicks} /></div> : null}
+          {canRun && simulation.mode === "survival" && survivalConfig?.success ? <div className="mt-3"><SurvivalRunControls simulationId={simulation.id} maxTicks={survivalConfig.data.maxTicks} /></div> : null}
           {isReady && executionAvailable && !executionIssue && !permissions.includes("simulation.run") ? (
             <p className="mt-2 text-xs text-muted">Your workspace role can view this {mode.label} but cannot start runs.</p>
           ) : null}

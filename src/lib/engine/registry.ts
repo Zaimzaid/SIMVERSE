@@ -1,6 +1,7 @@
 import type { EngineModule } from "./module";
 import { battleModule } from "@/lib/modules/battle/battle-module";
 import { raceModule } from "@/lib/modules/race/race-module";
+import { survivalModule } from "@/lib/modules/survival/survival-module";
 
 /** Configuration availability lives in the Mode Catalog; this registry alone
  * determines execution availability. */
@@ -32,4 +33,4 @@ export class EngineModuleRegistry {
   }
 }
 
-export const productionEngineRegistry = new EngineModuleRegistry([battleModule, raceModule]);
+export const productionEngineRegistry = new EngineModuleRegistry([battleModule, raceModule, survivalModule]);

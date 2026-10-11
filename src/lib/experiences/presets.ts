@@ -123,6 +123,54 @@ export const CINEMATIC_RACE_BINDINGS: ExperienceEventBinding[] = [
   }),
 ];
 
+export const CINEMATIC_SURVIVAL_BINDINGS: ExperienceEventBinding[] = [
+  binding("survival_intro", "survival.started", {
+    animation: { actor: "INTRO" },
+    camera: { mode: "INTRO_ESTABLISHING", priority: 60, durationMs: 2200, blendDurationMs: 450, subject: "ALL_PARTICIPANTS", distanceClass: "EXTREME_WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0, framingPreference: "Establish participants and environment without implying mechanics" },
+    audio: { cue: "INTRO" }, hud: { cues: ["SHOW_NAMES", "SHOW_TIMER", "SHOW_RANKING"] }, timing: timing(650),
+  }),
+  binding("survival_status", "survival.status", {
+    camera: { mode: "OVERVIEW", priority: 10, durationMs: 650, blendDurationMs: 250, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0 },
+    audio: { cue: "AMBIENT" }, hud: { cues: ["SHOW_TIMER", "SHOW_RANKING"] }, intensity: intensity(0.2), timing: timing(60),
+  }),
+  binding("survival_resource_state", "survival.resource_changed", {
+    camera: { mode: "FOLLOW_ACTOR", priority: 30, durationMs: 700, blendDurationMs: 180, subject: "ALL_PARTICIPANTS", distanceClass: "MEDIUM", anglePreference: "EYE_LEVEL", shakeIntensity: 0 },
+    audio: { cue: "CUSTOM" }, hud: { cues: ["SHOW_EVENT_MESSAGE", "SHOW_RANKING"] }, intensity: intensity(0.35),
+  }),
+  binding("survival_hazard", "survival.hazard", {
+    animation: { actor: "HIT_LIGHT" },
+    camera: { mode: "TRACK_ACTION", priority: 75, durationMs: 1200, blendDurationMs: 160, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0.35 },
+    vfx: { cue: "SMOKE" }, audio: { cue: "HIT" }, hud: { cues: ["SHOW_EVENT_MESSAGE", "SHOW_RANKING"] }, intensity: intensity(0.78), timing: timing(380),
+  }),
+  binding("survival_recovery", "survival.recovered", {
+    animation: { actor: "IDLE" },
+    camera: { mode: "OVERVIEW", priority: 30, durationMs: 700, blendDurationMs: 180, subject: "ALL_PARTICIPANTS", distanceClass: "MEDIUM", anglePreference: "EYE_LEVEL", shakeIntensity: 0 },
+    vfx: { cue: "SPARK" }, audio: { cue: "CUSTOM" }, hud: { cues: ["SHOW_EVENT_MESSAGE"] }, intensity: intensity(0.35),
+  }),
+  binding("survival_leader_change", "survival.leader_changed", {
+    camera: { mode: "TRACK_ACTION", priority: 65, durationMs: 1000, blendDurationMs: 180, subject: "WINNER", distanceClass: "MEDIUM", anglePreference: "DYNAMIC", shakeIntensity: 0.1 },
+    audio: { cue: "CUSTOM" }, hud: { cues: ["SHOW_RANKING", "SHOW_EVENT_MESSAGE"] }, timing: timing(280),
+  }),
+  binding("survival_elimination", "survival.eliminated", {
+    animation: { actor: "DEFEATED" },
+    camera: { mode: "ELIMINATION_FOCUS", priority: 100, durationMs: 1800, blendDurationMs: 220, subject: "ACTOR", distanceClass: "MEDIUM", anglePreference: "DYNAMIC", shakeIntensity: 0.25 },
+    vfx: { cue: "ELIMINATION" }, audio: { cue: "ELIMINATION" }, hud: { cues: ["SHOW_RANKING", "SHOW_EVENT_MESSAGE"] }, timing: timing(650),
+  }),
+  binding("survival_timeout", "survival.timeout", {
+    camera: { mode: "RESULT_OVERVIEW", priority: 80, durationMs: 1300, blendDurationMs: 300, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "HIGH", shakeIntensity: 0 },
+    audio: { cue: "RESULT" }, hud: { cues: ["SHOW_TIMER", "SHOW_RANKING"] }, timing: timing(400),
+  }),
+  binding("survival_result", "survival.completed", {
+    camera: { mode: "RESULT_OVERVIEW", priority: 95, durationMs: 2000, blendDurationMs: 350, subject: "ALL_PARTICIPANTS", distanceClass: "WIDE", anglePreference: "DYNAMIC", shakeIntensity: 0 },
+    audio: { cue: "RESULT" }, hud: { cues: ["SHOW_RESULT", "SHOW_RANKING"] }, timing: timing(900),
+  }),
+  binding("survival_winner", "survival.completed", {
+    priority: 100, condition: { field: "payload.winnerRunParticipantId", operator: "PRESENT" },
+    animation: { actor: "VICTORY" }, camera: { mode: "WINNER_CLOSEUP", priority: 100, durationMs: 2400, blendDurationMs: 300, subject: "WINNER", distanceClass: "CLOSE", anglePreference: "LOW", shakeIntensity: 0.1 },
+    vfx: { cue: "VICTORY" }, audio: { cue: "VICTORY" }, hud: { cues: ["SHOW_RESULT"] }, timing: timing(1200),
+  }),
+];
+
 function definition(preset: ExperiencePresetType, scale: number, bindings = CINEMATIC_BATTLE_BINDINGS): ExperienceDefinitionV1 {
   return {
     schemaVersion: 1, preset, moduleCompatibility: ["battle"], simulationModeCompatibility: ["battle"],
@@ -139,6 +187,11 @@ function raceDefinition(preset: ExperiencePresetType, scale: number): Experience
   return { ...result, moduleCompatibility: ["race"], simulationModeCompatibility: ["race"] };
 }
 
+function survivalDefinition(preset: ExperiencePresetType, scale: number): ExperienceDefinitionV1 {
+  const result = definition(preset, scale, CINEMATIC_SURVIVAL_BINDINGS);
+  return { ...result, moduleCompatibility: ["survival"], simulationModeCompatibility: ["survival"] };
+}
+
 export interface ExperiencePreset {
   id: string; name: string; description: string; tags: string[]; definition: ExperienceDefinitionV1;
 }
@@ -146,6 +199,7 @@ export interface ExperiencePreset {
 export const EXPERIENCE_PRESETS: ExperiencePreset[] = [
   { id: "simverse-cinematic-battle-v1", name: "SIMVERSE Cinematic Battle v1", description: "Reference Battle presentation with directed shots, semantic animation, effects, sound, readable HUD and result emphasis.", tags: ["battle", "cinematic", "reference"], definition: definition("CINEMATIC", 1) },
   { id: "simverse-cinematic-race-v1", name: "SIMVERSE Cinematic Race v1", description: "Original Race presentation direction with establishing coverage, leader and checkpoint focus, finish emphasis, audio, effects and ranking HUD.", tags: ["race", "cinematic", "reference"], definition: raceDefinition("CINEMATIC", 1) },
+  { id: "simverse-cinematic-survival-v1", name: "SIMVERSE Cinematic Survival v1", description: "Original Survival presentation direction with environmental coverage, authoritative hazard and elimination emphasis, sound, effects and readable condition ranking.", tags: ["survival", "cinematic", "reference"], definition: survivalDefinition("CINEMATIC", 1) },
   { id: "competitive", name: "Competitive", description: "Clear state, restrained camera interruption and strong health, timer and ranking visibility.", tags: ["competitive", "clear"], definition: definition("COMPETITIVE", 0.45) },
   { id: "broadcast", name: "Broadcast", description: "Wide readable coverage, event messaging and ranking emphasis for spectators.", tags: ["broadcast", "spectator"], definition: definition("BROADCAST", 0.65) },
   { id: "minimal", name: "Minimal", description: "Simple camera direction with reduced effects and presentation overhead.", tags: ["minimal", "lightweight"], definition: definition("MINIMAL", 0.2) },

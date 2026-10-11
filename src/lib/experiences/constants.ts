@@ -45,9 +45,17 @@ export const RACE_EXPERIENCE_EVENT_TYPES = [
 ] as const;
 export type RaceExperienceEventType = (typeof RACE_EXPERIENCE_EVENT_TYPES)[number];
 
+export const SURVIVAL_EXPERIENCE_EVENT_TYPES = [
+  "survival.started", "survival.status", "survival.resource_changed", "survival.hazard",
+  "survival.recovered", "survival.eliminated", "survival.leader_changed",
+  "survival.timeout", "survival.completed",
+] as const;
+export type SurvivalExperienceEventType = (typeof SURVIVAL_EXPERIENCE_EVENT_TYPES)[number];
+
 export const EXPERIENCE_EVENT_TYPES = [
   ...BATTLE_EXPERIENCE_EVENT_TYPES,
   ...RACE_EXPERIENCE_EVENT_TYPES,
+  ...SURVIVAL_EXPERIENCE_EVENT_TYPES,
 ] as const;
 export type ExperienceEventType = (typeof EXPERIENCE_EVENT_TYPES)[number];
 

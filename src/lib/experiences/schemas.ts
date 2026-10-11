@@ -6,6 +6,7 @@ import {
   CAMERA_SUBJECTS, EXPERIENCE_ASSET_ROLES, EXPERIENCE_OVERRIDE_KINDS,
   EXPERIENCE_EVENT_TYPES, EXPERIENCE_PRESET_TYPES, EXPERIENCE_PROFILE_SCHEMA_VERSION,
   EXPERIENCE_PROFILE_STATUSES, HUD_CUES, RACE_EXPERIENCE_EVENT_TYPES, VFX_CUES,
+  SURVIVAL_EXPERIENCE_EVENT_TYPES,
   type ExperienceEventType,
 } from "./constants";
 
@@ -49,6 +50,9 @@ const conditionField = z.enum([
   "payload.checkpointPercent", "payload.lap", "payload.progressMilli", "payload.finishTimeMicros",
   "payload.finishPosition", "payload.lapsCompleted", "payload.finishedCount", "payload.unfinishedCount",
   "payload.leaderRunParticipantIds", "payload.newLeaderRunParticipantIds",
+  "payload.mode", "payload.hazardFrequency", "payload.hazardIntensity", "payload.category",
+  "payload.intensity", "payload.cause", "payload.energy", "payload.supplies",
+  "payload.eliminationTimeMs", "payload.survivingCount", "payload.eliminatedCount",
 ]);
 const conditionSchema = z.object({
   field: conditionField,
@@ -77,6 +81,15 @@ const CONDITION_FIELDS_BY_EVENT: Record<ExperienceEventType, readonly string[]> 
   "race.finished": ["payload.finishTimeMicros", "payload.finishPosition", "payload.lapsCompleted"],
   "race.timeout": ["payload.maxTicks", "payload.finishedCount", "payload.unfinishedCount"],
   "race.completed": ["payload.completionReason", "payload.winnerRunParticipantId"],
+  "survival.started": ["payload.mode", "payload.maxTicks", "payload.hazardFrequency", "payload.hazardIntensity"],
+  "survival.status": ["payload.leaderRunParticipantIds"],
+  "survival.resource_changed": [],
+  "survival.hazard": ["payload.category", "payload.intensity"],
+  "survival.recovered": [],
+  "survival.eliminated": ["payload.cause", "payload.eliminationTick", "payload.eliminationTimeMs", "payload.energy", "payload.supplies"],
+  "survival.leader_changed": ["payload.newLeaderRunParticipantIds"],
+  "survival.timeout": ["payload.maxTicks", "payload.survivingCount", "payload.eliminatedCount"],
+  "survival.completed": ["payload.completionReason", "payload.winnerRunParticipantId"],
 };
 
 const overrideSchema = z.object({
@@ -141,6 +154,10 @@ export const experienceDefinitionSchema = z.object({
   if (RACE_EXPERIENCE_EVENT_TYPES.some((eventType) => eventTypes.has(eventType))) {
     if (!value.moduleCompatibility.includes("race")) context.addIssue({ code: "custom", path: ["moduleCompatibility"], message: "Race event bindings require Race module compatibility." });
     if (!value.simulationModeCompatibility.includes("race")) context.addIssue({ code: "custom", path: ["simulationModeCompatibility"], message: "Race event bindings require Race simulation-mode compatibility." });
+  }
+  if (SURVIVAL_EXPERIENCE_EVENT_TYPES.some((eventType) => eventTypes.has(eventType))) {
+    if (!value.moduleCompatibility.includes("survival")) context.addIssue({ code: "custom", path: ["moduleCompatibility"], message: "Survival event bindings require Survival module compatibility." });
+    if (!value.simulationModeCompatibility.includes("survival")) context.addIssue({ code: "custom", path: ["simulationModeCompatibility"], message: "Survival event bindings require Survival simulation-mode compatibility." });
   }
   value.eventBindings.forEach((binding, index) => {
     for (const [identifierValue, role, path] of [

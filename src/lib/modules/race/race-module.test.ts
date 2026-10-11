@@ -82,7 +82,7 @@ describe("production Race v1", () => {
     expect(productionEngineRegistry.forMode("battle")).toBe(battleModule);
     expect(productionEngineRegistry.forMode("race")).toBe(raceModule);
     expect(productionEngineRegistry.canExecute("tournament")).toBe(false);
-    expect(productionEngineRegistry.canExecute("survival")).toBe(false);
+    expect(productionEngineRegistry.canExecute("survival")).toBe(true);
   });
 
   it("validates canonical and legacy config while rejecting unsupported or unsafe values", () => {

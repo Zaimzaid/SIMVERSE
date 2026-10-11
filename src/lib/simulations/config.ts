@@ -22,6 +22,7 @@
 import { z } from "zod";
 import { ValidationError, type FieldIssue } from "@/lib/errors";
 import { defaultRaceConfigV1, raceConfigV1Schema } from "@/lib/modules/race/config";
+import { defaultSurvivalConfigV1, survivalConfigV1Schema } from "@/lib/modules/survival/config";
 import { SIMULATION_CONFIG_VERSION } from "./constants";
 
 // ---------------------------------------------------------------------------
@@ -80,14 +81,6 @@ export const TOURNAMENT_FORMAT_LABELS: Record<TournamentFormat, string> = {
   round_robin: "Round robin",
 };
 
-export const SURVIVAL_SCENARIOS = ["elimination", "endurance", "resource"] as const;
-export type SurvivalScenario = (typeof SURVIVAL_SCENARIOS)[number];
-export const SURVIVAL_SCENARIO_LABELS: Record<SurvivalScenario, string> = {
-  elimination: "Elimination",
-  endurance: "Endurance",
-  resource: "Resource scarcity",
-};
-
 // ---------------------------------------------------------------------------
 // The versioned config + presentation shapes.
 // ---------------------------------------------------------------------------
@@ -132,7 +125,7 @@ export function defaultModeConfig(mode: string): Record<string, unknown> {
     case "tournament":
       return { format: "single_elimination" satisfies TournamentFormat };
     case "survival":
-      return { scenarioType: "elimination" satisfies SurvivalScenario };
+      return defaultSurvivalConfigV1();
     default:
       return {};
   }
@@ -187,7 +180,7 @@ export const MODE_CONFIG_SCHEMAS: Record<string, z.ZodType<Record<string, unknow
   battle: z.object({ format: z.enum(BATTLE_FORMATS).default("free_for_all") }),
   race: raceConfigV1Schema,
   tournament: z.object({ format: z.enum(TOURNAMENT_FORMATS).default("single_elimination") }),
-  survival: z.object({ scenarioType: z.enum(SURVIVAL_SCENARIOS).default("elimination") }),
+  survival: survivalConfigV1Schema,
 };
 
 function mapIssues(error: z.ZodError, prefix: string): FieldIssue[] {

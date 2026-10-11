@@ -4,6 +4,7 @@ import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { SeededRng } from "@/lib/engine/rng";
 import { productionEngineRegistry } from "@/lib/engine/registry";
 import { raceExecutionIssue } from "@/lib/modules/race/config";
+import { survivalExecutionIssue } from "@/lib/modules/survival/config";
 import { parseStoredConfig, parseStoredPresentation } from "@/lib/simulations/config";
 import { generateSeed } from "@/lib/simulations/seed";
 import {
@@ -102,6 +103,9 @@ function validatedTournamentTemplateConfig(template: {
     }
   } else if (template.mode === "race") {
     const issue = raceExecutionIssue(config.mode, 2);
+    if (issue) throw new ValidationError(issue);
+  } else if (template.mode === "survival") {
+    const issue = survivalExecutionIssue(config.mode, 2);
     if (issue) throw new ValidationError(issue);
   } else {
     throw new ValidationError("That Simulation mode is not supported for Tournament matches.");
@@ -253,7 +257,7 @@ export async function listTournamentCreationOptions(userId: string, workspaceId:
   const [entities, projects, simulations, worlds, experiences] = await Promise.all([
     prisma.entity.findMany({ where: { workspaceId, status: "ACTIVE" }, select: { id: true, name: true, category: true }, orderBy: { name: "asc" } }),
     prisma.project.findMany({ where: { workspaceId, status: "ACTIVE" }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.simulation.findMany({ where: { workspaceId, status: "READY", mode: { in: ["battle", "race"] } }, select: { id: true, name: true, mode: true, status: true, projectId: true, configuration: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true }, orderBy: { name: "asc" } }),
+    prisma.simulation.findMany({ where: { workspaceId, status: "READY", mode: { in: ["battle", "race", "survival"] } }, select: { id: true, name: true, mode: true, status: true, projectId: true, configuration: true, worldId: true, worldVersion: true, experienceProfileId: true, experienceProfileVersion: true }, orderBy: { name: "asc" } }),
     prisma.world.findMany({ where: { workspaceId, status: { not: "ARCHIVED" } }, select: { id: true, name: true, versions: { select: { version: true, status: true }, orderBy: { version: "desc" } } }, orderBy: { name: "asc" } }),
     prisma.experienceProfile.findMany({ where: { workspaceId, status: { not: "ARCHIVED" } }, select: { id: true, name: true, versions: { select: { version: true, status: true, modeCompatibility: true }, orderBy: { version: "desc" } } }, orderBy: { name: "asc" } }),
   ]);
@@ -267,7 +271,7 @@ export async function listTournamentCreationOptions(userId: string, workspaceId:
     worlds: worlds.flatMap((world) => world.versions.filter((version) => version.status !== "ARCHIVED").map((version) => ({ worldId: world.id, worldName: world.name, version: version.version }))),
     experiences: experiences.flatMap((profile) => profile.versions.filter((version) => {
       if (version.status === "ARCHIVED") return false;
-      try { const modes: unknown = JSON.parse(version.modeCompatibility); return Array.isArray(modes) && modes.some((mode) => mode === "battle" || mode === "race"); } catch { return false; }
+      try { const modes: unknown = JSON.parse(version.modeCompatibility); return Array.isArray(modes) && modes.some((mode) => mode === "battle" || mode === "race" || mode === "survival"); } catch { return false; }
     }).map((version) => ({ experienceProfileId: profile.id, experienceProfileName: profile.name, version: version.version }))),
   };
 }

@@ -4,27 +4,28 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 4: Tournament System
-  v1**, committed in `49eff48` (`feat: add SIMVERSE Tournament System v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 5: Race Module v1**.
+- **Last completed:** Parallel Platform Track — **Web Phase 5: Race Module v1**,
+  committed in `c97887d` (`feat: add SIMVERSE Race Module v1`).
+- **Current work:** Parallel Platform Track — **Web Phase 6: Survival Module v1**.
   Implementation is complete and uncommitted, awaiting owner review.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `49eff48`, after Experience Profiles v1 `775a01b`,
+- **Committed checkpoint:** `c97887d`, after Tournament System v1 `49eff48`,
+  Experience Profiles v1 `775a01b`,
   World Blueprint Creator v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase
   7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-09.
-- **Boundary:** Battle v1 and Race v1 are production mechanics modules. Core and
-  Modules remain authoritative. Three.js is the Web Preview Viewer; Race uses a
-  truthful lightweight progress/results view rather than fabricated 3D. Platform
+- **Last updated:** 2026-10-11.
+- **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
+  modules. Core and Modules remain authoritative. Three.js is the Web Preview
+  Viewer; Race and Survival use truthful lightweight status/results views. Platform
   Runtime Protocol v1 transports completed Battle truth only; no Unreal project,
   rendered World runtime or Phase 7B work exists in this Platform repository.
   Engine-neutral World Blueprint metadata, Experience Profile presentation
   direction, and generic Tournament orchestration now exist. Runtime Protocol
-  v1 and Battle mechanics are unchanged by Race Module v1.
+  v1, Battle mechanics and Race mechanics are unchanged by Survival Module v1.
 
 ## Official architecture and visual direction
 
@@ -419,16 +420,17 @@ durable bootstrap plan remains in
 - Manual seeding follows creator order. Random seeding uses the existing
   versioned seeded RNG and a stored `SV-XXXXXXXX` seed, so it is reproducible.
   `RANKED` remains reserved until SIMVERSE has an authoritative ranking source.
-- A READY Battle duel or Race v1 Simulation is selected as the Match template.
-  Tournament Match v1 remains head-to-head, including Race Matches. Structure
+- A READY Battle duel, Race v1 or Survival v1 Simulation is selected as the
+  Match template. Tournament Match v1 remains head-to-head. Structure
   generation freezes one validated Tournament-level snapshot of its mode,
   configuration, presentation, project, seed provenance and pinned World /
   Experience Profile versions. Each runnable Match derives one normal READY
   Simulation with its two Entity participants, then creates, starts and executes
   a normal SimulationRun through the existing Core service. Later template edits
   cannot change Match construction from the frozen snapshot.
-- `TournamentModuleResultAdapter` is the generic module boundary. The Battle and
-  Race adapters validate completed `battle-v1` or `race-v1` Runs, map immutable
+- `TournamentModuleResultAdapter` is the generic module boundary. The Battle,
+  Race and Survival adapters validate completed `battle-v1`, `race-v1` or
+  `survival-v1` Runs, map immutable
   Run participants back to Tournament participants, and project winner, ties,
   ranking and completion reason. They interpret saved module results and never
   recalculate either module's mechanics.
@@ -535,6 +537,100 @@ durable bootstrap plan remains in
   package export requires a future Protocol v2 or reviewed compatible extension.
   Battle formulas, events, results and seeded behavior are unchanged.
 
+## Parallel Platform Track — Web Phase 6: Survival Module v1
+
+- `survival` / `survival-v1` is a deterministic, server-authoritative production
+  module registered beside Battle and Race. It supports 2–64 immutable Run
+  participants and the canonical `LAST_STANDING` and `ENDURANCE` modes. It uses
+  the existing 100 ms fixed Core tick, serialized `mulberry32-v1` RNG state,
+  generic Run/Event/Result persistence and pause/resume lifecycle. No
+  Survival-specific table or Prisma change is required.
+- `SurvivalConfigV1` stores a maximum of 10,000 ticks, base condition drain,
+  elimination threshold, bounded hazard frequency/intensity and seeded
+  variability, explicit Energy/Supplies initialization and drain, depletion
+  penalty, paid interval recovery, and six configurable Entity attribute keys.
+  Legacy `scenarioType` settings read as the corresponding canonical mode.
+  World Blueprint data remains presentation context and is never read as a
+  hidden mechanics input.
+- Frozen `NUMBER` attributes resolve once at initialization: **Endurance** lowers
+  baseline condition loss, **Resilience** lowers hazard condition loss,
+  **Resource Efficiency** lowers ongoing and hazard resource use,
+  **Adaptability** lowers environment/extreme/custom hazard effects and improves
+  recovery, **Awareness** lowers hazard exposure, and **Luck** adds only small
+  bounded seeded shifts. Missing stats default to 50; present values round and
+  clamp to 0–100. Mutable Entity state is never queried after Run creation.
+- Condition and both resources use bounded integer units from 0–100,000.
+  Resource efficiency is `10,000 - RESOURCE_EFFICIENCY × 50` basis points.
+  With variability enabled, one seeded resource roll supplies a scaled
+  `[-1,000, +1,000]` basis-point shift plus a favorable Luck shift capped within that same
+  ±10% bound. Each configured positive base drain is floored through both
+  factors and remains at least one. Variability zero consumes no resource RNG.
+- Baseline condition loss is
+  `floor(baseConditionDrain × (10,000 - ENDURANCE × 50) / 10,000)`. Each
+  exhausted resource adds the explicit configured depletion penalty. Resource
+  exhaustion therefore increases condition pressure without itself declaring
+  an elimination.
+- Each tick resolves in this fixed order: resource drain; baseline/depletion
+  condition loss; one global seeded hazard decision and category; per-participant
+  hazard effects; eligible paid recovery; one-time elimination; shared-rank
+  standings/leader update; completion. It uses simulation time only and never
+  reads wall-clock time.
+- Hazard categories are `ENVIRONMENT`, `RESOURCE_SHORTAGE`, `FATIGUE`,
+  `ACCIDENT`, `EXTREME_CONDITION`, and `CUSTOM`. Frequency is a bounded
+  0–100% per-tick seeded decision; category is seeded uniformly when a hazard
+  occurs. Condition base impact is `intensity × 80`. Awareness removes at most
+  40%, Resilience at most 50%, and applicable Adaptability at most 25%, using
+  sequential integer floors. Resource-shortage, fatigue and extreme-condition
+  categories can also consume bounded resources. Hazard variance is bounded to
+  ±5%, including Luck's maximum favorable ±0.5% contribution.
+- Recovery runs only on its configured tick interval while condition is above
+  the terminal threshold and below 100,000 and the participant can pay both
+  configured resource costs. Its factor is `7,500 + ADAPTABILITY × 25` basis
+  points, or 75–100% of the configured amount. It cannot revive a participant,
+  exceed maximum condition or create resources.
+- Participants are eliminated exactly once when condition is at or below the
+  configured threshold after the tick's effects. State and result preserve the
+  tick, simulated time, final condition/resources and one of `CONDITION`,
+  `RESOURCE_DEPLETION`, or `HAZARD`. `LAST_STANDING` completes with one survivor,
+  all eliminated, or at the time limit. `ENDURANCE` runs to the time limit unless
+  all participants are eliminated first.
+- Active participants always rank ahead of eliminated participants. Active
+  ranking compares condition, Energy and Supplies in that order. Eliminated
+  ranking compares survival duration. Snapshot position stabilizes JSON order
+  only; exactly equal authoritative values receive a shared rank and tie flag.
+  Completion reasons are `LAST_STANDING`, `TIME_LIMIT`, and `ALL_ELIMINATED`.
+  A simultaneous terminal resolution can produce tied leaders and no fabricated
+  singular winner.
+- The typed event vocabulary is `survival.started`, `survival.status`,
+  `survival.resource_changed`, `survival.hazard`, `survival.recovered`,
+  `survival.eliminated`, `survival.leader_changed`, `survival.timeout`, and
+  `survival.completed`. Status snapshots occur on tick 1, every five ticks and
+  meaningful hazard/recovery/elimination/leader/completion ticks. Resource events
+  aggregate first-depletion transitions; recovery events already record their
+  explicit costs. Completion emits exactly once.
+- `SurvivalResultV1` identifies the module/version and freezes mode, completion
+  reason, singular or tied leaders, shared-rank standings, every participant's
+  survived/eliminated state, nullable elimination tick/time/cause, final
+  condition/resources, survival duration, resolved profile, total ticks,
+  simulated duration and hazard count. It contains no renderer metadata.
+- The Simulation Builder provides structured fields for every v1 setting and
+  stat mapping. Simulation and Run pages expose bounded execution controls,
+  pause/resume, authoritative leaders, rankings, condition/resource meters,
+  survival duration, hazards, eliminations and final outcome without fabricating
+  a 3D runtime.
+- Experience Profiles recognize every actual Survival event. The original
+  **SIMVERSE Cinematic Survival v1** preset supplies semantic camera, animation,
+  VFX, audio and HUD direction only. Optional pinned World/Profile versions are
+  frozen through the existing Run snapshot path and never alter outcomes.
+- `SurvivalTournamentResultAdapter` validates a completed `SurvivalResultV1` and
+  maps only its winner, tied leaders, ranking and completion reason into the
+  existing `CompetitionMatchResult`. Tournament v1 remains head-to-head, so
+  Survival Tournament Matches use two participants and existing tie policies and
+  round-robin scoring without recalculation.
+- Runtime Protocol v1 remains deliberately Battle-focused. No Survival export,
+  protocol schema, fixture or runtime package was added. Battle and Race
+  mechanics, results and event vocabularies are unchanged.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -617,12 +713,23 @@ durable bootstrap plan remains in
   head-to-head Tournament round robin. `npx tsc --noEmit`, `npx eslint .`,
   `npx prisma validate`, `npx prisma generate`, `npx next build`, and `git diff
   --check` pass. Prisma Client v7.10.0 regenerates successfully.
+- Web Phase 6 direct `npx vitest run` passes **318 tests in 30 files**, preserving
+  all 299 Race baseline tests and adding 19 Survival module and persisted Run
+  integration tests for configuration/stat validation, two-person and
+  multi-participant execution, Last Standing, Endurance, resources, every stat
+  role, bounded hazards/Luck/recovery, elimination and all-eliminated ties,
+  ranking, event/result contracts, deterministic replay, disabled-randomness RNG
+  behavior, pause/resume parity, immutable Entity/World/Profile snapshots,
+  Experience compatibility, workspace isolation and head-to-head Tournament
+  round robin. `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx
+  prisma generate`, `npx next build`, and `git diff --check` pass. Prisma Client
+  v7.10.0 regenerates successfully. No schema or Runtime Protocol v1 file changed.
 
 ## Known limits
 
 - Tournament System v1 supports Entity participants, single elimination and one
-  round-robin cycle with Battle duel or head-to-head Race Matches. It does not
-  yet implement multi-participant Race Matches, Teams,
+  round-robin cycle with Battle duel, head-to-head Race or head-to-head Survival
+  Matches. It does not yet implement multi-participant Race/Survival Matches, Teams,
   ranked seeding, double elimination, Swiss, group stages, seasons, per-Match
   World/Profile overrides, automated scheduling, bulk Run Round, or a
   Tournament-wide runtime/presentation protocol. Future module integrations
@@ -630,8 +737,8 @@ durable bootstrap plan remains in
 
 - Experience Profiles v1 store validated presentation direction and immutable
   references. They do not render effects, mix audio, schedule a cinematic
-  timeline, resolve engine clips, or change the current Web Viewer. Battle and
-  Race event vocabularies are supported; later modules must add their own
+  timeline, resolve engine clips, or change the current Web Viewer. Battle, Race
+  and Survival event vocabularies are supported; later modules must add their own
   reviewed authoritative event vocabulary and presentation mappings.
 - Asset Library v1 manages metadata, immutable versions and safe references. It
   does not upload or host binaries, provide a CDN/marketplace, optimize content,
@@ -648,8 +755,8 @@ durable bootstrap plan remains in
   mutable URL. Asset Library IDs and versions now exist, but wiring them into a
   future snapshot/protocol version is intentionally deferred so Runtime Protocol
   v1 and existing Runs remain unchanged. Use content-addressed or versioned URLs.
-- Battle remains the only 3D Viewer adapter. Race has an authoritative
-  progress/result UI; it does not fabricate 3D playback. Viewer playback still
+- Battle remains the only 3D Viewer adapter. Race and Survival have authoritative
+  progress/status/result UI; they do not fabricate 3D playback. Viewer playback still
   consumes completed saved Runs rather than streaming live simulation.
 - No high-fidelity runtime, Unreal project/parser, public runtime session
   endpoint, production character pipeline, World runtime, cloud-streaming
@@ -688,14 +795,14 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Parallel Platform Track — Web Phase 4: Tournament System v1
-  49eff48 feat: add SIMVERSE Tournament System v1
+  Parallel Platform Track — Web Phase 5: Race Module v1
+  c97887d feat: add SIMVERSE Race Module v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  49eff48 feat: add SIMVERSE Tournament System v1
+  c97887d feat: add SIMVERSE Race Module v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 5: Race Module v1
+  Parallel Platform Track — Web Phase 6: Survival Module v1
   STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
 
 PAUSED PARALLEL TRACK:
@@ -703,6 +810,6 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the Race Module v1 Platform change set.
+  Review and approve the Survival Module v1 Platform change set.
   Do not access D: or resume Unreal work until the external storage is stable.
 ```
