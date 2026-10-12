@@ -5,7 +5,7 @@ import { WORLD_PRESETS } from "@/lib/worlds/presets";
 import { prisma } from "@/server/db/client";
 import { resetDb } from "../../../test/helpers/db";
 import { registerUser } from "./auth-service";
-import { createEntity } from "./entity-service";
+import { createEntity, updateEntity } from "./entity-service";
 import { createExperienceProfile } from "./experience-profile-service";
 import { createProject } from "./project-service";
 import { createSimulation } from "./simulation-service";
@@ -14,6 +14,7 @@ import { createWorld } from "./world-service";
 import {
   createAnythingWarsEvent,
   createAnythingWarsRun,
+  createQuickAnythingWarsRun,
   getAnythingWarsEvent,
   listAnythingWarsEvents,
   markAnythingWarsEventReady,
@@ -85,6 +86,14 @@ function eventInput(source: Awaited<ReturnType<typeof scenario>>) {
     experienceProfileId: source.experience.id,
     experienceProfileVersion: source.experience.currentVersion,
   };
+}
+
+async function quickScenario() {
+  const owner = await account();
+  const first = await createEntity(owner.user.id, owner.workspaceId, { name: "Lion", category: "animal" });
+  const second = await createEntity(owner.user.id, owner.workspaceId, { name: "Robot", category: "robot" });
+  const third = await createEntity(owner.user.id, owner.workspaceId, { name: "Car", category: "vehicle" });
+  return { owner, first, second, third };
 }
 
 describe("Anything Wars service composition", () => {
@@ -165,5 +174,78 @@ describe("Anything Wars service composition", () => {
     expect(rematch.id).not.toBe(event.id);
     expect((await getSimulationRun(source.owner.user.id, source.owner.workspaceId, firstRun.id)).inputSnapshot).toEqual(frozen);
     expect((await getAnythingWarsEvent(source.owner.user.id, source.owner.workspaceId, event.id)).name).toBe("Edited future event");
+  });
+
+  it("creates a valid started Quick War through the canonical Simulation and Run services", async () => {
+    const source = await quickScenario();
+    const result = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, {
+      mode: "battle",
+      participantIds: [source.first.id, source.second.id],
+    });
+
+    expect(result.simulation).toMatchObject({ status: "READY", mode: "battle" });
+    expect(result.simulation.configuration.mode).toEqual({ format: "duel" });
+    expect(result.simulation.metadata).toMatchObject({ product: "anything-wars", productVersion: 0, creationFlow: "quick" });
+    expect(result.run).toMatchObject({ status: "RUNNING", simulationId: result.simulation.id, moduleId: "battle" });
+    expect(result.run.participants.map((participant) => participant.name)).toEqual(["Lion", "Robot"]);
+
+    const projects = await prisma.project.findMany({ where: { workspaceId: source.owner.workspaceId, status: "ACTIVE" } });
+    expect(projects).toHaveLength(1);
+    expect(JSON.parse(projects[0]!.metadata ?? "{}")).toMatchObject({ purpose: "anything-wars-quick", version: 1 });
+    expect(await prisma.projectEntity.count({ where: { projectId: projects[0]!.id } })).toBe(2);
+  });
+
+  it("uses executable defaults for every supported Quick War mode and reuses one organizer project", async () => {
+    const source = await quickScenario();
+    const participantIds = [source.first.id, source.second.id, source.third.id];
+    const battle = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, { mode: "battle", participantIds });
+    const race = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, { mode: "race", participantIds });
+    const survival = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, { mode: "survival", participantIds });
+
+    expect(battle.simulation.configuration.mode).toEqual({ format: "free_for_all" });
+    expect(race.run).toMatchObject({ status: "RUNNING", moduleId: "race" });
+    expect(survival.run).toMatchObject({ status: "RUNNING", moduleId: "survival" });
+    expect(await prisma.project.count({ where: { workspaceId: source.owner.workspaceId, name: "Quick Creations" } })).toBe(1);
+    expect(await prisma.simulation.count({ where: { workspaceId: source.owner.workspaceId } })).toBe(3);
+    expect(await prisma.simulationRun.count({ where: { workspaceId: source.owner.workspaceId } })).toBe(3);
+  });
+
+  it("rejects foreign competitors and read-only Quick War attempts before creating product records", async () => {
+    const source = await quickScenario();
+    const foreign = await account();
+    const foreignEntity = await createEntity(foreign.user.id, foreign.workspaceId, { name: "Foreign", category: "object" });
+    await expect(createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, {
+      mode: "battle",
+      participantIds: [source.first.id, foreignEntity.id],
+    })).rejects.toBeInstanceOf(ValidationError);
+    expect(await prisma.project.count({ where: { workspaceId: source.owner.workspaceId } })).toBe(0);
+
+    const viewer = await account();
+    await prisma.workspaceMember.create({ data: { workspaceId: source.owner.workspaceId, userId: viewer.user.id, role: "VIEWER" } });
+    await expect(createQuickAnythingWarsRun(viewer.user.id, source.owner.workspaceId, {
+      mode: "battle",
+      participantIds: [source.first.id, source.second.id],
+    })).rejects.toBeInstanceOf(AuthorizationError);
+    expect(await prisma.simulation.count({ where: { workspaceId: source.owner.workspaceId } })).toBe(0);
+  });
+
+  it("never rewrites an earlier Quick War snapshot when competitors change or another war starts", async () => {
+    const source = await quickScenario();
+    const first = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, {
+      mode: "battle",
+      participantIds: [source.first.id, source.second.id],
+    });
+    const frozen = structuredClone(first.run.inputSnapshot);
+
+    await updateEntity(source.owner.user.id, source.owner.workspaceId, source.first.id, { name: "Lion Updated" });
+    const second = await createQuickAnythingWarsRun(source.owner.user.id, source.owner.workspaceId, {
+      mode: "race",
+      participantIds: [source.first.id, source.third.id],
+    });
+
+    expect(second.run.id).not.toBe(first.run.id);
+    expect(second.run.participants.map((participant) => participant.name)).toEqual(["Lion Updated", "Car"]);
+    expect((await getSimulationRun(source.owner.user.id, source.owner.workspaceId, first.run.id)).inputSnapshot).toEqual(frozen);
+    expect(await prisma.project.count({ where: { workspaceId: source.owner.workspaceId, name: "Quick Creations" } })).toBe(1);
   });
 });

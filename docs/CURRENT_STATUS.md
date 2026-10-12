@@ -4,21 +4,27 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 6: Survival Module
-  v1**, committed in `36fb950` (`feat: add SIMVERSE Survival Module v1`).
-- **Current work:** Products Track — **Anything Wars v0 Browser Product Shell**.
-  The implementation composes the existing Platform, Core, Modules and Creator
-  metadata systems into the first end-user product flow.
+- **Last completed:** Products Track — **Anything Wars v0 Browser Product
+  Shell**, committed in `52eea9c` (`feat: add SIMVERSE Anything Wars v0 product
+  shell`), after Survival Module v1 `36fb950`.
+- **Current work:** Products Track — **Anything Wars Beginner Experience +
+  Visual Creation Guidance v1**. A preview-first Create gateway, an Anything Wars
+  Quick War flow with intelligent defaults, a preserved Custom War path, and a
+  result-first completed-run experience. It composes the same canonical
+  Simulation and Run services — no new mechanics, Prisma schema, or Core change.
+  This change set is **uncommitted** at the time of writing.
+- **Canonical UX + capability docs:** product-experience standards now live in
+  [UX_PRINCIPLES.md](UX_PRINCIPLES.md) and the honest maturity inventory in
+  [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md).
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint before this work:** `36fb950`, after Race Module v1
-  `c97887d`, Tournament System v1 `49eff48`,
-  Experience Profiles v1 `775a01b`,
-  World Blueprint Creator v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase
-  7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
-  `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
+- **Committed checkpoint before this work:** `52eea9c` (Anything Wars v0 shell),
+  after Survival Module v1 `36fb950`, Race Module v1 `c97887d`, Tournament
+  System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
+  v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
+  `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
 - **Last updated:** 2026-10-12.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
@@ -682,6 +688,115 @@ durable bootstrap plan remains in
   head-to-head per Match; creating an Entity from the wizard opens the existing
   Entity flow in a separate tab so the saved wizard state is preserved.
 
+## Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
+
+> Status at time of writing: **implemented and verified; uncommitted working-tree
+> change set.** It composes the same canonical services as the v0 shell and adds
+> no mechanics, Prisma schema, Core, or Runtime Protocol change.
+
+- **Preview-first Create gateway.** `/create` is rebuilt as a beginner gateway
+  where every option shows a small visual representation of what it produces
+  before entry. A truthful catalog
+  ([src/lib/create/catalog.ts](../src/lib/create/catalog.ts)) is the single
+  source of destination identity, copy, required permissions, and a
+  `LIVE | COMING_LATER` status; it is deliberately separate from presentation so
+  links and future states are contract-tested without rendering
+  ([catalog.test.ts](../src/lib/create/catalog.test.ts)). Cards are
+  permission-aware via `canOpenCreateDestination`, so a destination only links
+  when the user truly holds its server-side permissions. Visual mini-previews
+  ([creation-previews.tsx](../src/components/create/creation-previews.tsx)) use
+  original iconography (lion/robot/car/country for Entity; terrain/zones for
+  World; a VS → rules → outcome diagram for Simulation; a Battle/Race/Survival
+  competition for Anything Wars; a folder for Project; a clearly non-interactive
+  scene/camera/timeline for Animation Studio). Progressive disclosure orders the
+  page: a featured "recommended first step" (Anything Wars), then building
+  blocks (Entity/World/Simulation), then organize-and-future (Project/Animation).
+- **Truthful World and Animation copy.** World is described honestly as a
+  structured World Blueprint creator ("design its environment, rules, and
+  structure now; rich 3D world experiences continue to expand over time"); it is
+  not labeled unavailable because `/worlds/new` is functional. Animation Studio
+  is shown only as a `COMING_LATER` preview with no live link, and is explicitly
+  distinguished from the existing Standard Animation System (runtime states).
+- **Anything Wars Quick War.** A new beginner flow —
+  `/anything-wars/quick` ([page](../src/app/(platform)/anything-wars/quick/page.tsx),
+  [form](../src/components/anything-wars/quick-war-form.tsx)) — asks only *what
+  happens* (Battle/Race/Survival, the modes that actually execute today) and
+  *who competes* (at least two active workspace competitors, chosen with the
+  Entity picker in new `scope="workspace"` mode). SIMVERSE supplies every
+  ordinary default itself: balanced working rules, match configuration (duel for
+  two, free-for-all for more), presentation defaults, a fresh seed, and
+  organization — so beginners never face Seed, Runtime Protocol, Experience
+  Profile, immutable snapshots, module versions, or authoritative-execution
+  concepts.
+- **Server composition, not a shortcut.** `createQuickAnythingWarsRun`
+  ([anything-wars-service.ts](../src/server/services/anything-wars-service.ts))
+  re-checks `simulation.create` **and** `simulation.run`, validates input with
+  `quickWarInputSchema` ([quick.ts](../src/lib/anything-wars/quick.ts)), loads
+  competitors with a workspace-scoped `ACTIVE` lookup and rejects any id that is
+  not in the workspace, then calls the exact same canonical path as Custom War:
+  `createAnythingWarsEvent` → `markAnythingWarsEventReady` → `createAnythingWarsRun`
+  → `startSimulationRun`. No validation, permission, or snapshot behavior is
+  bypassed to achieve the simpler surface.
+- **Projects architecture decision — "Quick Creations".** Beginners are not
+  forced to understand Projects first. `resolveQuickCreationsProject` finds the
+  workspace's existing `ACTIVE` organizer project by stable metadata
+  (`purpose: "anything-wars-quick"`, `version: 1`), ordered by `createdAt` so it
+  never spawns duplicates, and only creates one through the existing
+  `createProject` service when none exists. Selected competitors are linked via
+  the existing `addProjectEntities` service. Workspace isolation and service
+  boundaries are preserved; no uncontrolled duplicate projects and no
+  cross-workspace references are introduced. (Verified by a test asserting a
+  single organizer project across three Quick Wars and zero projects created
+  when validation fails.)
+- **Custom War preserved.** The detailed builder remains at
+  `/anything-wars/create`, renamed **Custom War** and framed as "customize
+  everything" (competitors, detailed rules, World/Arena, presentation style,
+  seed). The Anything Wars home presents **Quick War** as the primary call to
+  action and **Custom War** as the secondary one; the per-mode cards route to
+  Quick War with the mode preselected. Quick and Custom create and use the same
+  canonical systems — no mechanics are duplicated.
+- **Result-first completed experience.** A completed run now leads with the
+  outcome. `anythingWarsOutcome`
+  ([outcome.ts](../src/lib/anything-wars/outcome.ts)) derives product copy
+  (`"<Winner> Wins!"`, ties, shared wins) **only** from validated authoritative
+  Battle/Race/Survival result schemas, with a safe generic fallback. The run
+  page shows a trophy result banner, then clear next actions — **Watch Replay**
+  (Battle only, because Battle is the only mode with real 3D replay), Run Again,
+  Rematch, **Change Competitors**, and New War — and demotes technical metadata
+  (tick, simulated time, seed, events, World, presentation) into a collapsed
+  **Match details** disclosure. Race and Survival never show a fake 3D Watch
+  action.
+- **Beginner terminology.** Product surfaces speak plainly (competitors, events,
+  matches, worlds/arenas, presentation styles) while code, services, and the
+  database keep canonical names. The full mapping and the governing standards are
+  recorded in [UX_PRINCIPLES.md](UX_PRINCIPLES.md).
+- **Accessibility fix.** The Create gateway's "recommended first step" heading
+  was corrected from a second `<h1>` to an `<h2>`, so the page keeps a single
+  `<h1>` (from `PageHeader`) and a correct heading order; its section keeps the
+  `aria-labelledby` association.
+- **Files in this change set.** Modified:
+  `src/app/(platform)/create/page.tsx`,
+  `src/app/(platform)/anything-wars/page.tsx`,
+  `src/app/(platform)/anything-wars/create/page.tsx`,
+  `src/app/(platform)/anything-wars/events/[simulationId]/page.tsx`,
+  `src/app/(platform)/anything-wars/events/[simulationId]/runs/[runId]/page.tsx`,
+  `src/components/simulations/entity-picker.tsx`,
+  `src/lib/anything-wars/routes.ts`,
+  `src/server/services/anything-wars-service.ts`, and the two touched test
+  files. Created: `src/lib/create/catalog.ts` (+ test),
+  `src/components/create/creation-card.tsx`,
+  `src/components/create/creation-previews.tsx`,
+  `src/lib/anything-wars/quick.ts`, `src/lib/anything-wars/outcome.ts`,
+  `src/components/anything-wars/quick-war-form.tsx`,
+  `src/app/(platform)/anything-wars/quick/page.tsx`,
+  `src/app/api/anything-wars/quick/route.ts`, plus docs `UX_PRINCIPLES.md` and
+  `MASTER_CAPABILITY_MAP.md`.
+- **Preserved unchanged.** Deterministic Core, Battle/Race/Survival mechanics,
+  Tournament, Run snapshots, seed behavior, Runtime Protocol v1, permissions,
+  workspace isolation, historical results, generic creators, and service
+  boundaries. Anything Wars remains a Product composed from generic SIMVERSE
+  systems; SIMVERSE is not re-architected around it.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -791,6 +906,25 @@ durable bootstrap plan remains in
   its structure, became ready, ran its authoritative Match, completed and recorded
   a champion on the product detail page. Race and Survival exposed no fake Watch
   action. The disposable QA database was removed afterward.
+- Beginner Experience v1 automated gates (direct): `npx vitest run` passes
+  **334 tests in 33 files**, preserving all 325 Anything Wars v0 baseline tests
+  and adding 9 — three Quick War service integration tests (canonical
+  started-run composition and participants; executable defaults for all three
+  modes with a single reused organizer project; foreign-competitor and read-only
+  rejection before any product record is created, plus immutable-snapshot
+  non-mutation) and six `src/lib` unit tests (Create catalog contract: live
+  routes, future-card non-interactivity, permission gating; Quick War mode/
+  distinctness validation, canonical defaults, and naming; the `quick` href).
+  `npx tsc --noEmit`, `npx eslint .`, and `npx prisma validate` are clean.
+  `npx next build` succeeds and emits artifacts for the new `/create`,
+  `/anything-wars/quick`, and `/api/anything-wars/quick` routes. `git diff
+  --check` passes with only Git's expected LF-to-CRLF working-copy notices. No
+  Prisma schema, Runtime Protocol v1, or mechanics file changed.
+- Manual browser QA at 390 / 768 / 1024 / 1440 px was **not** performed in this
+  session; the responsive and preview layouts are built to the breakpoints
+  recorded in [UX_PRINCIPLES.md](UX_PRINCIPLES.md) but should be visually
+  verified in a browser before this surface is considered user-tested. No
+  disposable QA artifacts were produced by this checkpoint.
 
 ## Known limits
 
@@ -861,22 +995,24 @@ durable bootstrap plan remains in
   model, World, Unreal, networking, streaming, or runtime-repository changes.
 
 ```text
-LAST COMPLETED:
-  Parallel Platform Track — Web Phase 6: Survival Module v1
-  36fb950 feat: add SIMVERSE Survival Module v1
+LAST COMPLETED (COMMITTED):
+  Products Track — Anything Wars v0 Browser Product Shell
+  52eea9c feat: add SIMVERSE Anything Wars v0 product shell
 
 COMMITTED HANDOFF CHECKPOINT:
-  36fb950 feat: add SIMVERSE Survival Module v1
+  52eea9c feat: add SIMVERSE Anything Wars v0 product shell
 
 CURRENT:
-  Products Track — Anything Wars v0 Browser Product Shell
-  STATUS: IMPLEMENTED; CHECKPOINTED BY THE CURRENT CHANGE SET
+  Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
+  STATUS: IMPLEMENTED AND VERIFIED; CHECKPOINTED BY THE CURRENT CHANGE SET
+  GATES: vitest 334/33, tsc, eslint, prisma validate, next build, diff --check — all pass
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review the Anything Wars v0 product journey and choose the next approved track.
-  Do not access D: or resume Unreal work until the external storage is stable.
+  Visually verify the Create gateway and Quick War at 390/768/1024/1440 px in a
+  browser, then choose the next approved track. Do not access D: or resume
+  Unreal work until the external storage is stable.
 ```

@@ -1,130 +1,100 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Boxes, FolderKanban, Globe2, Sparkles, Swords, Wand2 } from "lucide-react";
-import { PRODUCTS } from "@/lib/products";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Boxes, FolderKanban, Globe2, Sparkles, Swords } from "lucide-react";
+import {
+  canOpenCreateDestination,
+  createDestinationById,
+  type CreateDestinationId,
+} from "@/lib/create/catalog";
+import { requirePlatformContext } from "@/server/context";
+import { CreationCard } from "@/components/create/creation-card";
+import {
+  AnimationCreationPreview,
+  AnythingWarsCreationPreview,
+  EntityCreationPreview,
+  ProjectCreationPreview,
+  SimulationCreationPreview,
+  WorldCreationPreview,
+} from "@/components/create/creation-previews";
 import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "Create" };
 
-interface CreateOption {
-  icon: typeof Boxes;
-  title: string;
-  description: string;
-  /** When set, the option is live and links here; otherwise it's a "Soon" placeholder. */
-  href?: string;
+function previewFor(id: CreateDestinationId) {
+  switch (id) {
+    case "anything-wars": return <AnythingWarsCreationPreview />;
+    case "entity": return <EntityCreationPreview />;
+    case "world": return <WorldCreationPreview />;
+    case "simulation": return <SimulationCreationPreview />;
+    case "project": return <ProjectCreationPreview />;
+    case "animation": return <AnimationCreationPreview />;
+  }
 }
 
-const CREATE_OPTIONS: CreateOption[] = [
-  {
-    icon: Swords,
-    title: "Start Anything Wars",
-    description: "Choose any Entities, pick Battle, Race, or Survival, and launch an authoritative competition.",
-    href: "/anything-wars/create",
-  },
-  {
-    icon: Swords,
-    title: "New simulation",
-    description: "Choose a mode, pick entities from a project, and configure the settings. Execution becomes available as mode modules arrive.",
-    href: "/simulations/new",
-  },
-  {
-    icon: Boxes,
-    title: "New entity",
-    description: "Define a thing that lives in your worlds — traits and behaviors.",
-    href: "/entities/new",
-  },
-  {
-    icon: FolderKanban,
-    title: "New project",
-    description: "Organize related worlds, entities, and simulations together.",
-    href: "/projects/new",
-  },
-  {
-    icon: Globe2,
-    title: "New world",
-    description: "Compose an environment and the rules that govern it.",
-  },
-];
+export default async function CreatePage() {
+  const { permissions } = await requirePlatformContext();
+  const render = (id: CreateDestinationId, featured = false) => {
+    const destination = createDestinationById(id);
+    return (
+      <CreationCard
+        key={id}
+        destination={destination}
+        preview={previewFor(id)}
+        available={canOpenCreateDestination(destination, permissions)}
+        featured={featured}
+      />
+    );
+  };
 
-export default function CreatePage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader
-        eyebrow="Creation hub"
-        title="Create something new"
-        description="Everything you build starts here. Projects, entities, and simulations are ready now — more creation tools arrive in future phases."
+        eyebrow="Create in SIMVERSE"
+        title="What do you want to bring to life?"
+        description="Start with a quick competition, create a reusable character or object, shape a world, or build a detailed scenario. Each preview shows what you will make before you begin."
         icon={Sparkles}
       />
 
-      <section>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {CREATE_OPTIONS.map((option) =>
-            option.href ? (
-              <Link key={option.title} href={option.href} className="group block">
-                <Card interactive className="flex h-full items-start gap-4 p-5">
-                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-accent/40 bg-accent/10 text-accent">
-                    <option.icon className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">
-                        {option.title}
-                      </h3>
-                      <ArrowRight className="size-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
-                    </div>
-                    <p className="mt-1 text-sm text-secondary">{option.description}</p>
-                  </div>
-                </Card>
-              </Link>
-            ) : (
-              <Card key={option.title} className="flex items-start gap-4 p-5">
-                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background/50 text-accent">
-                  <option.icon className="size-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-foreground">
-                      {option.title}
-                    </h3>
-                    <Badge variant="neutral">Soon</Badge>
-                  </div>
-                  <p className="mt-1 text-sm text-secondary">{option.description}</p>
-                </div>
-              </Card>
-            ),
-          )}
+      <section aria-labelledby="quick-start-heading">
+        <div className="mb-4 flex items-center gap-2">
+          <Swords className="size-4 text-accent" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Recommended first step</p>
+            <h2 id="quick-start-heading" className="text-lg font-semibold text-foreground">Create your first result in minutes</h2>
+          </div>
+        </div>
+        {render("anything-wars", true)}
+      </section>
+
+      <section aria-labelledby="building-blocks-heading">
+        <div className="mb-4 flex items-center gap-2">
+          <Boxes className="size-4 text-accent" />
+          <div>
+            <h2 id="building-blocks-heading" className="text-lg font-semibold text-foreground">Build the pieces of your universe</h2>
+            <p className="text-sm text-muted">Reusable creations can appear across projects and experiences.</p>
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {render("entity")}
+          {render("world")}
+          {render("simulation")}
         </div>
       </section>
 
-      <section>
+      <section aria-labelledby="organize-and-future-heading">
         <div className="mb-4 flex items-center gap-2">
-          <Wand2 className="size-4 text-accent" />
-          <h2 className="text-lg font-semibold text-foreground">Launch from a product</h2>
+          <FolderKanban className="size-4 text-accent" />
+          <h2 id="organize-and-future-heading" className="text-lg font-semibold text-foreground">Organize today, see what is next</h2>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.map((product) => {
-            const card = <Card interactive={Boolean(product.href)} className="flex h-full flex-col p-5">
-              <div className="flex items-start justify-between">
-                <span
-                  className={`inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${product.gradient} text-foreground`}
-                >
-                  <product.icon className="size-5" />
-                </span>
-                <Badge variant={product.status === "Available" ? "success" : product.status === "In development" ? "accent" : "neutral"}>
-                  {product.status}
-                </Badge>
-              </div>
-              <h3 className="mt-3.5 text-base font-semibold text-foreground">
-                {product.name}
-              </h3>
-              <p className="mt-1 flex-1 text-sm text-secondary">{product.tagline}</p>
-            </Card>;
-            return product.href ? <Link key={product.name} href={product.href}>{card}</Link> : <div key={product.name}>{card}</div>;
-          })}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {render("project")}
+          {render("animation")}
         </div>
       </section>
+
+      <aside className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4 text-sm text-secondary">
+        <Globe2 className="mt-0.5 size-4 shrink-0 text-accent" />
+        <p><strong className="text-foreground">Simple first, powerful later.</strong> Each creator starts with the choices needed to succeed. Detailed controls remain available when you want them.</p>
+      </aside>
     </div>
   );
 }

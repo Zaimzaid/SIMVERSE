@@ -23,6 +23,8 @@ interface EntityListResponse {
 export interface EntityPickerProps {
   /** Pool source: only entities linked to this project are offered. */
   projectId: string | null;
+  /** Quick creators may select from all active workspace Entities. */
+  scope?: "project" | "workspace";
   value: ParticipantChoice[];
   onChange: (next: ParticipantChoice[]) => void;
   minEntities: number;
@@ -41,6 +43,7 @@ export interface EntityPickerProps {
  */
 export function EntityPicker({
   projectId,
+  scope = "project",
   value,
   onChange,
   minEntities,
@@ -54,14 +57,16 @@ export function EntityPicker({
   const [results, setResults] = useState<EntityView[]>([]);
   const [loading, setLoading] = useState(false);
   const reqId = useRef(0);
+  const workspaceScope = scope === "workspace";
 
   const selectedIds = new Set(value.map((v) => v.entityId));
 
   const load = useCallback(
-    async (term: string, pid: string) => {
+    async (term: string, pid: string | null) => {
       const id = ++reqId.current;
       setLoading(true);
-      const qs = new URLSearchParams({ projectId: pid, status: "ACTIVE", pageSize: "100" });
+      const qs = new URLSearchParams({ status: "ACTIVE", pageSize: "100" });
+      if (!workspaceScope && pid) qs.set("projectId", pid);
       if (term) qs.set("search", term);
       const { data, error } = await apiFetch<EntityListResponse>(`/api/entities?${qs.toString()}`);
       if (id !== reqId.current) return; // ignore out-of-order responses
@@ -72,25 +77,25 @@ export function EntityPicker({
       }
       setResults(data?.items ?? []);
     },
-    [toast],
+    [toast, workspaceScope],
   );
 
-  // (Re)load whenever the project changes.
+  // (Re)load whenever the project or pool scope changes.
   useEffect(() => {
-    if (!projectId) {
+    if (!projectId && !workspaceScope) {
       setResults([]);
       return;
     }
     setSearch("");
     void load("", projectId);
-  }, [projectId, load]);
+  }, [projectId, workspaceScope, load]);
 
   // Debounce search → reload.
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId && !workspaceScope) return;
     const timer = setTimeout(() => void load(search.trim(), projectId), 350);
     return () => clearTimeout(timer);
-  }, [search, projectId, load]);
+  }, [search, projectId, workspaceScope, load]);
 
   function add(entity: EntityView) {
     if (selectedIds.has(entity.id)) return;
@@ -135,7 +140,7 @@ export function EntityPicker({
   const enough = value.length >= minEntities && (maxEntities === undefined || value.length <= maxEntities);
   const singular = language === "competitors" ? "competitor" : "entity";
 
-  if (!projectId) {
+  if (!projectId && !workspaceScope) {
     return (
       <EmptyState
         icon={Boxes}
@@ -241,7 +246,7 @@ export function EntityPicker({
       {/* Available entities */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-xs font-medium uppercase tracking-wide text-muted">Add from this project</h4>
+          <h4 className="text-xs font-medium uppercase tracking-wide text-muted">{workspaceScope ? "Choose from your workspace" : "Add from this project"}</h4>
           {createHref ? (
             <Link href={createHref} target="_blank" className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline">
               <Plus className="size-3.5" /> Create new {singular}
@@ -257,7 +262,7 @@ export function EntityPicker({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search this project’s entities…"
+            placeholder={workspaceScope ? `Search ${language}…` : "Search this project's entities…"}
             className="pl-9"
             aria-label="Search entities to add"
           />
@@ -269,10 +274,10 @@ export function EntityPicker({
           ) : available.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted">
               {search.trim()
-                ? "No matching entities in this project."
+                ? workspaceScope ? `No matching ${language}.` : "No matching entities in this project."
                 : value.length > 0
-                  ? "Every entity in this project is already selected."
-                  : "This project has no active entities yet. Add some from the project’s Entities tab."}
+                  ? workspaceScope ? `Every available ${singular} is already selected.` : "Every entity in this project is already selected."
+                  : workspaceScope ? `No active ${language} yet. Create one in a new tab, then search again here.` : "This project has no active entities yet. Add some from the project's Entities tab."}
             </p>
           ) : (
             <ul className="divide-y divide-border">

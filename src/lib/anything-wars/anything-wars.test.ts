@@ -6,7 +6,8 @@ import {
   anythingWarsParticipantLimit,
   isAnythingWarsEventMode,
 } from "./constants";
-import { anythingWarsEventHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "./routes";
+import { quickWarConfiguration, quickWarInputSchema, quickWarName } from "./quick";
+import { anythingWarsEventHref, anythingWarsQuickHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "./routes";
 import { defaultRaceConfigV1 } from "@/lib/modules/race/config";
 import { defaultSurvivalConfigV1 } from "@/lib/modules/survival/config";
 
@@ -34,5 +35,22 @@ describe("Anything Wars v0 product contract", () => {
     expect(anythingWarsRunHref("event", "run/one")).toBe("/anything-wars/events/event/runs/run%2Fone");
     expect(anythingWarsWatchHref("event", "run")).toBe("/anything-wars/events/event/runs/run/watch");
     expect(anythingWarsRematchHref("event one")).toBe("/anything-wars/create?rematch=event%20one");
+    expect(anythingWarsQuickHref()).toBe("/anything-wars/quick");
+    expect(anythingWarsQuickHref("battle & race")).toBe("/anything-wars/quick?mode=battle%20%26%20race");
+  });
+
+  it("accepts only supported Quick War modes and distinct competitors", () => {
+    expect(quickWarInputSchema.safeParse({ mode: "battle", participantIds: ["one", "two"] }).success).toBe(true);
+    expect(quickWarInputSchema.safeParse({ mode: "tournament", participantIds: ["one", "two"] }).success).toBe(false);
+    expect(quickWarInputSchema.safeParse({ mode: "economy", participantIds: ["one", "two"] }).success).toBe(false);
+    expect(quickWarInputSchema.safeParse({ mode: "race", participantIds: ["one", "one"] }).success).toBe(false);
+  });
+
+  it("uses valid canonical module defaults without asking beginners for technical settings", () => {
+    expect(quickWarConfiguration("battle", 2).mode).toEqual({ format: "duel" });
+    expect(quickWarConfiguration("battle", 4).mode).toEqual({ format: "free_for_all" });
+    expect(anythingWarsExecutionIssue("race", quickWarConfiguration("race", 2).mode, 2)).toBeNull();
+    expect(anythingWarsExecutionIssue("survival", quickWarConfiguration("survival", 2).mode, 2)).toBeNull();
+    expect(quickWarName("battle", ["Lion", "Robot"])).toBe("Lion vs Robot — Battle");
   });
 });

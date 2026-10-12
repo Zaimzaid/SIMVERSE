@@ -13,3 +13,7 @@ export function anythingWarsWatchHref(simulationId: string, runId: string): stri
 export function anythingWarsRematchHref(simulationId: string): string {
   return `/anything-wars/create?rematch=${encodeURIComponent(simulationId)}`;
 }
+
+export function anythingWarsQuickHref(mode?: string): string {
+  return mode ? `/anything-wars/quick?mode=${encodeURIComponent(mode)}` : "/anything-wars/quick";
+}

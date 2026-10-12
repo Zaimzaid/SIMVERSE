@@ -17,7 +17,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 
-export const metadata: Metadata = { title: "Create War" };
+export const metadata: Metadata = { title: "Custom War" };
 type SearchParams = Record<string, string | string[] | undefined>;
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 
@@ -75,7 +75,7 @@ export default async function AnythingWarsCreatePage({ searchParams }: { searchP
   return (
     <div className="space-y-6">
       <Link href={editing ? `/anything-wars/events/${eventId}` : "/anything-wars"} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"><ArrowLeft className="size-4" />Anything Wars</Link>
-      <PageHeader eyebrow="Anything Wars" icon={Swords} title={editing ? "Edit War" : rematchId ? "Set up Rematch" : "Start a New War"} description="Choose competitors, an optional World and presentation style, then configure the authoritative match." />
+      <PageHeader eyebrow="Anything Wars · Custom War" icon={Swords} title={editing ? "Edit War" : rematchId ? "Customize Rematch" : "Customize Everything"} description="Control competitors, detailed rules, World, presentation style, and seed. Quick War remains available when you want working defaults." />
       <SimulationBuilder
         mode={editing ? "edit" : "create"}
         initial={initial}

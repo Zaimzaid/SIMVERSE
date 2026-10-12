@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Aperture, ArrowLeft, CalendarClock, Globe2, Play, Plus, RefreshCw, Users } from "lucide-react";
-import { anythingWarsEventHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "@/lib/anything-wars/routes";
+import { Aperture, ArrowLeft, CalendarClock, ChevronDown, Globe2, Play, Plus, RefreshCw, Trophy, Users } from "lucide-react";
+import { anythingWarsOutcome } from "@/lib/anything-wars/outcome";
+import { anythingWarsEventHref, anythingWarsQuickHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "@/lib/anything-wars/routes";
 import { NotFoundError } from "@/lib/errors";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { DEFAULT_RACE_MAX_TICKS, RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
@@ -61,27 +62,53 @@ export default async function AnythingWarsRunPage({ params, searchParams }: Page
   const survivalState = survivalV1 ? survivalStateSchema.safeParse(run.state.moduleState) : null;
   const activeStatus = ["CREATED", "RUNNING", "PAUSED"].includes(run.status) ? run.status as "CREATED" | "RUNNING" | "PAUSED" : null;
   const canRun = permissions.includes("simulation.run");
+  const canCreate = permissions.includes("simulation.create");
   const runBasePath = `${anythingWarsEventHref(event.id)}/runs`;
+  const outcome = run.status === "COMPLETED" && run.result
+    ? anythingWarsOutcome(run.result, run.participants)
+    : null;
 
   return (
     <div className="space-y-6">
       <Link href={anythingWarsEventHref(event.id)} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"><ArrowLeft className="size-4" />{event.name}</Link>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><div className="flex flex-wrap gap-2"><Badge variant={statusVariant(run.status)}>{run.status}</Badge><Badge variant="outline" className="capitalize">{run.mode}</Badge></div><h1 className="mt-2 font-display text-2xl font-semibold text-foreground">{run.status === "COMPLETED" ? "War Results" : "War in Progress"}</h1><p className="mt-1 text-sm text-secondary">{run.inputSnapshot.simulationName}</p></div><div className="flex flex-wrap gap-2">{canRun ? <AnythingWarsRunActions simulationId={event.id} runId={run.id} status={run.status} /> : null}{permissions.includes("simulation.create") ? <Link href={anythingWarsRematchHref(event.id)} className={buttonClasses({ variant: "secondary" })}><RefreshCw className="size-4" />Rematch</Link> : null}<Link href="/anything-wars/create" className={buttonClasses({ variant: "secondary" })}><Plus className="size-4" />New War</Link></div></div>
+      <div><div className="flex flex-wrap gap-2"><Badge variant={statusVariant(run.status)}>{run.status}</Badge><Badge variant="outline" className="capitalize">{run.mode}</Badge></div><h1 className="mt-2 font-display text-2xl font-semibold text-foreground">{outcome?.title ?? (run.status === "COMPLETED" ? "Competition Complete" : "War in Progress")}</h1><p className="mt-1 text-sm text-secondary">{run.inputSnapshot.simulationName}</p></div>
+
+      {outcome ? (
+        <Card as="section" className="overflow-hidden border-success/30 bg-gradient-to-br from-success-soft via-surface to-accent-soft">
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-4">
+                <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-success/30 bg-success-soft text-success"><Trophy className="size-7" /></span>
+                <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-success">Final result</p><h2 className="mt-1 font-display text-3xl font-semibold text-foreground sm:text-4xl">{outcome.title}</h2><p className="mt-2 text-sm text-secondary">{outcome.detail}</p></div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {battleV1 ? <Link href={anythingWarsWatchHref(event.id, run.id)} className={buttonClasses({ size: "lg" })}><Play className="size-4" />Watch Replay</Link> : null}
+                {canRun ? <AnythingWarsRunActions simulationId={event.id} runId={run.id} status={run.status} /> : null}
+                {canCreate ? <Link href={anythingWarsRematchHref(event.id)} className={buttonClasses({ variant: "secondary" })}><RefreshCw className="size-4" />Rematch</Link> : null}
+                {canCreate && canRun ? <Link href={anythingWarsQuickHref(run.mode)} className={buttonClasses({ variant: "secondary" })}><Users className="size-4" />Change Competitors</Link> : null}
+                {canCreate && canRun ? <Link href="/anything-wars/quick" className={buttonClasses({ variant: "secondary" })}><Plus className="size-4" />New War</Link> : null}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {run.failureMessage ? <div className="rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">{run.failureMessage}</div> : null}
+      {!outcome && canRun ? <AnythingWarsRunActions simulationId={event.id} runId={run.id} status={run.status} /> : null}
       {battleV1 && activeStatus && canRun ? <BattleRunControls simulationId={event.id} runId={run.id} status={activeStatus} runBasePath={runBasePath} /> : null}
       {raceV1 && activeStatus && canRun ? <RaceRunControls simulationId={event.id} runId={run.id} status={activeStatus} runBasePath={runBasePath} currentTick={run.currentTick} maxTicks={raceState?.success ? raceState.data.config.maxTicks : DEFAULT_RACE_MAX_TICKS} /> : null}
       {survivalV1 && activeStatus && canRun ? <SurvivalRunControls simulationId={event.id} runId={run.id} status={activeStatus} runBasePath={runBasePath} currentTick={run.currentTick} maxTicks={survivalState?.success ? survivalState.data.config.maxTicks : DEFAULT_SURVIVAL_MAX_TICKS} /> : null}
-      {battleV1 && run.status === "COMPLETED" ? <Link href={anythingWarsWatchHref(event.id, run.id)} className={buttonClasses({ size: "lg" })}><Play className="size-4" />Watch 3D Replay</Link> : null}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card as="section" className="lg:col-span-2"><CardHeader><CardTitle>Run facts</CardTitle><CardDescription>This data comes from the immutable input snapshot and authoritative engine state.</CardDescription></CardHeader><CardContent><dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-xs text-muted">Current tick</dt><dd>{run.currentTick}</dd></div><div><dt className="text-xs text-muted">Simulation time</dt><dd>{run.elapsedSimulationMs} ms</dd></div><div><dt className="text-xs text-muted">Seed</dt><dd className="font-mono">{run.resolvedSeed}</dd></div><div><dt className="text-xs text-muted">Events</dt><dd>{run.eventCount}</dd></div><div><dt className="text-xs text-muted">World</dt><dd>{run.inputSnapshot.world ? `${run.inputSnapshot.world.name} · v${run.inputSnapshot.world.version}` : "None"}</dd></div><div><dt className="text-xs text-muted">Presentation style</dt><dd>{run.inputSnapshot.experienceProfile ? `${run.inputSnapshot.experienceProfile.name} · v${run.inputSnapshot.experienceProfile.version}` : "Default"}</dd></div></dl></CardContent></Card>
-        <Card as="section"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 text-muted" />Competitor snapshot</CardTitle></CardHeader><CardContent><ol className="space-y-2">{run.participants.map((participant) => <li key={participant.runParticipantId} className="rounded-lg border border-border p-2.5 text-sm"><p className="font-medium text-foreground">{participant.position + 1}. {participant.name}</p><p className="text-xs text-muted">{participant.category.replaceAll("_", " ")} · {participant.attributes.length} attributes</p></li>)}</ol></CardContent></Card>
-      </div>
 
       {battleV1 ? <BattleRunSummary run={run} /> : null}
       {raceV1 ? <RaceRunSummary run={run} /> : null}
       {survivalV1 ? <SurvivalRunSummary run={run} /> : null}
+
+      <Card as="section"><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-4 text-muted" />Competitors</CardTitle><CardDescription>These names and attributes were saved when this Match began.</CardDescription></CardHeader><CardContent><ol className="grid gap-2 sm:grid-cols-2">{run.participants.map((participant) => <li key={participant.runParticipantId} className="rounded-lg border border-border p-2.5 text-sm"><p className="font-medium text-foreground">{participant.position + 1}. {participant.name}</p><p className="text-xs text-muted">{participant.category.replaceAll("_", " ")} · {participant.attributes.length} attributes</p></li>)}</ol></CardContent></Card>
+
+      <details className="group rounded-xl border border-border bg-surface">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 text-sm font-semibold text-foreground"><span>Match details</span><ChevronDown className="size-4 text-muted transition-transform group-open:rotate-180" /></summary>
+        <div className="border-t border-border p-5"><p className="mb-4 text-xs text-muted">Technical details are kept here for creators who need them.</p><dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3"><div><dt className="text-xs text-muted">Current tick</dt><dd>{run.currentTick}</dd></div><div><dt className="text-xs text-muted">Simulation time</dt><dd>{run.elapsedSimulationMs} ms</dd></div><div><dt className="text-xs text-muted">Seed</dt><dd className="font-mono">{run.resolvedSeed}</dd></div><div><dt className="text-xs text-muted">Events</dt><dd>{run.eventCount}</dd></div><div><dt className="text-xs text-muted">World</dt><dd>{run.inputSnapshot.world ? `${run.inputSnapshot.world.name} · v${run.inputSnapshot.world.version}` : "Default arena"}</dd></div><div><dt className="text-xs text-muted">Presentation</dt><dd>{run.inputSnapshot.experienceProfile ? `${run.inputSnapshot.experienceProfile.name} · v${run.inputSnapshot.experienceProfile.version}` : "Default style"}</dd></div></dl></div>
+      </details>
 
       <Card as="section"><CardHeader><CardTitle className="flex items-center gap-2"><CalendarClock className="size-4 text-muted" />Event history</CardTitle></CardHeader><CardContent>{events.items.length ? <ol className="space-y-2">{events.items.map((item) => <li key={item.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-border p-3 text-sm"><div><p className="font-medium text-foreground">{battleV1 ? battleEventDescription(item, names) : raceV1 ? raceEventDescription(item, names) : survivalV1 ? survivalEventDescription(item, names) : item.type}</p><p className="text-xs text-muted">{item.type}</p></div><p className="text-xs text-muted">#{item.sequence} · tick {item.tick}</p></li>)}</ol> : <p className="text-sm text-muted">No events recorded on this page.</p>}{events.hasMore ? <Link href={`${anythingWarsRunHref(event.id, run.id)}?after=${events.nextAfterSequence}`} className="mt-4 inline-flex text-sm font-medium text-accent hover:underline">More events</Link> : null}</CardContent></Card>
 

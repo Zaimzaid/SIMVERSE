@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Clock3, Flame, Gauge, Plus, Sparkles, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Clock3, Flame, Gauge, Settings2, Sparkles, Swords, Trophy, Zap } from "lucide-react";
 import { ANYTHING_WARS_FUTURE_MODES } from "@/lib/anything-wars/constants";
-import { anythingWarsEventHref } from "@/lib/anything-wars/routes";
+import { anythingWarsEventHref, anythingWarsQuickHref } from "@/lib/anything-wars/routes";
 import { formatRelativeTime } from "@/lib/utils";
 import { requirePlatformContext } from "@/server/context";
 import { listAnythingWarsEvents } from "@/server/services/anything-wars-service";
@@ -46,8 +46,11 @@ export default async function AnythingWarsPage() {
           <h1 className="mt-4 font-display text-3xl font-semibold text-foreground sm:text-5xl">Anything Wars</h1>
           <p className="mt-3 text-lg text-secondary">Choose anything. Make them compete. Watch the story unfold.</p>
           <div className="mt-6 flex flex-wrap gap-3">
+            {permissions.includes("simulation.create") && permissions.includes("simulation.run") ? (
+              <Link href="/anything-wars/quick" className={buttonClasses({ size: "lg" })}><Zap className="size-4" />Quick War</Link>
+            ) : null}
             {permissions.includes("simulation.create") ? (
-              <Link href="/anything-wars/create" className={buttonClasses({ size: "lg" })}><Plus className="size-4" />Start New War</Link>
+              <Link href="/anything-wars/create" className={buttonClasses({ variant: "secondary", size: "lg" })}><Settings2 className="size-4" />Custom War</Link>
             ) : null}
             {permissions.includes("tournament.view") ? (
               <Link href="/anything-wars/tournaments" className={buttonClasses({ variant: "secondary", size: "lg" })}><Trophy className="size-4" />Tournaments</Link>
@@ -57,12 +60,12 @@ export default async function AnythingWarsPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Choose a competition</h2>
+        <div className="mb-4"><h2 className="text-lg font-semibold text-foreground">Choose a competition</h2><p className="mt-1 text-sm text-muted">Quick War uses working defaults. Custom War keeps every detailed option available.</p></div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {MODES.map((mode) => {
-            const href = mode.key === "tournament" ? "/anything-wars/tournaments/new" : `/anything-wars/create?mode=${mode.key}`;
-            const enabled = mode.key === "tournament" ? permissions.includes("tournament.manage") : permissions.includes("simulation.create");
-            const content = <Card interactive={enabled} className="h-full"><CardHeader><mode.icon className="size-6 text-accent" /><CardTitle className="mt-3">{mode.label}</CardTitle><CardDescription>{mode.description}</CardDescription></CardHeader></Card>;
+            const href = mode.key === "tournament" ? "/anything-wars/tournaments/new" : anythingWarsQuickHref(mode.key);
+            const enabled = mode.key === "tournament" ? permissions.includes("tournament.manage") : permissions.includes("simulation.create") && permissions.includes("simulation.run");
+            const content = <Card interactive={enabled} className="h-full"><CardHeader><div className="flex items-center justify-between gap-2"><mode.icon className="size-6 text-accent" />{mode.key !== "tournament" ? <Badge variant="outline">Quick</Badge> : null}</div><CardTitle className="mt-3">{mode.label}</CardTitle><CardDescription>{mode.description}</CardDescription></CardHeader></Card>;
             return enabled ? <Link key={mode.key} href={href}>{content}</Link> : <div key={mode.key}>{content}</div>;
           })}
         </div>
