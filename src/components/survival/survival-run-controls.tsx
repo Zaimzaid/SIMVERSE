@@ -16,10 +16,12 @@ interface Props {
   status?: ActiveStatus;
   currentTick?: number;
   maxTicks: number;
+  createRunPath?: string;
+  runBasePath?: string;
 }
 
 /** Drives bounded Core endpoints; all Survival state transitions remain server-authoritative. */
-export function SurvivalRunControls({ simulationId, runId, status, currentTick = 0, maxTicks }: Props) {
+export function SurvivalRunControls({ simulationId, runId, status, currentTick = 0, maxTicks, createRunPath, runBasePath }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -45,7 +47,7 @@ export function SurvivalRunControls({ simulationId, runId, status, currentTick =
       let currentStatus: string = status ?? "CREATED";
       if (!activeRunId) {
         setMessage("Creating Survival run…");
-        const created = await post(`/api/simulations/${simulationId}/runs`);
+        const created = await post(createRunPath ?? `/api/simulations/${simulationId}/runs`);
         activeRunId = created.run.id;
         currentStatus = created.run.status;
         activeTick = created.run.currentTick;
@@ -65,7 +67,7 @@ export function SurvivalRunControls({ simulationId, runId, status, currentTick =
         activeTick = advanced.run.currentTick;
       }
       if (activeRunId) {
-        router.push(`/simulations/${simulationId}/runs/${activeRunId}`);
+        router.push(`${runBasePath ?? `/simulations/${simulationId}/runs`}/${activeRunId}`);
         router.refresh();
       }
       if (currentStatus === "RUNNING") setMessage("Survival is still running. Open the saved run to continue.");
@@ -109,7 +111,7 @@ export function SurvivalRunControls({ simulationId, runId, status, currentTick =
       ) : null}
       {message ? <p role="status" className="basis-full text-sm text-secondary">{message}</p> : null}
       {recoveryRunId && !runId ? (
-        <Link href={`/simulations/${simulationId}/runs/${recoveryRunId}`}
+        <Link href={`${runBasePath ?? `/simulations/${simulationId}/runs`}/${recoveryRunId}`}
           className="text-sm font-medium text-accent hover:underline">Open saved Survival run</Link>
       ) : null}
     </div>

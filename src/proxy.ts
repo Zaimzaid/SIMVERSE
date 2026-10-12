@@ -28,6 +28,7 @@ export const config = {
     "/create/:path*",
     "/projects/:path*",
     "/simulations/:path*",
+    "/anything-wars/:path*",
     "/entities/:path*",
     "/worlds/:path*",
     "/tournaments/:path*",

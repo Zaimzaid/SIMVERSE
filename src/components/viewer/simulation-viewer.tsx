@@ -21,6 +21,7 @@ interface Props {
   participants: ParticipantSnapshotV1[];
   result: unknown;
   eventCount: number;
+  resultsHref?: string;
 }
 
 interface Playback {
@@ -71,7 +72,7 @@ function useReducedMotion() {
 export function SimulationViewer(props: Props) {
   const { runId, simulationId, title, moduleId, moduleVersion, participants, result, eventCount } = props;
   const adapter = productionViewerRegistry.forRun(moduleId, moduleVersion);
-  const resultsHref = `/simulations/${simulationId}/runs/${runId}`;
+  const resultsHref = props.resultsHref ?? `/simulations/${simulationId}/runs/${runId}`;
   const sceneRef = useRef<VisualEntityInstance[]>([]);
   const timelineRef = useRef<ViewerTimeline | null>(null);
   const clockRef = useRef<ViewerClock | null>(null);

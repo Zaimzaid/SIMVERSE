@@ -4,28 +4,31 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Parallel Platform Track — **Web Phase 5: Race Module v1**,
-  committed in `c97887d` (`feat: add SIMVERSE Race Module v1`).
-- **Current work:** Parallel Platform Track — **Web Phase 6: Survival Module v1**.
-  Implementation is complete and uncommitted, awaiting owner review.
+- **Last completed:** Parallel Platform Track — **Web Phase 6: Survival Module
+  v1**, committed in `36fb950` (`feat: add SIMVERSE Survival Module v1`).
+- **Current work:** Products Track — **Anything Wars v0 Browser Product Shell**.
+  The implementation composes the existing Platform, Core, Modules and Creator
+  metadata systems into the first end-user product flow.
 - **Paused track:** Phase 7A-B — Unreal Runtime Bootstrap. Unreal work is paused
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint:** `c97887d`, after Tournament System v1 `49eff48`,
+- **Committed checkpoint before this work:** `36fb950`, after Race Module v1
+  `c97887d`, Tournament System v1 `49eff48`,
   Experience Profiles v1 `775a01b`,
   World Blueprint Creator v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase
   7A-A `5687430`, Phase 6.5 `a432b7b`, Phase 6
   `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-11.
+- **Last updated:** 2026-10-12.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
   Runtime Protocol v1 transports completed Battle truth only; no Unreal project,
   rendered World runtime or Phase 7B work exists in this Platform repository.
   Engine-neutral World Blueprint metadata, Experience Profile presentation
-  direction, and generic Tournament orchestration now exist. Runtime Protocol
-  v1, Battle mechanics and Race mechanics are unchanged by Survival Module v1.
+  direction, and generic Tournament orchestration now exist. Anything Wars is a
+  Product UI/service boundary and does not replace or duplicate those systems.
+  Runtime Protocol v1 and Battle, Race and Survival mechanics are unchanged.
 
 ## Official architecture and visual direction
 
@@ -631,6 +634,54 @@ durable bootstrap plan remains in
   protocol schema, fixture or runtime package was added. Battle and Race
   mechanics, results and event vocabularies are unchanged.
 
+## Products Track — Anything Wars v0 Browser Product Shell
+
+- `/anything-wars` is the first real browser product home. It uses real
+  workspace data for active and recently completed events, exposes Battle,
+  Race, Survival and Tournament entry points, and keeps Economy, Civilization,
+  Sports, Strategy and Random visibly disabled as future modes.
+- The guided Create War flow reuses the existing eight-step Simulation Builder
+  with product language: Entities are competitors, Simulations are events,
+  World Blueprints are Worlds/Arenas, and Experience Profiles are presentation
+  styles. Search, images, categories, selected attributes, ordering and existing
+  module forms remain backed by canonical Entity and Simulation records.
+- Battle, Race and Survival events are normal workspace-scoped Simulations
+  tagged minimally in existing metadata as `product: "anything-wars"` and
+  `productVersion: 0`. No Product table or Prisma change is required. The
+  product service delegates CRUD, READY transitions and Run creation to the
+  existing authorized services and additionally rejects unsupported modes,
+  non-product IDs and module-ineligible launch configurations.
+- Optional immutable World and Experience Profile versions use the existing
+  Simulation bindings. Every Run freezes the complete selected versions through
+  the existing input snapshot path. Anything Wars never reads later mutable
+  Entity, World or Profile state to rewrite historical Runs.
+- Event and Run pages wrap real lifecycle status, bounded start/advance,
+  pause/resume/cancel, mode-specific results, rankings/statistics and event
+  history. Battle v1 alone offers the existing real-time 3D Watch/Replay route;
+  Race and Survival truthfully use their existing progress and result views.
+- **Run Again** creates a new Run from the same saved Simulation. **Rematch**
+  creates a separate editable event initialized from the source. Neither action
+  updates a historical Run. Generic Simulation and Run detail links remain
+  available as secondary power-user paths.
+- Tournament routes compose the existing Tournament service, creation form,
+  lifecycle controls, bracket/schedule, standings, Match Run orchestration and
+  immutable participant identities. Tournament remains its own generic system;
+  Anything Wars adds product navigation and terminology only.
+- Navigation, dashboard product discovery and the Create hub now present
+  Anything Wars as an available first-class Product while preserving generic
+  Projects, Entities, Worlds, Experiences, Simulations and Tournaments.
+- Server permissions remain authoritative. `simulation.view`,
+  `simulation.create`, `simulation.edit`, `simulation.run`, `tournament.view`,
+  `tournament.manage` and `tournament.run` are enforced by the existing service
+  boundaries. Read-only users cannot mutate or launch events, and foreign
+  workspace IDs use safe NotFound behavior.
+- Known v0 limits: Runs advance in bounded request-driven batches rather than a
+  worker; Worlds are immutable Blueprints rather than rendered environments;
+  Experience Profiles direct presentation but do not control every current Web
+  Viewer feature; Battle is the only mode with 3D replay; Tournament v1 remains
+  head-to-head per Match; creating an Entity from the wizard opens the existing
+  Entity flow in a separate tab so the saved wizard state is preserved.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -724,6 +775,22 @@ durable bootstrap plan remains in
   round robin. `npx tsc --noEmit`, `npx eslint .`, `npx prisma validate`, `npx
   prisma generate`, `npx next build`, and `git diff --check` pass. Prisma Client
   v7.10.0 regenerates successfully. No schema or Runtime Protocol v1 file changed.
+- Anything Wars v0 direct `npm test` passes **325 tests in 32 files**, preserving
+  all 318 Survival baseline tests and adding seven product contract/service
+  integration tests for supported and future modes, module participant limits,
+  product result/replay/rematch routing, generic Simulation creation and config,
+  World/Profile pinning, immutable Run creation, workspace isolation, read-only
+  permissions, safe non-product lookup, foreign binding rejection, Run Again and
+  Rematch historical non-mutation. `npx tsc --noEmit`, `npx eslint .`, `npx
+  prisma validate`, `npm run build`, and `git diff --check` pass. No Prisma schema,
+  Runtime Protocol v1 or mechanics file changed.
+- An isolated local HTTP walkthrough created canonical project/competitor data,
+  completed real Battle, Race and Survival Runs through the same APIs used by
+  the product, rendered each product event/result route, and opened the completed
+  Battle 3D replay route. A two-competitor single-elimination Tournament generated
+  its structure, became ready, ran its authoritative Match, completed and recorded
+  a champion on the product detail page. Race and Survival exposed no fake Watch
+  action. The disposable QA database was removed afterward.
 
 ## Known limits
 
@@ -795,21 +862,21 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED:
-  Parallel Platform Track — Web Phase 5: Race Module v1
-  c97887d feat: add SIMVERSE Race Module v1
+  Parallel Platform Track — Web Phase 6: Survival Module v1
+  36fb950 feat: add SIMVERSE Survival Module v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  c97887d feat: add SIMVERSE Race Module v1
+  36fb950 feat: add SIMVERSE Survival Module v1
 
 CURRENT:
-  Parallel Platform Track — Web Phase 6: Survival Module v1
-  STATUS: IMPLEMENTED, UNCOMMITTED, AWAITING OWNER REVIEW
+  Products Track — Anything Wars v0 Browser Product Shell
+  STATUS: IMPLEMENTED; CHECKPOINTED BY THE CURRENT CHANGE SET
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Review and approve the Survival Module v1 Platform change set.
+  Review the Anything Wars v0 product journey and choose the next approved track.
   Do not access D: or resume Unreal work until the external storage is stable.
 ```

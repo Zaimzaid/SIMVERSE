@@ -14,10 +14,12 @@ interface Props {
   simulationId: string;
   runId?: string;
   status?: ActiveStatus;
+  createRunPath?: string;
+  runBasePath?: string;
 }
 
 /** Drives only existing bounded Core endpoints; every state transition remains server-authoritative. */
-export function BattleRunControls({ simulationId, runId, status }: Props) {
+export function BattleRunControls({ simulationId, runId, status, createRunPath, runBasePath }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -42,7 +44,7 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
       let currentStatus: string = status ?? "CREATED";
       if (!activeRunId) {
         setMessage("Creating Battle run…");
-        const created = await post(`/api/simulations/${simulationId}/runs`);
+        const created = await post(createRunPath ?? `/api/simulations/${simulationId}/runs`);
         activeRunId = created.run.id;
         currentStatus = created.run.status;
       }
@@ -59,7 +61,8 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
         currentStatus = advanced.run.status;
       }
       if (activeRunId) {
-        router.push(`/simulations/${simulationId}/runs/${activeRunId}${watch && currentStatus === "COMPLETED" ? "/watch" : ""}`);
+        const base = runBasePath ?? `/simulations/${simulationId}/runs`;
+        router.push(`${base}/${activeRunId}${watch && currentStatus === "COMPLETED" ? "/watch" : ""}`);
         router.refresh();
       }
       if (currentStatus === "RUNNING") setMessage("Battle is still running. Open the run to continue.");
@@ -108,7 +111,7 @@ export function BattleRunControls({ simulationId, runId, status }: Props) {
       ) : null}
       {message ? <p role="status" className="basis-full text-sm text-secondary">{message}</p> : null}
       {recoveryRunId && !runId ? (
-        <Link href={`/simulations/${simulationId}/runs/${recoveryRunId}`}
+        <Link href={`${runBasePath ?? `/simulations/${simulationId}/runs`}/${recoveryRunId}`}
           className="text-sm font-medium text-accent hover:underline">Open saved Battle run</Link>
       ) : null}
     </div>

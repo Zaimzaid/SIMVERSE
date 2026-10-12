@@ -16,10 +16,12 @@ interface Props {
   status?: ActiveStatus;
   currentTick?: number;
   maxTicks: number;
+  createRunPath?: string;
+  runBasePath?: string;
 }
 
 /** Drives existing bounded Core endpoints; Race mechanics remain server-authoritative. */
-export function RaceRunControls({ simulationId, runId, status, currentTick = 0, maxTicks }: Props) {
+export function RaceRunControls({ simulationId, runId, status, currentTick = 0, maxTicks, createRunPath, runBasePath }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -45,7 +47,7 @@ export function RaceRunControls({ simulationId, runId, status, currentTick = 0, 
       let currentStatus: string = status ?? "CREATED";
       if (!activeRunId) {
         setMessage("Creating Race run…");
-        const created = await post(`/api/simulations/${simulationId}/runs`);
+        const created = await post(createRunPath ?? `/api/simulations/${simulationId}/runs`);
         activeRunId = created.run.id;
         currentStatus = created.run.status;
         activeTick = created.run.currentTick;
@@ -65,7 +67,7 @@ export function RaceRunControls({ simulationId, runId, status, currentTick = 0, 
         activeTick = advanced.run.currentTick;
       }
       if (activeRunId) {
-        router.push(`/simulations/${simulationId}/runs/${activeRunId}`);
+        router.push(`${runBasePath ?? `/simulations/${simulationId}/runs`}/${activeRunId}`);
         router.refresh();
       }
       if (currentStatus === "RUNNING") setMessage("Race is still running. Open the saved run to continue.");
@@ -109,7 +111,7 @@ export function RaceRunControls({ simulationId, runId, status, currentTick = 0, 
       ) : null}
       {message ? <p role="status" className="basis-full text-sm text-secondary">{message}</p> : null}
       {recoveryRunId && !runId ? (
-        <Link href={`/simulations/${simulationId}/runs/${recoveryRunId}`}
+        <Link href={`${runBasePath ?? `/simulations/${simulationId}/runs`}/${recoveryRunId}`}
           className="text-sm font-medium text-accent hover:underline">Open saved Race run</Link>
       ) : null}
     </div>

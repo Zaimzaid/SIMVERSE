@@ -11,6 +11,7 @@ export const PROTECTED_ROUTES = [
   "/create",
   "/projects",
   "/simulations",
+  "/anything-wars",
   "/entities",
   "/worlds",
   "/tournaments",

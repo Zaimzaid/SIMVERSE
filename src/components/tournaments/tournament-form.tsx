@@ -26,7 +26,19 @@ interface Options {
   experiences: Array<{ experienceProfileId: string; experienceProfileName: string; version: number }>;
 }
 
-export function TournamentForm({ mode, options, initial }: { mode: "create" | "edit"; options: Options; initial?: TournamentView }) {
+export function TournamentForm({
+  mode,
+  options,
+  initial,
+  detailBasePath = "/tournaments",
+  productLanguage = false,
+}: {
+  mode: "create" | "edit";
+  options: Options;
+  initial?: TournamentView;
+  detailBasePath?: string;
+  productLanguage?: boolean;
+}) {
   const router = useRouter(); const { toast } = useToast();
   const [name, setName] = useState(initial?.name ?? ""); const [description, setDescription] = useState(initial?.description ?? "");
   const [format, setFormat] = useState(initial?.format ?? "SINGLE_ELIMINATION");
@@ -41,9 +53,14 @@ export function TournamentForm({ mode, options, initial }: { mode: "create" | "e
   const [worldBinding, setWorldBinding] = useState(initial?.worldId ? `${initial.worldId}:${initial.worldVersion}` : "");
   const [experienceBinding, setExperienceBinding] = useState(initial?.experienceProfileId ? `${initial.experienceProfileId}:${initial.experienceProfileVersion}` : "");
   const [scheduledStartAt, setScheduledStartAt] = useState(initial?.scheduledStartAt ? new Date(initial.scheduledStartAt).toISOString().slice(0, 16) : "");
+  const [entitySearch, setEntitySearch] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({}); const [submitting, setSubmitting] = useState(false);
   const selectedTemplate = options.simulations.find((simulation) => simulation.id === simulationTemplateId);
   const participantNames = useMemo(() => participantIds.map((id) => options.entities.find((entity) => entity.id === id)?.name).filter(Boolean), [participantIds, options.entities]);
+  const visibleEntities = useMemo(() => {
+    const query = entitySearch.trim().toLowerCase();
+    return query ? options.entities.filter((entity) => `${entity.name} ${entity.category}`.toLowerCase().includes(query)) : options.entities;
+  }, [entitySearch, options.entities]);
 
   function applyPreset(id: string) { const preset = TOURNAMENT_PRESETS.find((item) => item.id === id); if (!preset) return; setFormat(preset.configuration.format); setSeedingMethod(preset.configuration.seedingMethod); setTiePolicy(preset.configuration.tiePolicy); setWinPoints(preset.configuration.winPoints); setTiePoints(preset.configuration.tiePoints); setLossPoints(preset.configuration.lossPoints); setTiebreakers([...preset.configuration.tiebreakers]); }
   function toggleParticipant(id: string) { setParticipantIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }
@@ -61,7 +78,7 @@ export function TournamentForm({ mode, options, initial }: { mode: "create" | "e
     setErrors({}); setSubmitting(true);
     const result = await apiFetch<{ tournament: TournamentView }>(mode === "create" ? "/api/tournaments" : `/api/tournaments/${initial?.id}`, { method: mode === "create" ? "POST" : "PATCH", body: JSON.stringify(parsed.data) });
     setSubmitting(false); if (result.error) { setErrors(fieldErrorsFrom(result.error)); toast({ variant: "error", title: "Tournament could not be saved", description: result.error.message }); return; }
-    toast({ variant: "success", title: mode === "create" ? "Tournament created" : "Tournament updated" }); router.push(`/tournaments/${result.data?.tournament.id}`); router.refresh();
+    toast({ variant: "success", title: mode === "create" ? "Tournament created" : "Tournament updated" }); router.push(`${detailBasePath}/${result.data?.tournament.id}`); router.refresh();
   }
 
   return <form onSubmit={submit} className="space-y-6">
@@ -74,8 +91,9 @@ export function TournamentForm({ mode, options, initial }: { mode: "create" | "e
       <Field label="Preset"><Select defaultValue="" onChange={(event) => applyPreset(event.target.value)}><option value="">Custom configuration</option>{TOURNAMENT_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}</Select></Field>
       <Field label="Format"><Select value={format} onChange={(event) => setFormat(event.target.value as typeof format)}><option value="SINGLE_ELIMINATION">Single elimination</option><option value="ROUND_ROBIN">Round robin</option></Select></Field>
     </CardContent></Card>
-    <Card><CardHeader><CardTitle>3. Participants</CardTitle><CardDescription>Active workspace Entities become frozen Tournament participant identities when saved.</CardDescription></CardHeader><CardContent className="space-y-4">
-      <div className="grid gap-2 md:grid-cols-2">{options.entities.map((entity) => <label key={entity.id} className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"><Checkbox checked={participantIds.includes(entity.id)} onChange={() => toggleParticipant(entity.id)} /><span><strong>{entity.name}</strong><span className="ml-2 text-muted">{entity.category}</span></span></label>)}</div>
+    <Card><CardHeader><CardTitle>3. {productLanguage ? "Competitors" : "Participants"}</CardTitle><CardDescription>Active workspace Entities become frozen Tournament participant identities when saved.</CardDescription></CardHeader><CardContent className="space-y-4">
+      <Input type="search" value={entitySearch} onChange={(event) => setEntitySearch(event.target.value)} placeholder={`Search ${productLanguage ? "competitors" : "participants"}`} />
+      <div className="grid gap-2 md:grid-cols-2">{visibleEntities.map((entity) => <label key={entity.id} className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"><Checkbox checked={participantIds.includes(entity.id)} onChange={() => toggleParticipant(entity.id)} /><span><strong>{entity.name}</strong><span className="ml-2 text-muted">{entity.category}</span></span></label>)}</div>
       {errors.participants ? <p className="text-sm text-danger">{errors.participants}</p> : null}
     </CardContent></Card>
     <Card><CardHeader><CardTitle>4. Seeding</CardTitle><CardDescription>Manual order is explicit. Random order is reproducible from its SIMVERSE seed.</CardDescription></CardHeader><CardContent className="space-y-4">

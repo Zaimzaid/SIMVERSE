@@ -60,6 +60,11 @@ import {
 import { minEntitiesForMode, resolveMode, selectableModes } from "@/lib/simulations/modes";
 import { generateSeed, isValidSeed, normalizeSeed } from "@/lib/simulations/seed";
 import { apiFetch, fieldErrorsFrom } from "@/lib/client/api";
+import {
+  anythingWarsExecutionIssue,
+  anythingWarsParticipantLimit,
+} from "@/lib/anything-wars/constants";
+import { anythingWarsRunHref } from "@/lib/anything-wars/routes";
 import { cn } from "@/lib/utils";
 import type { SimulationView } from "@/server/services/simulation-service";
 import { useToast } from "@/components/ui/toast";
@@ -94,6 +99,9 @@ const STEPS = [
 ] as const;
 
 const LAST_STEP = STEPS.length - 1;
+const ANYTHING_WARS_STEP_TITLES = [
+  "Event", "Mode", "Competitors", "Match rules", "World / Arena", "Presentation style", "Seed", "Ready to start",
+] as const;
 
 /** "keep" preserves the stored seed; "auto" regenerates on save; "custom" uses the entered value. */
 type SeedMode = "keep" | "auto" | "custom";
@@ -109,6 +117,10 @@ export interface SimulationBuilderProps {
   experiences: { experienceProfileId: string; experienceProfileName: string; preset: string; version: number; status: string; current: boolean; modeCompatibility: string[] }[];
   /** Name of the current project, used when it isn't in `projects` (e.g. archived). */
   projectName?: string;
+  /** Product copy and product API/routing while retaining the generic Simulation model. */
+  variant?: "platform" | "anything-wars";
+  /** Product launch requires simulation.run; the API remains authoritative. */
+  canRun?: boolean;
 }
 
 /**
@@ -116,7 +128,16 @@ export interface SimulationBuilderProps {
  * Nothing here runs a simulation: "Ready" means the blueprint is complete and
  * valid; execution availability is determined separately by the engine registry.
  */
-export function SimulationBuilder({ mode, initial, projects, worlds, experiences, projectName }: SimulationBuilderProps) {
+export function SimulationBuilder({
+  mode,
+  initial,
+  projects,
+  worlds,
+  experiences,
+  projectName,
+  variant = "platform",
+  canRun = false,
+}: SimulationBuilderProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -146,8 +167,15 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
   const [markingReady, setMarkingReady] = useState(false);
 
   const busy = saving || markingReady;
+  const isAnythingWars = variant === "anything-wars";
   const minEntities = minEntitiesForMode(simMode);
   const resolvedMode = resolveMode(simMode);
+  const executionIssue = isAnythingWars
+    ? anythingWarsExecutionIssue(simMode, modeConfig, participants.length)
+    : null;
+  const modeOptions = isAnythingWars
+    ? MODE_OPTIONS.filter((option) => ["battle", "race", "survival"].includes(option.key))
+    : MODE_OPTIONS;
 
   // Merge the current project into the option list when it isn't already there.
   const projectOptions = useMemo(() => {
@@ -167,16 +195,21 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
       { ok: resolvedMode.availability === "available", label: "Mode is available", step: 1 },
       {
         ok: participants.length >= minEntities,
-        label: `At least ${minEntities} participants (have ${participants.length})`,
+        label: `At least ${minEntities} ${isAnythingWars ? "competitors" : "participants"} (have ${participants.length})`,
         step: 2,
       },
+      ...(isAnythingWars ? [{
+        ok: executionIssue === null,
+        label: executionIssue ?? "Competitor count and mode configuration are supported",
+        step: executionIssue?.toLowerCase().includes("config") ? 3 : 2,
+      }] : []),
       {
         ok: seedMode !== "custom" || isValidSeed(normalizeSeed(customSeed)),
         label: "Seed is valid",
         step: 6,
       },
     ],
-    [name, projectId, resolvedMode.availability, participants.length, minEntities, seedMode, customSeed],
+    [name, projectId, resolvedMode.availability, participants.length, minEntities, seedMode, customSeed, isAnythingWars, executionIssue],
   );
   const isReady = checklist.every((c) => c.ok);
 
@@ -241,7 +274,9 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
     setReadyIssues([]);
     setSaving(true);
 
-    const path = id ? `/api/simulations/${id}` : "/api/simulations";
+    const path = isAnythingWars
+      ? id ? `/api/anything-wars/events/${id}` : "/api/anything-wars/events"
+      : id ? `/api/simulations/${id}` : "/api/simulations";
     const method = id ? "PATCH" : "POST";
     const { data, error } = await apiFetch<{ simulation: SimulationView }>(path, {
       method,
@@ -278,24 +313,30 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
     if (!saved) return;
     toast({ variant: "success", title: "Draft saved", description: `“${saved.name}” was saved as a draft.` });
     if (navigate) {
-      router.push(`/simulations/${saved.id}`);
+      router.push(isAnythingWars ? `/anything-wars/events/${saved.id}` : `/simulations/${saved.id}`);
       router.refresh();
     }
   }
 
   async function onMarkReady() {
+    if (isAnythingWars && !canRun) {
+      toast({ variant: "error", title: "You cannot start this war", description: "Your workspace role does not include permission to run simulations." });
+      return;
+    }
     setMarkingReady(true);
     const saved = await persist();
     if (!saved) {
       setMarkingReady(false);
       return;
     }
-    const { error } = await apiFetch<{ simulation: SimulationView }>(`/api/simulations/${saved.id}/ready`, {
+    const readyPath = isAnythingWars
+      ? `/api/anything-wars/events/${saved.id}/ready`
+      : `/api/simulations/${saved.id}/ready`;
+    const { error } = await apiFetch<{ simulation: SimulationView }>(readyPath, {
       method: "POST",
     });
-    setMarkingReady(false);
-
     if (error) {
+      setMarkingReady(false);
       if (error.details?.length) {
         setReadyIssues(error.details.map((d) => d.message));
         setErrors(fieldErrorsFrom(error));
@@ -305,13 +346,41 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
       return;
     }
 
+    if (isAnythingWars) {
+      const created = await apiFetch<{ run: { id: string } }>(`/api/anything-wars/events/${saved.id}/runs`, {
+        method: "POST",
+      });
+      if (created.error || !created.data?.run) {
+        setMarkingReady(false);
+        toast({ variant: "error", title: "War saved but could not start", description: created.error?.message ?? "A Run could not be created." });
+        router.push(`/anything-wars/events/${saved.id}`);
+        router.refresh();
+        return;
+      }
+      const started = await apiFetch<{ run: { id: string } }>(`/api/simulation-runs/${created.data.run.id}/start`, {
+        method: "POST",
+      });
+      setMarkingReady(false);
+      if (started.error) {
+        toast({ variant: "error", title: "Run created but could not start", description: started.error.message });
+      } else {
+        toast({ variant: "success", title: "War started", description: "The authoritative Run is ready to continue." });
+      }
+      router.push(anythingWarsRunHref(saved.id, created.data.run.id));
+      router.refresh();
+      return;
+    }
+
+    setMarkingReady(false);
     toast({ variant: "success", title: "Marked ready", description: "The configuration is complete and valid." });
     router.push(`/simulations/${saved.id}`);
     router.refresh();
   }
 
   const StepIcon = STEPS[step]?.icon ?? FileText;
-  const stepTitle = STEPS[step]?.title ?? "";
+  const stepTitle = isAnythingWars
+    ? ANYTHING_WARS_STEP_TITLES[step] ?? ""
+    : STEPS[step]?.title ?? "";
 
   return (
     <div className="space-y-6">
@@ -343,7 +412,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                     {index + 1}
                   </span>
                   <Icon className="size-4" aria-hidden="true" />
-                  <span className="hidden sm:inline">{s.title}</span>
+                  <span className="hidden sm:inline">{isAnythingWars ? ANYTHING_WARS_STEP_TITLES[index] : s.title}</span>
                 </button>
                 {index < LAST_STEP ? <span className="mx-0.5 h-px w-3 bg-border" aria-hidden="true" /> : null}
               </li>
@@ -361,7 +430,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
             <CardTitle>
               Step {step + 1} of {STEPS.length} · {stepTitle}
             </CardTitle>
-            <CardDescription>{STEP_BLURBS[step]}</CardDescription>
+            <CardDescription>{isAnythingWars ? ANYTHING_WARS_STEP_BLURBS[step] : STEP_BLURBS[step]}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -435,7 +504,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
           {/* STEP 1 — MODE */}
           {step === 1 ? (
             <div className="grid gap-3 sm:grid-cols-2">
-              {MODE_OPTIONS.map((m) => (
+              {modeOptions.map((m) => (
                 <ModeCard
                   key={m.key}
                   mode={m}
@@ -443,6 +512,12 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                   onSelect={() => onChangeMode(m.key)}
                 />
               ))}
+              {isAnythingWars ? (
+                <Link href="/anything-wars/tournaments/new" className="rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent/50">
+                  <span className="font-medium text-foreground">Tournament</span>
+                  <span className="mt-1 block text-sm text-muted">Build a multi-match competition with the existing Tournament system.</span>
+                </Link>
+              ) : null}
             </div>
           ) : null}
 
@@ -459,6 +534,10 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 value={participants}
                 onChange={setParticipants}
                 minEntities={minEntities}
+                maxEntities={isAnythingWars ? anythingWarsParticipantLimit(simMode) : undefined}
+                language={isAnythingWars ? "competitors" : "entities"}
+                createHref={isAnythingWars ? `/entities/new?returnTo=${encodeURIComponent("/anything-wars/create")}` : undefined}
+                showAttributes={isAnythingWars}
               />
             </div>
           ) : null}
@@ -714,7 +793,11 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 <Info className="mt-0.5 size-4 shrink-0 text-muted" />
                 {simMode === "battle"
                   ? "A seed is a readable label (SV-XXXXXXXX). Battle v1 uses it for deterministic initiative and combat decisions."
-                  : "A seed is a readable label (SV-XXXXXXXX) stored for reproducibility when this mode gains an execution module."}
+                  : simMode === "race"
+                    ? "A seed is a readable label (SV-XXXXXXXX). Race v1 uses it for deterministic bounded variability."
+                    : simMode === "survival"
+                      ? "A seed is a readable label (SV-XXXXXXXX). Survival v1 uses it for deterministic hazards and variability."
+                      : "A seed is a readable label (SV-XXXXXXXX) stored for reproducibility when this mode gains an execution module."}
               </p>
 
               <div className="space-y-2">
@@ -773,6 +856,13 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
           {/* STEP 7 — REVIEW */}
           {step === LAST_STEP ? (
             <div className="space-y-6">
+              {isAnythingWars ? (
+                <div className="rounded-xl border border-accent/30 bg-accent-soft p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-accent">Anything Wars</p>
+                  <h3 className="mt-1 font-display text-xl font-semibold text-foreground">Ready to start</h3>
+                  <p className="mt-1 text-sm text-secondary">Review the competitors, World, presentation, seed, and authoritative rules before launching.</p>
+                </div>
+              ) : null}
               <div className="rounded-xl border border-border bg-surface">
                 <ReviewRow label="Name" value={name.trim() || "—"} onEdit={() => setStep(0)} />
                 <ReviewRow
@@ -782,8 +872,8 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 />
                 <ReviewRow label="Mode" value={resolvedMode.label} onEdit={() => setStep(1)} />
                 <ReviewRow
-                  label="Participants"
-                  value={`${participants.length} ${participants.length === 1 ? "entity" : "entities"}`}
+                  label={isAnythingWars ? "Competitors" : "Participants"}
+                  value={`${participants.length} ${isAnythingWars ? (participants.length === 1 ? "competitor" : "competitors") : (participants.length === 1 ? "entity" : "entities")}`}
                   onEdit={() => setStep(2)}
                 />
                 <ReviewRow
@@ -801,7 +891,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                   onEdit={() => setStep(4)}
                 />
                 <ReviewRow
-                  label="Experience"
+                  label={isAnythingWars ? "Presentation style" : "Experience"}
                   value={experienceBinding ? (() => {
                     const [profileId, version] = experienceBinding.split("::");
                     const selected = experiences.find((profile) => profile.experienceProfileId === profileId && String(profile.version) === version);
@@ -822,6 +912,28 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                   mono
                 />
               </div>
+
+              {isAnythingWars && participants.length ? (
+                <div>
+                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Competitor cards</h4>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {participants.map((participant, index) => (
+                      <div key={participant.entityId} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3">
+                        <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg border border-border-strong bg-background text-sm font-semibold text-accent">
+                          {participant.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={participant.imageUrl} alt="" className="size-full object-cover" />
+                          ) : index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">{participant.name}</p>
+                          <p className="truncate text-xs text-muted">{participant.category.replaceAll("_", " ")}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {/* Readiness checklist */}
               <div className="space-y-2">
@@ -861,7 +973,9 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 <Sparkles className="mt-0.5 size-4 shrink-0" />
                 <span>
                   {isReady
-                    ? "This blueprint is complete. Marking it ready records that its configuration is valid; execution depends on mode support."
+                    ? isAnythingWars
+                      ? "This event is complete and can create an immutable authoritative Run."
+                      : "This blueprint is complete. Marking it ready records that its configuration is valid; execution depends on mode support."
                     : "Save your progress any time. You can mark it ready once the checklist is complete; execution depends on mode support."}
                 </span>
               </div>
@@ -888,7 +1002,7 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href={id ? `/simulations/${id}` : "/simulations"} className={buttonClasses({ variant: "ghost", size: "sm" })}>
+          <Link href={isAnythingWars ? (id ? `/anything-wars/events/${id}` : "/anything-wars") : (id ? `/simulations/${id}` : "/simulations")} className={buttonClasses({ variant: "ghost", size: "sm" })}>
             Cancel
           </Link>
 
@@ -909,9 +1023,9 @@ export function SimulationBuilder({ mode, initial, projects, worlds, experiences
                 {saving ? null : <Save className="size-4" />}
                 Save as draft
               </Button>
-              <Button onClick={onMarkReady} loading={markingReady} disabled={!isReady || saving} title={isReady ? undefined : "Complete the checklist to mark ready"}>
+              <Button onClick={onMarkReady} loading={markingReady} disabled={!isReady || saving || (isAnythingWars && !canRun)} title={isReady ? undefined : "Complete the checklist to mark ready"}>
                 {markingReady ? null : <CheckCircle2 className="size-4" />}
-                Mark as ready
+                {isAnythingWars ? "Start War" : "Mark as ready"}
               </Button>
             </>
           )}
@@ -934,6 +1048,17 @@ const STEP_BLURBS = [
   "How the simulation is presented. Stored separately from its logic.",
   "A reproducibility seed for supported execution modules.",
   "Review everything, then save a draft or mark it ready.",
+] as const;
+
+const ANYTHING_WARS_STEP_BLURBS = [
+  "Name the event and choose the project that supplies its competitors.",
+  "Choose Battle, Race, or Survival. Tournaments use their dedicated guided flow.",
+  "Search and choose existing Entities as competitors. They remain canonical SIMVERSE Entities.",
+  "Configure the existing authoritative mechanics module with friendly match controls.",
+  "Optionally pin an immutable World Blueprint version as the event environment.",
+  "Optionally pin an Experience Profile that directs presentation without changing outcomes.",
+  "Choose the deterministic seed frozen into every new Run.",
+  "Review the event, save a draft, or start an authoritative Run.",
 ] as const;
 
 interface ModeSettingsProps {

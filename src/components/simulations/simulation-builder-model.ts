@@ -23,6 +23,7 @@ export interface ParticipantChoice {
   name: string;
   category: string;
   imageUrl: string | null;
+  importantAttributes?: Array<{ name: string; value: string }>;
 }
 
 export interface SimulationBuilderInitial {

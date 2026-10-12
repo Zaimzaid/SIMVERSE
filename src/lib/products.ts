@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type ProductStatus = "In development" | "Concept" | "Planned";
+export type ProductStatus = "Available" | "In development" | "Concept" | "Planned";
 
 export interface ProductPreview {
   name: string;
@@ -17,6 +17,7 @@ export interface ProductPreview {
   status: ProductStatus;
   /** Tailwind gradient classes for the card's icon tile. */
   gradient: string;
+  href?: string;
 }
 
 /**
@@ -29,8 +30,9 @@ export const PRODUCTS: ProductPreview[] = [
     name: "Anything Wars",
     tagline: "Pit anything against anything and watch it play out.",
     icon: Swords,
-    status: "In development",
+    status: "Available",
     gradient: "from-accent/30 to-blue/30",
+    href: "/anything-wars",
   },
   {
     name: "Robot Arena",

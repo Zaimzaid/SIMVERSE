@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowDown, ArrowUp, Boxes, Check, Plus, Search, X } from "lucide-react";
 import { resolveCategory } from "@/lib/entities/categories";
 import { apiFetch } from "@/lib/client/api";
@@ -25,6 +26,10 @@ export interface EntityPickerProps {
   value: ParticipantChoice[];
   onChange: (next: ParticipantChoice[]) => void;
   minEntities: number;
+  maxEntities?: number;
+  language?: "entities" | "competitors";
+  createHref?: string;
+  showAttributes?: boolean;
 }
 
 /**
@@ -34,7 +39,16 @@ export interface EntityPickerProps {
  * Selection order becomes participant position; registered modules may use it
  * as a stable tie-break during execution.
  */
-export function EntityPicker({ projectId, value, onChange, minEntities }: EntityPickerProps) {
+export function EntityPicker({
+  projectId,
+  value,
+  onChange,
+  minEntities,
+  maxEntities,
+  language = "entities",
+  createHref,
+  showAttributes = false,
+}: EntityPickerProps) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<EntityView[]>([]);
@@ -80,9 +94,26 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
 
   function add(entity: EntityView) {
     if (selectedIds.has(entity.id)) return;
+    if (maxEntities !== undefined && value.length >= maxEntities) {
+      toast({
+        variant: "error",
+        title: `Maximum ${language} selected`,
+        description: `This mode supports at most ${maxEntities} ${language}.`,
+      });
+      return;
+    }
     onChange([
       ...value,
-      { entityId: entity.id, name: entity.name, category: entity.category, imageUrl: entity.imageUrl },
+      {
+        entityId: entity.id,
+        name: entity.name,
+        category: entity.category,
+        imageUrl: entity.imageUrl,
+        importantAttributes: entity.attributes.slice(0, 3).map((attribute) => ({
+          name: attribute.name,
+          value: `${String(attribute.value)}${attribute.unit ? ` ${attribute.unit}` : ""}`,
+        })),
+      },
     ]);
   }
 
@@ -101,14 +132,15 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
   }
 
   const available = results.filter((e) => !selectedIds.has(e.id));
-  const enough = value.length >= minEntities;
+  const enough = value.length >= minEntities && (maxEntities === undefined || value.length <= maxEntities);
+  const singular = language === "competitors" ? "competitor" : "entity";
 
   if (!projectId) {
     return (
       <EmptyState
         icon={Boxes}
         title="Choose a project first"
-        description="Participants come from the project’s entities. Pick a project in the Basics step, then add entities to it from your library."
+        description={`Participants come from the project's ${language}. Pick a project in the Basics step, then add ${language} from your library.`}
       />
     );
   }
@@ -122,7 +154,7 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
         }`}
       >
         <span>
-          {value.length} selected · needs at least {minEntities}
+          {value.length} selected · needs at least {minEntities}{maxEntities !== undefined ? ` and at most ${maxEntities}` : ""}
         </span>
         {enough ? (
           <span className="inline-flex items-center gap-1 font-medium">
@@ -130,7 +162,9 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
           </span>
         ) : (
           <span className="text-muted">
-            Add {minEntities - value.length} more to mark ready
+            {value.length < minEntities
+              ? `Add ${minEntities - value.length} more to mark ready`
+              : `Remove ${value.length - (maxEntities ?? value.length)} to meet this mode's limit`}
           </span>
         )}
       </div>
@@ -138,7 +172,7 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
       {/* Selected participants (ordered) */}
       {value.length > 0 ? (
         <div className="space-y-2">
-          <h4 className="text-xs font-medium uppercase tracking-wide text-muted">Participants</h4>
+          <h4 className="text-xs font-medium uppercase tracking-wide text-muted">Selected {language}</h4>
           <ul className="space-y-2">
             {value.map((p, index) => {
               const category = resolveCategory(p.category);
@@ -162,6 +196,11 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
                     <p className="truncate text-xs text-muted">{category.label}</p>
+                    {showAttributes && p.importantAttributes?.length ? (
+                      <p className="mt-1 truncate text-[11px] text-muted">
+                        {p.importantAttributes.map((attribute) => `${attribute.name}: ${attribute.value}`).join(" · ")}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
@@ -201,7 +240,14 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
 
       {/* Available entities */}
       <div className="space-y-2">
-        <h4 className="text-xs font-medium uppercase tracking-wide text-muted">Add from this project</h4>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h4 className="text-xs font-medium uppercase tracking-wide text-muted">Add from this project</h4>
+          {createHref ? (
+            <Link href={createHref} target="_blank" className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline">
+              <Plus className="size-3.5" /> Create new {singular}
+            </Link>
+          ) : null}
+        </div>
         <div className="relative">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"
@@ -251,6 +297,11 @@ export function EntityPicker({ projectId, value, onChange, minEntities }: Entity
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-foreground">{entity.name}</span>
                         <span className="block truncate text-xs text-muted">{category.label}</span>
+                        {showAttributes && entity.attributes.length ? (
+                          <span className="mt-1 block truncate text-[11px] text-muted">
+                            {entity.attributes.slice(0, 3).map((attribute) => `${attribute.name}: ${String(attribute.value)}`).join(" · ")}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs font-medium text-accent">
                         <Plus className="size-4" />

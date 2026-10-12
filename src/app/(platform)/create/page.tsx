@@ -19,6 +19,12 @@ interface CreateOption {
 const CREATE_OPTIONS: CreateOption[] = [
   {
     icon: Swords,
+    title: "Start Anything Wars",
+    description: "Choose any Entities, pick Battle, Race, or Survival, and launch an authoritative competition.",
+    href: "/anything-wars/create",
+  },
+  {
+    icon: Swords,
     title: "New simulation",
     description: "Choose a mode, pick entities from a project, and configure the settings. Execution becomes available as mode modules arrive.",
     href: "/simulations/new",
@@ -98,15 +104,15 @@ export default function CreatePage() {
           <h2 className="text-lg font-semibold text-foreground">Launch from a product</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.map((product) => (
-            <Card key={product.name} className="flex flex-col p-5">
+          {PRODUCTS.map((product) => {
+            const card = <Card interactive={Boolean(product.href)} className="flex h-full flex-col p-5">
               <div className="flex items-start justify-between">
                 <span
                   className={`inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${product.gradient} text-foreground`}
                 >
                   <product.icon className="size-5" />
                 </span>
-                <Badge variant={product.status === "In development" ? "accent" : "neutral"}>
+                <Badge variant={product.status === "Available" ? "success" : product.status === "In development" ? "accent" : "neutral"}>
                   {product.status}
                 </Badge>
               </div>
@@ -114,8 +120,9 @@ export default function CreatePage() {
                 {product.name}
               </h3>
               <p className="mt-1 flex-1 text-sm text-secondary">{product.tagline}</p>
-            </Card>
-          ))}
+            </Card>;
+            return product.href ? <Link key={product.name} href={product.href}>{card}</Link> : <div key={product.name}>{card}</div>;
+          })}
         </div>
       </section>
     </div>
