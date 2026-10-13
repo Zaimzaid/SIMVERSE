@@ -21,7 +21,7 @@ export default async function AuthLayout({
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex justify-center">
           <Link href="/" aria-label="SIMVERSE home">
-            <Logo size="lg" />
+            <Logo size="lg" asStatic />
           </Link>
         </div>
         {children}

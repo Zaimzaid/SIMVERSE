@@ -4,15 +4,18 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Products Track — **Anything Wars v0 Browser Product
-  Shell**, committed in `52eea9c` (`feat: add SIMVERSE Anything Wars v0 product
-  shell`), after Survival Module v1 `36fb950`.
-- **Current work:** Products Track — **Anything Wars Beginner Experience +
-  Visual Creation Guidance v1**. A preview-first Create gateway, an Anything Wars
-  Quick War flow with intelligent defaults, a preserved Custom War path, and a
-  result-first completed-run experience. It composes the same canonical
-  Simulation and Run services — no new mechanics, Prisma schema, or Core change.
-  This change set is **uncommitted** at the time of writing.
+- **Last completed:** Products Track — **Anything Wars Beginner Experience +
+  Visual Creation Guidance v1**, committed in `8699345` (`feat: add SIMVERSE
+  beginner creation experience v1`), after Anything Wars v0 Browser Product
+  Shell `52eea9c` and Survival Module v1 `36fb950`.
+- **Current work:** Browser-QA verification of that Beginner Experience plus a
+  follow-up accessibility fix, checkpointed by the current change set. The auth
+  pages wrapped `<Logo>` — which is itself a `<Link href="/">` — inside another
+  `<Link href="/">`, rendering an invalid nested anchor;
+  `src/app/(auth)/layout.tsx` now draws the mark with `<Logo asStatic />`
+  instead. The `/create` gateway and Quick War were verified in a headless
+  browser at 390/768/1024/1440 px this session (see Verification and QA). No
+  mechanics, Prisma schema, Core, or Runtime Protocol v1 change.
 - **Canonical UX + capability docs:** product-experience standards now live in
   [UX_PRINCIPLES.md](UX_PRINCIPLES.md) and the honest maturity inventory in
   [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md).
@@ -25,7 +28,7 @@
   System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-12.
+- **Last updated:** 2026-10-13.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -690,9 +693,11 @@ durable bootstrap plan remains in
 
 ## Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
 
-> Status at time of writing: **implemented and verified; uncommitted working-tree
-> change set.** It composes the same canonical services as the v0 shell and adds
-> no mechanics, Prisma schema, Core, or Runtime Protocol change.
+> Status: **committed in `8699345`.** A follow-up accessibility fix (auth-page
+> nested anchor) and a headless-browser QA pass at 390/768/1024/1440 px were
+> completed afterward and are recorded under Verification and QA. It composes the
+> same canonical services as the v0 shell and adds no mechanics, Prisma schema,
+> Core, or Runtime Protocol change.
 
 - **Preview-first Create gateway.** `/create` is rebuilt as a beginner gateway
   where every option shows a small visual representation of what it produces
@@ -920,11 +925,35 @@ durable bootstrap plan remains in
   `/anything-wars/quick`, and `/api/anything-wars/quick` routes. `git diff
   --check` passes with only Git's expected LF-to-CRLF working-copy notices. No
   Prisma schema, Runtime Protocol v1, or mechanics file changed.
-- Manual browser QA at 390 / 768 / 1024 / 1440 px was **not** performed in this
-  session; the responsive and preview layouts are built to the breakpoints
-  recorded in [UX_PRINCIPLES.md](UX_PRINCIPLES.md) but should be visually
-  verified in a browser before this surface is considered user-tested. No
-  disposable QA artifacts were produced by this checkpoint.
+- Headless-browser QA of the Beginner Experience was performed in a later
+  session against an **isolated throwaway SQLite database** and a disposable
+  Chrome profile on an isolated server on port 3021 — never the development
+  database, which was verified byte-for-byte unchanged (same SHA-256 before and
+  after). At 390 / 768 / 1024 / 1440 px the `/create` gateway and Quick War
+  showed a single `<h1>`, correct heading order, no document horizontal overflow,
+  and all preview copy, permission, and focus checks. A full Quick War was
+  completed for all three executing modes: Battle surfaced **Watch Replay** while
+  Race and Survival correctly did not; the result banner, tie copy
+  ("… Share the Win!"), and the Run Again / Rematch / Change Competitors / New
+  War actions all resolved, and Run Again created a new Run without mutating the
+  prior one. No JavaScript exceptions, console errors, or server 500s occurred
+  during the flow (the only logged network events were expected `ERR_ABORTED`
+  request cancellations during browser teardown). The only clipped-looking
+  content was the Simulation card's decorative mini-preview inside its own card,
+  which causes no page scroll. All disposable QA artifacts (script, database,
+  server log, screenshots, Chrome profile) were removed afterward.
+- Accessibility follow-up fix (current change set): the `(auth)` layout rendered
+  `<Logo>` — which is itself a `<Link href="/">` — inside another
+  `<Link href="/">`, an invalid nested anchor. It now uses `<Logo asStatic />` so
+  the auth header mark is a non-navigating glyph inside the existing link.
+  `npx tsc --noEmit`, `npx eslint .`, `npx vitest run` (**334 tests in 33
+  files**), `npx next build`, `npx prisma validate`, and `git diff --check` all
+  pass with this change applied.
+- Separately observed and **out of scope** for this change set: the `/dashboard`
+  page overflows horizontally at a true 390 px width (document scrollWidth 478 vs
+  client 390). The dashboard page was modified by neither the Beginner Experience
+  nor the auth fix; this is a pre-existing responsive issue to address in its own
+  checkpoint.
 
 ## Known limits
 
@@ -996,23 +1025,26 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Products Track — Anything Wars v0 Browser Product Shell
-  52eea9c feat: add SIMVERSE Anything Wars v0 product shell
+  Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
+  8699345 feat: add SIMVERSE beginner creation experience v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  52eea9c feat: add SIMVERSE Anything Wars v0 product shell
+  8699345 feat: add SIMVERSE beginner creation experience v1
 
 CURRENT:
-  Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
-  STATUS: IMPLEMENTED AND VERIFIED; CHECKPOINTED BY THE CURRENT CHANGE SET
-  GATES: vitest 334/33, tsc, eslint, prisma validate, next build, diff --check — all pass
+  Beginner Experience browser-QA verification + auth nested-anchor a11y fix
+  STATUS: VERIFIED AT 390/768/1024/1440 px; CHECKPOINTED BY THE CURRENT CHANGE SET
+  GATES: vitest 334/33, tsc, eslint, next build, prisma validate, diff --check — all pass
+  SCOPE: src/app/(auth)/layout.tsx (Logo asStatic) + this status doc only; dev.db untouched
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Visually verify the Create gateway and Quick War at 390/768/1024/1440 px in a
-  browser, then choose the next approved track. Do not access D: or resume
-  Unreal work until the external storage is stable.
+  Choose the next approved track. Note a pre-existing, out-of-scope responsive
+  bug: /dashboard overflows horizontally at 390 px (scrollWidth 478 vs 390) and
+  deserves its own checkpoint. Two untracked docs/*.png vision images sit in the
+  working tree and were left for the owner to decide whether to commit. Do not
+  access D: or resume Unreal work until the external storage is stable.
 ```
