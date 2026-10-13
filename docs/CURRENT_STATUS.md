@@ -4,18 +4,18 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Last completed:** Products Track — **Anything Wars Beginner Experience +
-  Visual Creation Guidance v1**, committed in `8699345` (`feat: add SIMVERSE
-  beginner creation experience v1`), after Anything Wars v0 Browser Product
-  Shell `52eea9c` and Survival Module v1 `36fb950`.
-- **Current work:** Browser-QA verification of that Beginner Experience plus a
-  follow-up accessibility fix, checkpointed by the current change set. The auth
-  pages wrapped `<Logo>` — which is itself a `<Link href="/">` — inside another
-  `<Link href="/">`, rendering an invalid nested anchor;
-  `src/app/(auth)/layout.tsx` now draws the mark with `<Logo asStatic />`
-  instead. The `/create` gateway and Quick War were verified in a headless
-  browser at 390/768/1024/1440 px this session (see Verification and QA). No
-  mechanics, Prisma schema, Core, or Runtime Protocol v1 change.
+- **Latest completed checkpoint:** **Beginner Experience v1.1 final responsive +
+  capability-map closure**, committed at current `HEAD` (`fix: complete SIMVERSE
+  beginner experience QA`). It follows the browser-QA/auth accessibility fix
+  `7a4eb47`, Beginner Creation Experience v1 `8699345`, and Anything Wars v0
+  `52eea9c`.
+- **Checkpoint scope:** final responsive closure for the Beginner Experience QA.
+  The browser audit found that two Dashboard grids used implicit auto-sized
+  columns below their responsive breakpoints, allowing the page to exceed a
+  390 px viewport. They now declare a constrained one-column mobile track and
+  shrinkable grid items. This checkpoint also reconciles the capability audit
+  and records the Quick Creations concurrency limit. No mechanics, Prisma
+  schema, Core, or Runtime Protocol v1 change.
 - **Canonical UX + capability docs:** product-experience standards now live in
   [UX_PRINCIPLES.md](UX_PRINCIPLES.md) and the honest maturity inventory in
   [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md).
@@ -23,9 +23,10 @@
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint before this work:** `52eea9c` (Anything Wars v0 shell),
-  after Survival Module v1 `36fb950`, Race Module v1 `c97887d`, Tournament
-  System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
+- **Committed checkpoint before this work:** `7a4eb47` (Beginner Experience
+  v1.1 browser QA + auth fix), after Beginner Creation Experience v1 `8699345`,
+  Anything Wars v0 `52eea9c`, Survival Module v1 `36fb950`, Race Module v1
+  `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
 - **Last updated:** 2026-10-13.
@@ -693,9 +694,9 @@ durable bootstrap plan remains in
 
 ## Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
 
-> Status: **committed in `8699345`.** A follow-up accessibility fix (auth-page
-> nested anchor) and a headless-browser QA pass at 390/768/1024/1440 px were
-> completed afterward and are recorded under Verification and QA. It composes the
+> Status: **committed in `8699345`.** The follow-up accessibility fix and
+> headless-browser QA are committed in `7a4eb47`; the final Dashboard responsive
+> correction found by that QA is recorded below. It composes the
 > same canonical services as the v0 shell and adds no mechanics, Prisma schema,
 > Core, or Runtime Protocol change.
 
@@ -745,14 +746,18 @@ durable bootstrap plan remains in
 - **Projects architecture decision — "Quick Creations".** Beginners are not
   forced to understand Projects first. `resolveQuickCreationsProject` finds the
   workspace's existing `ACTIVE` organizer project by stable metadata
-  (`purpose: "anything-wars-quick"`, `version: 1`), ordered by `createdAt` so it
-  never spawns duplicates, and only creates one through the existing
+  (`purpose: "anything-wars-quick"`, `version: 1`), ordered by `createdAt` for
+  stable ordinary reuse, and only creates one through the existing
   `createProject` service when none exists. Selected competitors are linked via
   the existing `addProjectEntities` service. Workspace isolation and service
-  boundaries are preserved; no uncontrolled duplicate projects and no
-  cross-workspace references are introduced. (Verified by a test asserting a
+  boundaries are preserved and no cross-workspace references are introduced.
+  Ordinary sequential calls are verified by a test asserting a
   single organizer project across three Quick Wars and zero projects created
-  when validation fails.)
+  when validation fails. Simultaneous first creation across multiple processes
+  still lacks a database uniqueness guarantee; this is documented as a
+  pre-public-scale hardening item in
+  [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md), rather than hidden behind
+  a process-local lock.
 - **Custom War preserved.** The detailed builder remains at
   `/anything-wars/create`, renamed **Custom War** and framed as "customize
   everything" (competitors, detailed rules, World/Arena, presentation style,
@@ -949,11 +954,16 @@ durable bootstrap plan remains in
   `npx tsc --noEmit`, `npx eslint .`, `npx vitest run` (**334 tests in 33
   files**), `npx next build`, `npx prisma validate`, and `git diff --check` all
   pass with this change applied.
-- Separately observed and **out of scope** for this change set: the `/dashboard`
-  page overflows horizontally at a true 390 px width (document scrollWidth 478 vs
-  client 390). The dashboard page was modified by neither the Beginner Experience
-  nor the auth fix; this is a pre-existing responsive issue to address in its own
-  checkpoint.
+- Responsive closure (current change set): the `/dashboard` audit exposed
+  implicit auto-sized grid columns below the `sm`/`lg` breakpoints. The Recent
+  Anything Wars and lower activity/product grids now explicitly use a
+  `grid-cols-1` mobile track; lower grid items are `min-w-0`. This constrains the
+  page to the available viewport without changing content or navigation. A real
+  Chrome rerun at 390 / 768 / 1024 / 1440 px, in desktop and mobile emulation,
+  reported zero document overflow and zero overflow offenders for Dashboard;
+  `/create` retained zero document overflow and the browser reported no console
+  errors. The only out-of-bounds Create geometry remains decorative artwork
+  clipped inside its own preview card.
 
 ## Known limits
 
@@ -1025,26 +1035,25 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Products Track — Anything Wars Beginner Experience + Visual Creation Guidance v1
-  8699345 feat: add SIMVERSE beginner creation experience v1
+  Beginner Experience v1.1 final responsive + capability-map closure
+  current HEAD — fix: complete SIMVERSE beginner experience QA
 
 COMMITTED HANDOFF CHECKPOINT:
-  8699345 feat: add SIMVERSE beginner creation experience v1
+  current HEAD — fix: complete SIMVERSE beginner experience QA
 
-CURRENT:
-  Beginner Experience browser-QA verification + auth nested-anchor a11y fix
+CHECKPOINT STATUS:
   STATUS: VERIFIED AT 390/768/1024/1440 px; CHECKPOINTED BY THE CURRENT CHANGE SET
-  GATES: vitest 334/33, tsc, eslint, next build, prisma validate, diff --check — all pass
-  SCOPE: src/app/(auth)/layout.tsx (Logo asStatic) + this status doc only; dev.db untouched
+  GATES: vitest 334/33, tsc, eslint, prisma validate, next build, diff --check — all pass
+  SCOPE: Dashboard mobile grid constraint + canonical docs only; dev.db untouched
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Choose the next approved track. Note a pre-existing, out-of-scope responsive
-  bug: /dashboard overflows horizontally at 390 px (scrollWidth 478 vs 390) and
-  deserves its own checkpoint. Two untracked docs/*.png vision images sit in the
-  working tree and were left for the owner to decide whether to commit. Do not
-  access D: or resume Unreal work until the external storage is stable.
+  Owner review, then choose the next approved major track. The strongest next
+  product step is a Creator/Media foundation that turns authoritative Run output
+  into an honest content artifact, followed by reviewed public/unlisted sharing.
+  Two untracked docs/*.png vision images remain owner-controlled. Do not access
+  D: or resume Unreal work until the external storage is stable.
 ```

@@ -9,11 +9,10 @@
 
 ## Audit metadata
 
-- **Audit date:** 2026-10-12.
-- **Inspected checkpoint:** committed `HEAD = 52eea9c`
-  (`feat: add SIMVERSE Anything Wars v0 product shell`), **plus** the uncommitted
-  working-tree change set *Beginner Experience + Visual Creation Guidance v1*
-  (Quick War flow, visual Create gateway, result-first run page).
+- **Audit date:** 2026-10-13.
+- **Inspected checkpoint:** current `HEAD`
+  (`fix: complete SIMVERSE beginner experience QA`), including the browser-QA
+  and auth fix in `7a4eb47` and Beginner Creation Experience v1 in `8699345`.
 - **Method:** direct inspection of `src/`, `prisma/schema.prisma`, services,
   modules, routes, components, and the committed status history. Claims are
   grounded in code that exists, not in roadmap intent.
@@ -60,7 +59,7 @@ When evidence is ambiguous, the lower estimate is used.
 | Platform (cross-cutting shell) | FUNCTIONAL | 65% | Authenticated platform shell, navigation, `requireApiContext`/`requirePlatformContext`, `dataResponse`/`errorResponse`, audit service, dashboard | Choose the next platform system (Collaboration or Storage) and build it as a reusable service |
 | Accounts / Auth | FUNCTIONAL | 80% | Registration, sessions, authenticated user context, user service | Account lifecycle hardening (recovery, verification, external identity) as needed |
 | Workspace / Roles / Permissions | PRODUCTION-READY | 85% | Workspace-scoped everything, memberships, role→permission enforcement on the server, safe NotFound, isolation proven in tests | Organizations layer above Workspaces; invitation UX |
-| Projects | PRODUCTION-READY | 80% | Project CRUD, project↔entity links, auto-resolved "Quick Creations" organizer project | Nested/tagged organization as the library grows |
+| Projects | PRODUCTION-READY | 80% | Project CRUD, project↔entity links, auto-resolved "Quick Creations" organizer project | Add a database-enforced identity for reserved system projects before public multi-process scale; nested/tagged organization as the library grows |
 | Entity system | PRODUCTION-READY | 85% | Entities, attributes, categories, tags, duplication, archive/restore, workspace isolation, audit | Richer relationships and bulk operations |
 | Entity Creator | FUNCTIONAL | 75% | `/entities/new` + edit, structured attributes, visuals page | Guided/templated first-entity flow; AI-assisted drafting (later) |
 | Entity Visual System | FUNCTIONAL | 70% | `EntityVisualProfile`, archetypes, Three.js model preview, transforms, animation mapping | Production asset pipeline + generated/sprite source maturity |
@@ -72,6 +71,13 @@ When evidence is ambiguous, the lower estimate is used.
 what happens; modules compute mechanics; Experience Profiles describe
 presentation; runtimes render. Nothing in the UX or Product layers may rewrite
 authoritative results or historical Run snapshots.
+
+**Pre-public-scale hardening item:** Quick Creations project creation is
+logically idempotent in ordinary use but lacks a database-level uniqueness
+guarantee under simultaneous first creation across multiple requests/processes.
+A proper fix needs an explicit platform/schema invariant and an atomic create or
+upsert path. This checkpoint deliberately avoids an in-process mutex or another
+fragile workaround.
 
 ---
 
@@ -178,7 +184,7 @@ are not forgotten.
 | Capability | State | ~% | What exists today | Next meaningful milestone |
 | --- | --- | --- | --- | --- |
 | Anything Wars | FUNCTIONAL | 60% | v0 product shell composing Platform/Core/Modules/Creator systems; Battle/Race/Survival events; Tournaments; real workspace data; result-first run pages; **Quick War + Custom War** beginner experience | Worker-driven runs; more modes; richer worlds; sharing |
-| Anything Wars — beginner UX | FUNCTIONAL | 70% | Visual Create entry, Quick War (intelligent defaults, auto "Quick Creations" project), preserved Custom War, result-first completed experience, truthful Watch gating | Usability testing at real breakpoints; onboarding polish |
+| Anything Wars — beginner UX | FUNCTIONAL | 70% | Visual Create entry, Quick War (intelligent defaults, auto "Quick Creations" project), preserved Custom War, result-first completed experience, truthful Watch gating; browser-verified at 390/768/1024/1440 px | Real-user onboarding study and instrumentation; database hardening for simultaneous first Quick Creations project creation |
 | Robot Arena | NOT STARTED | 0% | Concept card only | Product design on top of a bot/behavior module |
 | Farm Empire | NOT STARTED | 0% | Concept card only | Needs an Economy/Agriculture module first |
 | Civilization (product) | NOT STARTED | 0% | Concept card only | Needs a Civilization module first |

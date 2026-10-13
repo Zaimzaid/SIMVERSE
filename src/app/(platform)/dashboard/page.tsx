@@ -95,7 +95,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         {anythingWarsEvents.length ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {anythingWarsEvents.map(({ simulation, latestRun, resultSummary }) => (
               <Link key={simulation.id} href={latestRun ? anythingWarsRunHref(simulation.id, latestRun.id) : anythingWarsEventHref(simulation.id)}>
                 <Card interactive className="h-full p-4">
@@ -114,9 +114,9 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Recent activity */}
-        <section className="lg:col-span-2">
+        <section className="min-w-0 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recent activity</h2>
           </div>
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
         </section>
 
         {/* Launch a product */}
-        <section>
+        <section className="min-w-0">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Launch a product</h2>
           </div>
