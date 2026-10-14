@@ -57,7 +57,9 @@ export const PERMISSIONS = [
   "tournament.run",
   "asset.view",
   "asset.manage",
-  "content.edit",
+  "media.view",
+  "media.create",
+  "media.edit",
   "analytics.view",
   "team.manage",
   "settings.manage",
@@ -104,7 +106,9 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "tournament.run",
     "asset.view",
     "asset.manage",
-    "content.edit",
+    "media.view",
+    "media.create",
+    "media.edit",
     "analytics.view",
   ],
   OPERATOR: [
@@ -120,6 +124,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "tournament.view",
     "tournament.run",
     "asset.view",
+    "media.view",
     "analytics.view",
   ],
   EDITOR: [
@@ -144,7 +149,8 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "tournament.manage",
     "asset.view",
     "asset.manage",
-    "content.edit",
+    "media.view",
+    "media.edit",
   ],
   ANALYST: [
     "workspace.view",
@@ -157,6 +163,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "experience.view",
     "tournament.view",
     "asset.view",
+    "media.view",
     "analytics.view",
   ],
   VIEWER: [
@@ -170,6 +177,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "experience.view",
     "tournament.view",
     "asset.view",
+    "media.view",
   ],
 };
 

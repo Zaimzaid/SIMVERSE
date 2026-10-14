@@ -11,8 +11,9 @@
 
 - **Audit date:** 2026-10-13.
 - **Inspected checkpoint:** current `HEAD`
-  (`fix: complete SIMVERSE beginner experience QA`), including the browser-QA
-  and auth fix in `7a4eb47` and Beginner Creation Experience v1 in `8699345`.
+  (`feat: add SIMVERSE Creator Media Foundation v1`), after Beginner Experience
+  v1.1 `0ca7fdc`, the browser-QA/auth fix `7a4eb47`, and Beginner Creation
+  Experience v1 `8699345`.
 - **Method:** direct inspection of `src/`, `prisma/schema.prisma`, services,
   modules, routes, components, and the committed status history. Claims are
   grounded in code that exists, not in roadmap intent.
@@ -44,7 +45,7 @@ When evidence is ambiguous, the lower estimate is used.
 | --- | --- | --- |
 | **Foundation** (Platform/Core) | FUNCTIONAL → PRODUCTION-READY | The strongest area. Core is deterministic and well-tested. |
 | **Simulation Modules** | FUNCTIONAL (Battle/Race/Survival/Tournament) | Three real modules + generic tournament; all other modes NOT STARTED. |
-| **Creation** | PARTIAL | Entity/World/Simulation creators are usable; media creators NOT STARTED. |
+| **Creation** | PARTIAL | Entity/World/Simulation creators are usable; the first versioned storyboard media flow now works from completed Runs. |
 | **Experience / Runtime** | PARTIAL | Three.js Web Preview + Standard Animation work; high-fidelity/world/AI runtimes NOT STARTED or paused. |
 | **Social** | NOT STARTED | No code exists. |
 | **Business** | NOT STARTED | No code exists. |
@@ -111,7 +112,7 @@ Anything Wars specifically.
 | Simulation Creator | FUNCTIONAL | 80% | Simulation Builder, structured Battle/Race/Survival forms, READY validation, no raw JSON for ordinary flows | Guided/templated scenario starts; more modes |
 | Animation Studio | NOT STARTED | 0% | A clearly-marked **"Coming later"** preview card only. **Must not be built this phase.** | Standalone scene/character/timeline/camera/dialogue creator (independent of any Simulation/World/Product) |
 | Video Studio | NOT STARTED | 0% | — | Editing/assembly/export tooling (future Creator/Media pillar) |
-| Content Studio / Media Engine | NOT STARTED | 3% | `/studio` is an honest "coming soon" placeholder (AI director / highlights / exports previews) | Define the media pipeline that consumes clean Run output |
+| Content Studio / Media Engine | PARTIAL | 18% | Generic `MediaArtifact` + immutable versions; strict `StoryboardV1`; deterministic Battle/Race/Survival adapters; real `/studio` library/editor; result card preview; completed Run integration | Add a reviewed render/export pipeline while preserving artifact and Run authority boundaries |
 | Audio / Voice / Captions | NOT STARTED | 0% | — | Part of the Creator/Media pillar, later |
 | Templates | FOUNDATION | 15% | `/templates` concept page; real presets scattered across World/Experience/Tournament + Quick War modes | A unified, first-class template system across creators |
 
@@ -132,7 +133,7 @@ Studio.
 | High-Fidelity (Unreal) Runtime | FOUNDATION | 5% | Architecture + feasibility + readiness audit docs only. **Paused** — external D: drive instability / Disk Event 51. No Unreal project in this repo | Resume **only** after D: storage is stable and approved; keep out of this repo |
 | Living World Runtime | NOT STARTED | 0% | — | Depends on World runtime adapter + high-fidelity runtime |
 | Persistent Worlds | NOT STARTED | 0% | — | Requires world runtime + persistence model |
-| AI Director | NOT STARTED | 0% | Concept preview in `/studio` only | Needs clean Run output + media engine first |
+| AI Director | NOT STARTED | 0% | The new artifact/adapter boundary can support later suggestions; no AI Director UI or service exists | Suggest edits against a Media Artifact for explicit creator approval |
 | AI agents / citizens | NOT STARTED | 0% | — | Research/design, far future |
 | Player-controlled entities | NOT STARTED | 0% | — | Requires interactive runtime |
 | Multiplayer / rooms / presence | NOT STARTED | 0% | — | Requires realtime transport + presence model |
@@ -183,7 +184,7 @@ are not forgotten.
 
 | Capability | State | ~% | What exists today | Next meaningful milestone |
 | --- | --- | --- | --- | --- |
-| Anything Wars | FUNCTIONAL | 60% | v0 product shell composing Platform/Core/Modules/Creator systems; Battle/Race/Survival events; Tournaments; real workspace data; result-first run pages; **Quick War + Custom War** beginner experience | Worker-driven runs; more modes; richer worlds; sharing |
+| Anything Wars | FUNCTIONAL | 62% | v0 product shell composing Platform/Core/Modules/Creator systems; Battle/Race/Survival events; Tournaments; real workspace data; result-first run pages; **Quick War + Custom War** beginner experience; completed results can create generic Studio storyboards | Worker-driven runs; more modes; richer worlds; reviewed sharing |
 | Anything Wars — beginner UX | FUNCTIONAL | 70% | Visual Create entry, Quick War (intelligent defaults, auto "Quick Creations" project), preserved Custom War, result-first completed experience, truthful Watch gating; browser-verified at 390/768/1024/1440 px | Real-user onboarding study and instrumentation; database hardening for simultaneous first Quick Creations project creation |
 | Robot Arena | NOT STARTED | 0% | Concept card only | Product design on top of a bot/behavior module |
 | Farm Empire | NOT STARTED | 0% | Concept card only | Needs an Economy/Agriculture module first |
@@ -202,15 +203,15 @@ re-architected around Anything Wars (or any single product).
 | Dimension | State | ~% | Reading |
 | --- | --- | --- | --- |
 | Create → Simulate → Experience (single workspace, beginner path) | FUNCTIONAL | ~65% | A new user can create competitors, run a Battle/Race/Survival via Quick War, and see a real, truthful result with replay for Battle. |
-| Create Content (media/animation/video) | NOT STARTED | ~2% | The Creator/Media pillar is not built; only honest placeholders exist. |
+| Create Content (media/animation/video) | PARTIAL | ~15% | Completed Battle/Race/Survival Runs become truthful, editable, immutable-versioned storyboards with a browser result card preview. Rendering, export, video/audio tools, AI direction and publishing remain unbuilt. |
 | Share (social/distribution) | NOT STARTED | 0% | No sharing/social/business surfaces exist. |
 
 **Overall:** SIMVERSE today is a **functional single-workspace simulation and
 product platform** with a strong deterministic Core, three real mechanics
-modules, usable generic creators, and one shippable product (Anything Wars) that
-now has a genuine beginner on-ramp. The **Create → Simulate → Experience** arc
-works end-to-end for the beginner path; **Create Content** and **Share** are the
-two largest unbuilt arcs of the full vision.
+modules, usable generic creators, one shippable product (Anything Wars), and the
+first narrow Creator/Media workflow. **Create → Simulate → Experience → Create
+Content** now works through structured storyboards. Rendered media production
+and **Share** remain major unbuilt arcs of the full vision.
 
 ---
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarClock, Play, Users } from "lucide-react";
 import { NotFoundError } from "@/lib/errors";
+import { supportsStoryboardSource } from "@/lib/media/adapters";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { DEFAULT_RACE_MAX_TICKS, RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
 import { raceStateSchema } from "@/lib/modules/race/schemas";
@@ -22,6 +23,7 @@ import { RaceRunSummary, raceEventDescription } from "@/components/race/race-run
 import { SurvivalRunControls } from "@/components/survival/survival-run-controls";
 import { SurvivalRunSummary, survivalEventDescription } from "@/components/survival/survival-run-summary";
 import { buttonClasses } from "@/components/ui/button";
+import { CreateContentButton } from "@/components/media/create-content-button";
 
 interface PageProps {
   params: Promise<{ simulationId: string; runId: string }>;
@@ -56,6 +58,8 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
   const survivalState = survivalV1 ? survivalStateSchema.safeParse(run.state.moduleState) : null;
   const activeStatus = run.status === "CREATED" || run.status === "RUNNING" || run.status === "PAUSED"
     ? run.status : null;
+  const canCreateContent = run.status === "COMPLETED" && permissions.includes("media.create") &&
+    supportsStoryboardSource(run.moduleId, run.moduleVersion);
 
   return (
     <div className="space-y-6">
@@ -94,10 +98,15 @@ export default async function SimulationRunPage({ params, searchParams }: PagePr
           currentTick={run.currentTick} maxTicks={survivalState?.success ? survivalState.data.config.maxTicks : DEFAULT_SURVIVAL_MAX_TICKS} />
       ) : null}
 
-      {battleV1 && run.status === "COMPLETED" ? (
-        <Link href={`/simulations/${simulationId}/runs/${run.id}/watch`} className={buttonClasses({ size: "lg" })}>
-          <Play className="size-4" aria-hidden />Watch Replay
-        </Link>
+      {(battleV1 && run.status === "COMPLETED") || canCreateContent ? (
+        <div className="flex flex-wrap gap-2">
+          {battleV1 && run.status === "COMPLETED" ? (
+            <Link href={`/simulations/${simulationId}/runs/${run.id}/watch`} className={buttonClasses({ size: "lg" })}>
+              <Play className="size-4" aria-hidden />Watch Replay
+            </Link>
+          ) : null}
+          {canCreateContent ? <CreateContentButton runId={run.id} size="lg" /> : null}
+        </div>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">

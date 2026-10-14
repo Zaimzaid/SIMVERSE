@@ -2,6 +2,9 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Creator/Media artifacts reference completed Runs with Restrict semantics.
+  await prisma.mediaArtifactVersion.deleteMany();
+  await prisma.mediaArtifact.deleteMany();
   // Tournament orchestration owns Match links to derived Simulations/Runs.
   await prisma.tournamentMatch.deleteMany();
   await prisma.tournamentRound.deleteMany();

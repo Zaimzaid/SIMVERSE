@@ -4,18 +4,17 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Latest completed checkpoint:** **Beginner Experience v1.1 final responsive +
-  capability-map closure**, committed at current `HEAD` (`fix: complete SIMVERSE
-  beginner experience QA`). It follows the browser-QA/auth accessibility fix
-  `7a4eb47`, Beginner Creation Experience v1 `8699345`, and Anything Wars v0
-  `52eea9c`.
-- **Checkpoint scope:** final responsive closure for the Beginner Experience QA.
-  The browser audit found that two Dashboard grids used implicit auto-sized
-  columns below their responsive breakpoints, allowing the page to exceed a
-  390 px viewport. They now declare a constrained one-column mobile track and
-  shrinkable grid items. This checkpoint also reconciles the capability audit
-  and records the Quick Creations concurrency limit. No mechanics, Prisma
-  schema, Core, or Runtime Protocol v1 change.
+- **Latest completed checkpoint:** **Creator / Media Foundation v1**, committed
+  at current `HEAD` (`feat: add SIMVERSE Creator Media Foundation v1`). It
+  follows Beginner Experience v1.1 `0ca7fdc`, the browser-QA/auth accessibility
+  fix `7a4eb47`, Beginner Creation Experience v1 `8699345`, and Anything Wars
+  v0 `52eea9c`.
+- **Checkpoint scope:** generic workspace-owned `MediaArtifact` identities,
+  immutable `MediaArtifactVersion` history, strict `StoryboardV1`, deterministic
+  Battle/Race/Survival source adapters, dedicated media permissions and audit
+  events, authorized APIs, a real `/studio` library/editor, authoritative result
+  card previews, and completed Run `Create Content` actions. Creator/Media reads
+  saved Run truth and never writes Core outcomes, events, snapshots or RNG.
 - **Canonical UX + capability docs:** product-experience standards now live in
   [UX_PRINCIPLES.md](UX_PRINCIPLES.md) and the honest maturity inventory in
   [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md).
@@ -23,8 +22,9 @@
   because the external D: drive became unstable and Windows reported Disk Event
   51 I/O errors. Do not access D: or run/build the Unreal runtime until storage
   is stable.
-- **Committed checkpoint before this work:** `7a4eb47` (Beginner Experience
-  v1.1 browser QA + auth fix), after Beginner Creation Experience v1 `8699345`,
+- **Committed checkpoint before this work:** `0ca7fdc` (Beginner Experience v1.1
+  responsive + capability-map closure), after `7a4eb47` (browser QA + auth fix),
+  Beginner Creation Experience v1 `8699345`,
   Anything Wars v0 `52eea9c`, Survival Module v1 `36fb950`, Race Module v1
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
@@ -39,6 +39,8 @@
   direction, and generic Tournament orchestration now exist. Anything Wars is a
   Product UI/service boundary and does not replace or duplicate those systems.
   Runtime Protocol v1 and Battle, Race and Survival mechanics are unchanged.
+  Creator / Media Foundation v1 consumes completed Battle, Race and Survival
+  Runs downstream as versioned storyboards. It performs no result calculation.
 
 ## Official architecture and visual direction
 
@@ -807,6 +809,51 @@ durable bootstrap plan remains in
   boundaries. Anything Wars remains a Product composed from generic SIMVERSE
   systems; SIMVERSE is not re-architected around it.
 
+## Creator / Media Platform — Foundation v1
+
+- `MediaArtifact` is a stable workspace-owned creative identity tied to one
+  completed source Run. v1 supports the real `STORYBOARD` type and
+  `DRAFT | READY | ARCHIVED` lifecycle. Multiple artifacts may derive from one
+  Run. The source relation is restrictive so artifact provenance cannot dangle.
+- `MediaArtifactVersion` rows are immutable and uniquely numbered per artifact.
+  Each stores creator attribution, title, subtitle, description, production
+  status, one of three aspect ratios (16:9, 9:16, 1:1), and a bounded validated
+  storyboard. Edits, archive and restore append versions; old versions remain
+  inspectable.
+- `StoryboardV1` freezes source Run/Simulation/module identity, historical
+  participant presentation fields, the authoritative winner/tie/ranking and
+  completion reason, plus ordered `INTRO`, `COMPETITOR`, `HIGHLIGHT`,
+  `TURNING_POINT`, `RESULT` and `OUTRO` scenes. Scene and participant references
+  are validated, scene IDs/orders are unique, and a result scene is required.
+- The generic adapter registry has exact v1 adapters for Battle, Race and
+  Survival. They parse the already saved module result, validate selected event
+  payloads against existing module schemas, and choose at most six deterministic
+  meaningful moments. No adapter calls module execution or recalculates an
+  outcome.
+- `createMediaArtifactFromRun` checks `media.create`, performs safe
+  workspace-scoped lookup, requires `COMPLETED`, validates every saved source
+  structure and creates the artifact plus version 1 atomically. Presentation
+  editing accepts only title/subtitle/description, aspect ratio, status and scene
+  copy/order/enabled state. Source IDs, result facts, participant identity,
+  scene kind and event sequence never enter the writable API contract.
+- Central permissions are `media.view`, `media.create` and `media.edit`.
+  Every role can view workspace content; Creator can create/edit; Editor can
+  edit; Admin/Owner inherit all. Viewers cannot mutate. Foreign workspace Runs
+  and artifacts use the established safe NotFound strategy.
+- `/studio` is now a real bounded library and completed Run creation surface.
+  `/studio/[artifactId]` provides a responsive creator workspace with scene
+  cards, copy/ordering controls, aspect ratio selection, status, archive/restore,
+  immutable source facts, version history and a CSS/React result card preview.
+  Generic and Anything Wars completed Battle/Race/Survival pages expose
+  `Create Content` when permission and adapter support are present.
+- Audit actions cover artifact creation, version creation, archive and restore
+  with small metadata. No storyboard payload is copied into the audit trail.
+- The complete architecture and extension boundary are documented in
+  [architecture/CREATOR_MEDIA_FOUNDATION.md](architecture/CREATOR_MEDIA_FOUNDATION.md).
+  This checkpoint adds structured metadata only: no media binaries, video
+  editor, export/render pipeline, AI Director, publishing, sharing or social
+  system.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -967,6 +1014,12 @@ durable bootstrap plan remains in
 
 ## Known limits
 
+- Creator / Media Foundation v1 creates validated storyboard metadata and a
+  browser result card preview. It does not render image/video files, edit a
+  timeline, mix audio, generate AI direction, publish, share publicly or store
+  binary media. Only completed `battle-v1`, `race-v1` and `survival-v1` Runs
+  currently have storyboard adapters. Historical versions are listed in the v1
+  editor; a dedicated previous-version viewer can be added when needed.
 - Tournament System v1 supports Entity participants, single elimination and one
   round-robin cycle with Battle duel, head-to-head Race or head-to-head Survival
   Matches. It does not yet implement multi-participant Race/Survival Matches, Teams,
@@ -1035,25 +1088,26 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Beginner Experience v1.1 final responsive + capability-map closure
-  current HEAD — fix: complete SIMVERSE beginner experience QA
+  Creator / Media Foundation v1
+  current HEAD — feat: add SIMVERSE Creator Media Foundation v1
 
 COMMITTED HANDOFF CHECKPOINT:
-  current HEAD — fix: complete SIMVERSE beginner experience QA
+  current HEAD — feat: add SIMVERSE Creator Media Foundation v1
 
 CHECKPOINT STATUS:
-  STATUS: VERIFIED AT 390/768/1024/1440 px; CHECKPOINTED BY THE CURRENT CHANGE SET
-  GATES: vitest 334/33, tsc, eslint, prisma validate, next build, diff --check — all pass
-  SCOPE: Dashboard mobile grid constraint + canonical docs only; dev.db untouched
+  STATUS: CREATOR / MEDIA FOUNDATION v1 COMPLETE AND CHECKPOINTED
+  GATES: vitest 350/35, tsc, eslint, prisma validate/generate, next build, diff --check — all pass
+  SCOPE: generic storyboards from completed Battle/Race/Survival Runs; Core truth unchanged
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review, then choose the next approved major track. The strongest next
-  product step is a Creator/Media foundation that turns authoritative Run output
-  into an honest content artifact, followed by reviewed public/unlisted sharing.
-  Two untracked docs/*.png vision images remain owner-controlled. Do not access
-  D: or resume Unreal work until the external storage is stable.
+  Owner review, then choose a separately approved next track. Logical future
+  Creator/Media work includes an export/render checkpoint and a reviewed
+  public/unlisted sharing model. Animation Studio, Video Studio and AI Director
+  remain separate future systems. Two untracked docs/*.png vision images remain
+  owner-controlled. Do not access D: or resume Unreal work until the external
+  storage is stable.
 ```

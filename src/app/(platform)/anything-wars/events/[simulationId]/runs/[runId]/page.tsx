@@ -5,6 +5,7 @@ import { Aperture, ArrowLeft, CalendarClock, ChevronDown, Globe2, Play, Plus, Re
 import { anythingWarsOutcome } from "@/lib/anything-wars/outcome";
 import { anythingWarsEventHref, anythingWarsQuickHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "@/lib/anything-wars/routes";
 import { NotFoundError } from "@/lib/errors";
+import { supportsStoryboardSource } from "@/lib/media/adapters";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { DEFAULT_RACE_MAX_TICKS, RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
 import { raceStateSchema } from "@/lib/modules/race/schemas";
@@ -14,6 +15,7 @@ import { requirePlatformContext } from "@/server/context";
 import { getAnythingWarsEvent } from "@/server/services/anything-wars-service";
 import { getSimulationRun, listSimulationRunEvents } from "@/server/services/simulation-run-service";
 import { AnythingWarsRunActions } from "@/components/anything-wars/anything-wars-run-actions";
+import { CreateContentButton } from "@/components/media/create-content-button";
 import { BattleRunControls } from "@/components/battle/battle-run-controls";
 import { BattleRunSummary, battleEventDescription } from "@/components/battle/battle-run-summary";
 import { RaceRunControls } from "@/components/race/race-run-controls";
@@ -63,6 +65,8 @@ export default async function AnythingWarsRunPage({ params, searchParams }: Page
   const activeStatus = ["CREATED", "RUNNING", "PAUSED"].includes(run.status) ? run.status as "CREATED" | "RUNNING" | "PAUSED" : null;
   const canRun = permissions.includes("simulation.run");
   const canCreate = permissions.includes("simulation.create");
+  const canCreateContent = run.status === "COMPLETED" && permissions.includes("media.create") &&
+    supportsStoryboardSource(run.moduleId, run.moduleVersion);
   const runBasePath = `${anythingWarsEventHref(event.id)}/runs`;
   const outcome = run.status === "COMPLETED" && run.result
     ? anythingWarsOutcome(run.result, run.participants)
@@ -83,6 +87,7 @@ export default async function AnythingWarsRunPage({ params, searchParams }: Page
               </div>
               <div className="flex flex-wrap gap-2">
                 {battleV1 ? <Link href={anythingWarsWatchHref(event.id, run.id)} className={buttonClasses({ size: "lg" })}><Play className="size-4" />Watch Replay</Link> : null}
+                {canCreateContent ? <CreateContentButton runId={run.id} size="lg" /> : null}
                 {canRun ? <AnythingWarsRunActions simulationId={event.id} runId={run.id} status={run.status} /> : null}
                 {canCreate ? <Link href={anythingWarsRematchHref(event.id)} className={buttonClasses({ variant: "secondary" })}><RefreshCw className="size-4" />Rematch</Link> : null}
                 {canCreate && canRun ? <Link href={anythingWarsQuickHref(run.mode)} className={buttonClasses({ variant: "secondary" })}><Users className="size-4" />Change Competitors</Link> : null}

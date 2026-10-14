@@ -72,7 +72,11 @@ export type AuditAction =
   | "tournament.completed"
   | "tournament.archived"
   | "tournament.restored"
-  | "tournament.deleted";
+  | "tournament.deleted"
+  | "media.artifact.created"
+  | "media.artifact.version_created"
+  | "media.artifact.archived"
+  | "media.artifact.restored";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

@@ -4,6 +4,7 @@ import {
   ArchiveRestore,
   Boxes,
   CheckCircle2,
+  Clapperboard,
   Copy,
   FileText,
   FolderPlus,
@@ -155,6 +156,14 @@ export function describeAuditAction(
       return { icon: ArchiveRestore, label: name ? `Restored Tournament ${name}` : "Restored a Tournament" };
     case "tournament.deleted":
       return { icon: Trash2, label: name ? `Deleted Tournament ${name}` : "Deleted a Tournament" };
+    case "media.artifact.created":
+      return { icon: Clapperboard, label: "Created a storyboard" };
+    case "media.artifact.version_created":
+      return { icon: Clapperboard, label: "Saved a new storyboard version" };
+    case "media.artifact.archived":
+      return { icon: Archive, label: "Archived a storyboard" };
+    case "media.artifact.restored":
+      return { icon: ArchiveRestore, label: "Restored a storyboard" };
     default:
       return { icon: Boxes, label: action };
   }

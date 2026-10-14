@@ -1,34 +1,74 @@
 import type { Metadata } from "next";
-import { Clapperboard, Wand2, Film, FileVideo } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { Clapperboard, FileVideo, Layers3, Sparkles } from "lucide-react";
+import { requirePlatformContext } from "@/server/context";
+import { listCompletedMediaSources, listMediaArtifacts } from "@/server/services/media-artifact-service";
+import { MediaArtifactCard } from "@/components/media/media-artifact-card";
+import { StudioCreatePanel } from "@/components/media/studio-create-panel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FeaturePreview } from "@/components/platform/feature-preview";
-import { ComingSoonButton } from "@/components/platform/coming-soon-button";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "Studio" };
 
-export default function StudioPage() {
+export default async function StudioPage() {
+  const { user, workspace, permissions } = await requirePlatformContext();
+  const canCreate = permissions.includes("media.create");
+  const [library, drafts, ready, sources] = await Promise.all([
+    listMediaArtifacts(user.id, workspace.id, { status: "CURRENT", pageSize: 24 }),
+    listMediaArtifacts(user.id, workspace.id, { status: "DRAFT", pageSize: 1 }),
+    listMediaArtifacts(user.id, workspace.id, { status: "READY", pageSize: 1 }),
+    canCreate ? listCompletedMediaSources(user.id, workspace.id, 16) : Promise.resolve([]),
+  ]);
+
   return (
     <div className="space-y-8">
       <PageHeader
         icon={Clapperboard}
-        title="Studio"
-        description="Turn simulation outcomes into stories. The content engine and AI director will assemble highlights and narration here."
-        actions={<ComingSoonButton label="New production" feature="The studio arrives in a future phase." />}
+        eyebrow="Creator / Media"
+        title="SIMVERSE Studio"
+        description="Turn completed simulations into editable, versioned stories without changing what happened."
       />
-      <EmptyState
-        futurePhase
-        icon={Clapperboard}
-        title="The studio is warming up"
-        description="Once simulations produce outcomes, you’ll direct and export stories from here. This is coming in a future phase."
-      />
-      <FeaturePreview
-        items={[
-          { icon: Wand2, title: "AI director", description: "Automatically find the moments worth telling." },
-          { icon: Film, title: "Highlight reels", description: "Assemble the best beats of a simulation." },
-          { icon: FileVideo, title: "Story exports", description: "Publish recaps as video and shareable pages." },
-        ]}
-      />
+
+      {canCreate ? (
+        <Card as="section" className="overflow-hidden border-accent/25 bg-gradient-to-br from-accent-soft via-surface to-purple/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="size-5 text-accent" />Create from a completed Run</CardTitle>
+            <p className="max-w-3xl text-sm text-secondary">SIMVERSE selects a bounded set of saved highlights, preserves the authoritative result, and opens a draft storyboard you can shape.</p>
+          </CardHeader>
+          <CardContent><StudioCreatePanel sources={sources} /></CardContent>
+        </Card>
+      ) : null}
+
+      <section aria-labelledby="recent-content-heading" className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 id="recent-content-heading" className="font-display text-xl font-semibold text-foreground">Recent Content</h2>
+            <p className="mt-1 text-sm text-secondary">{library.total} workspace {library.total === 1 ? "storyboard" : "storyboards"} · {drafts.total} drafts · {ready.total} ready</p>
+          </div>
+          <p className="inline-flex items-center gap-2 text-xs text-muted"><Layers3 className="size-4" />Most recently updated first</p>
+        </div>
+        {library.items.length ? (
+          <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {library.items.map((artifact) => <MediaArtifactCard key={artifact.id} artifact={artifact} />)}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Clapperboard}
+            title="Your stories will appear here"
+            description="Finish a supported simulation, then turn its result into content. Battle, Race, and Survival are ready for storyboards."
+          />
+        )}
+      </section>
+
+      <Card as="section" className="border-dashed">
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-background/40 text-muted"><FileVideo className="size-5" /></span>
+          <div>
+            <h2 className="font-medium text-foreground">A foundation for future media tools</h2>
+            <p className="mt-1 text-sm text-secondary">Video editing, rendered exports, publishing, and AI direction come later. This Studio currently creates truthful structured storyboards and browser result card previews.</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

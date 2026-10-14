@@ -48,6 +48,8 @@ model User {
   createdExperienceProfiles ExperienceProfile[]        @relation("ExperienceProfileCreator")
   createdExperienceVersions ExperienceProfileVersion[] @relation("ExperienceProfileVersionCreator")
   createdTournaments        Tournament[]                @relation("TournamentCreator")
+  createdMediaArtifacts     MediaArtifact[]             @relation("MediaArtifactCreator")
+  createdMediaVersions      MediaArtifactVersion[]      @relation("MediaArtifactVersionCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -74,6 +76,7 @@ model Workspace {
   worlds               World[]
   experienceProfiles   ExperienceProfile[]
   tournaments          Tournament[]
+  mediaArtifacts       MediaArtifact[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -1008,6 +1011,7 @@ model SimulationRun {
   actions      SimulationRunAction[]
   events       SimulationRunEvent[]
   tournamentMatch TournamentMatch?      @relation("TournamentMatchRun")
+  mediaArtifacts  MediaArtifact[]
 
   @@index([workspaceId, simulationId, createdAt])
   @@index([workspaceId, status, createdAt])
@@ -1066,4 +1070,57 @@ model SimulationRunEvent {
 
   @@unique([runId, sequence])
   @@index([runId, tick])
+}
+
+// ============================================================================
+// CREATOR / MEDIA FOUNDATION v1
+//
+// MediaArtifact is a stable workspace-owned creative item derived from one
+// completed authoritative Run. MediaArtifactVersion rows are immutable
+// presentation snapshots. They never replace or modify Core Run truth.
+// ============================================================================
+
+model MediaArtifact {
+  id                 String    @id @default(cuid())
+  workspaceId        String
+  sourceRunId        String
+  type               String    @default("STORYBOARD")
+  status             String    @default("DRAFT")
+  currentVersion     Int       @default(1)
+  archivedFromStatus String?
+  createdById        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  archivedAt         DateTime?
+
+  workspace Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sourceRun SimulationRun          @relation(fields: [sourceRunId], references: [id], onDelete: Restrict)
+  createdBy User?                  @relation("MediaArtifactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  versions  MediaArtifactVersion[]
+
+  @@index([workspaceId, status, updatedAt])
+  @@index([workspaceId, type, updatedAt])
+  @@index([sourceRunId])
+  @@index([createdById])
+}
+
+model MediaArtifactVersion {
+  id          String   @id @default(cuid())
+  artifactId  String
+  version     Int
+  title       String
+  subtitle    String?
+  description String?
+  aspectRatio String
+  status      String
+  storyboard  String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  artifact MediaArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  createdBy User?         @relation("MediaArtifactVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([artifactId, version])
+  @@index([artifactId, createdAt])
+  @@index([createdById])
 }

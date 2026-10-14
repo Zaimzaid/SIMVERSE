@@ -34,6 +34,8 @@ describe("permissions matrix", () => {
     expect(can("CREATOR", "simulation.run")).toBe(true);
     expect(can("CREATOR", "team.manage")).toBe(false);
     expect(can("CREATOR", "workspace.edit")).toBe(false);
+    expect(can("CREATOR", "media.create")).toBe(true);
+    expect(can("CREATOR", "media.edit")).toBe(true);
   });
 
   it("CREATOR can edit/duplicate/archive projects and simulations, but not delete them", () => {
@@ -67,6 +69,9 @@ describe("permissions matrix", () => {
     expect(can("VIEWER", "world.manage")).toBe(false);
     expect(can("VIEWER", "experience.view")).toBe(true);
     expect(can("VIEWER", "experience.manage")).toBe(false);
+    expect(can("VIEWER", "media.view")).toBe(true);
+    expect(can("VIEWER", "media.create")).toBe(false);
+    expect(can("VIEWER", "media.edit")).toBe(false);
   });
 
   it("CREATOR and EDITOR can manage Experience Profiles", () => {
@@ -78,7 +83,8 @@ describe("permissions matrix", () => {
 
   it("ANALYST can view analytics but not edit content", () => {
     expect(can("ANALYST", "analytics.view")).toBe(true);
-    expect(can("ANALYST", "content.edit")).toBe(false);
+    expect(can("ANALYST", "media.view")).toBe(true);
+    expect(can("ANALYST", "media.edit")).toBe(false);
   });
 
   it("isWorkspaceRole guards arbitrary strings", () => {

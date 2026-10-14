@@ -61,7 +61,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Library",
     items: [
       { label: "Assets", href: "/assets", icon: Package, permission: "asset.view" },
-      { label: "Studio", href: "/studio", icon: Clapperboard, permission: "content.edit" },
+      { label: "Studio", href: "/studio", icon: Clapperboard, permission: "media.view" },
       { label: "Templates", href: "/templates", icon: LayoutTemplate, permission: "project.view" },
       { label: "Analytics", href: "/analytics", icon: BarChart3, permission: "analytics.view" },
     ],

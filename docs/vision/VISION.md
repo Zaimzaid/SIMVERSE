@@ -321,7 +321,17 @@ Possible outputs include:
 - summaries
 - hashtags
 
-This is a long-term Creator/Media Platform capability. It must not be prematurely implemented in a phase that only calls for foundations.
+Creator / Media Foundation v1 now implements the first structured part of this
+flow: a completed authoritative Battle, Race or Survival Run can produce a
+workspace-owned `STORYBOARD` artifact with immutable presentation versions,
+bounded deterministic highlights, aspect ratio metadata and a browser result
+card preview. The artifact keeps saved winner, tie, ranking, participant and
+event references separate from creator-written copy.
+
+Rendered image/video export, a timeline editor, audio, AI direction, publishing
+and sharing remain later Creator/Media capabilities. Each must build on the
+versioned artifact boundary and continue treating Core and module output as
+authoritative.
 
 ---
 

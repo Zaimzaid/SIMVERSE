@@ -27,6 +27,7 @@ describe("beginner Create destination catalog", () => {
     const world = createDestinationById("world");
     expect(canOpenCreateDestination(world, ["world.manage"])).toBe(true);
     expect(canOpenCreateDestination(world, ["world.view"])).toBe(false);
-    expect(canOpenCreateDestination(createDestinationById("animation"), ["content.edit"])).toBe(false);
+    expect(canOpenCreateDestination(createDestinationById("animation"), ["workspace.view"])).toBe(false);
   });
 });
+
