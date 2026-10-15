@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   ArrowUp,
   Check,
-  Clapperboard,
   Eye,
   EyeOff,
   Film,
@@ -18,7 +17,6 @@ import {
   LockKeyhole,
   Save,
   Sparkles,
-  Trophy,
 } from "lucide-react";
 import { apiFetch } from "@/lib/client/api";
 import {
@@ -29,7 +27,6 @@ import {
 } from "@/lib/media/constants";
 import type { StoryboardSceneV1, StoryboardV1 } from "@/lib/media/schemas";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import { ExportPanel } from "./export-panel";
 
 interface EditorArtifact {
   id: string;
@@ -69,12 +67,6 @@ interface EditorArtifact {
 
 interface ArtifactResponse { artifact: { id: string; currentVersion: number } }
 
-const ratioClass: Record<MediaAspectRatio, string> = {
-  LANDSCAPE_16_9: "aspect-video max-w-2xl",
-  PORTRAIT_9_16: "aspect-[9/16] max-w-sm",
-  SQUARE_1_1: "aspect-square max-w-lg",
-};
-
 const sceneTone: Record<StoryboardSceneV1["kind"], string> = {
   INTRO: "border-accent/35 bg-accent-soft",
   COMPETITOR: "border-blue/35 bg-blue/10",
@@ -83,38 +75,6 @@ const sceneTone: Record<StoryboardSceneV1["kind"], string> = {
   RESULT: "border-success/35 bg-success-soft",
   OUTRO: "border-purple/35 bg-purple/10",
 };
-
-function ResultCard({ storyboard, ratio }: { storyboard: StoryboardV1; ratio: MediaAspectRatio }) {
-  const names = new Map(storyboard.participants.map((participant) => [participant.runParticipantId, participant.name]));
-  const leaders = storyboard.summary.tiedParticipantRefs.length > 1
-    ? storyboard.summary.tiedParticipantRefs
-    : storyboard.summary.winnerParticipantRefs;
-  return (
-    <div className={cn("relative mx-auto flex w-full flex-col justify-between overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-background via-surface-elevated to-purple/20 p-6 text-foreground shadow-2xl sm:p-8", ratioClass[ratio])}>
-      <div className="absolute inset-0 grid-overlay opacity-30" aria-hidden />
-      <div className="relative flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">SIMVERSE · {storyboard.source.mode}</p>
-        <Clapperboard className="size-5 text-cyan-300" aria-hidden />
-      </div>
-      <div className="relative py-5 text-center">
-        <Trophy className="mx-auto mb-3 size-8 text-amber-300" aria-hidden />
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-secondary">Final result</p>
-        <h2 className="mt-2 font-display text-2xl font-bold uppercase leading-tight sm:text-4xl">{storyboard.summary.headline}</h2>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {leaders.map((id) => {
-            const participant = storyboard.participants.find((item) => item.runParticipantId === id);
-            return participant ? <Avatar key={id} name={participant.name} src={participant.imageUrl} size="md" className="border-border-strong" /> : null;
-          })}
-        </div>
-        <p className="mx-auto mt-4 max-w-md text-sm text-secondary">{storyboard.summary.detail}</p>
-      </div>
-      <div className="relative flex items-end justify-between gap-4 text-xs text-muted">
-        <span>{storyboard.source.simulationName}</span>
-        <span>{storyboard.summary.ranking.slice(0, 3).map((id, index) => `${index + 1}. ${names.get(id) ?? "Participant"}`).join(" · ")}</span>
-      </div>
-    </div>
-  );
-}
 
 export function StoryboardEditor({ artifact, canEdit }: { artifact: EditorArtifact; canEdit: boolean }) {
   const router = useRouter();
@@ -189,11 +149,6 @@ export function StoryboardEditor({ artifact, canEdit }: { artifact: EditorArtifa
     router.refresh();
   }
 
-  const previewStoryboard: StoryboardV1 = {
-    ...artifact.version.storyboard,
-    scenes,
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -241,13 +196,12 @@ export function StoryboardEditor({ artifact, canEdit }: { artifact: EditorArtifa
             </CardContent>
           </Card>
 
-          <Card as="section" className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Trophy className="size-4 text-success" />Result card preview</CardTitle>
-              <p className="text-sm text-secondary">The card reads its winner and ranking from the immutable storyboard summary.</p>
-            </CardHeader>
-            <CardContent><ResultCard storyboard={previewStoryboard} ratio={aspectRatio} /></CardContent>
-          </Card>
+          <ExportPanel
+            artifactId={artifact.id}
+            currentVersion={artifact.currentVersion}
+            versions={artifact.versions.map((entry) => entry.version)}
+            defaultAspectRatio={artifact.version.aspectRatio}
+          />
 
           <section aria-labelledby="storyboard-heading" className="space-y-4">
             <div>

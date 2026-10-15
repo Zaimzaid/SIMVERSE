@@ -4,14 +4,26 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Latest completed checkpoint:** **Creator / Media Foundation v1**, committed
-  at current `HEAD` (`feat: add SIMVERSE Creator Media Foundation v1`). It
-  follows Beginner Experience v1.1 `0ca7fdc`, the browser-QA/auth accessibility
-  fix `7a4eb47`, Beginner Creation Experience v1 `8699345`, and Anything Wars
-  v0 `52eea9c`.
-- **Checkpoint scope:** generic workspace-owned `MediaArtifact` identities,
-  immutable `MediaArtifactVersion` history, strict `StoryboardV1`, deterministic
-  Battle/Race/Survival source adapters, dedicated media permissions and audit
+- **Latest completed checkpoint:** **Image / Post Export v1**, committed at
+  current `HEAD` (`feat: add SIMVERSE image post export v1`). It is the first
+  real portable content output and builds on **Creator / Media Foundation v1**
+  `5012b33`, which follows Beginner Experience v1.1 `0ca7fdc`, the browser-QA/
+  auth accessibility fix `7a4eb47`, Beginner Creation Experience v1 `8699345`,
+  and Anything Wars v0 `52eea9c`.
+- **Checkpoint scope (Image / Post Export v1):** render a saved immutable
+  `MediaArtifactVersion` into a shareable **PNG or SVG** — a `RESULT_CARD` or
+  `STORY_POSTER` — via a generic `ResultGraphicV1` render model, a pure
+  deterministic SVG renderer, and a server-only `@resvg/resvg-js` rasterizer.
+  Adds an authorized `GET` export endpoint, a Studio "Preview & export" panel
+  whose live preview *is* the exported SVG, three social aspect ratios, historical
+  -version export, hardened SVG escaping, and the existing `media.view`
+  permission. Export consumes immutable artifact truth and performs no result
+  calculation, no remote image fetch, and no binary storage. Full detail:
+  [architecture/MEDIA_EXPORT_V1.md](architecture/MEDIA_EXPORT_V1.md).
+- **Prior committed checkpoint:** **Creator / Media Foundation v1** `5012b33` —
+  generic workspace-owned `MediaArtifact` identities, immutable
+  `MediaArtifactVersion` history, strict `StoryboardV1`, deterministic
+  Battle/Race/Survival storyboard adapters, dedicated media permissions and audit
   events, authorized APIs, a real `/studio` library/editor, authoritative result
   card previews, and completed Run `Create Content` actions. Creator/Media reads
   saved Run truth and never writes Core outcomes, events, snapshots or RNG.
@@ -29,7 +41,7 @@
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-13.
+- **Last updated:** 2026-10-15.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -854,6 +866,53 @@ durable bootstrap plan remains in
   editor, export/render pipeline, AI Director, publishing, sharing or social
   system.
 
+## Creator / Media Platform — Image / Post Export v1
+
+- The first **real portable content output**: a saved immutable
+  `MediaArtifactVersion` renders into a shareable **PNG** or **SVG** graphic.
+  The journey is now Create → Simulate → Experience → Create Content →
+  Storyboard → **Export**. Public sharing remains a later, separately approved
+  checkpoint.
+- The authority boundary gains a third clause: **Core decides what happened,
+  Creator/Media decides how it is presented, Export renders that presentation.**
+  Export never recalculates a winner, alters rankings, edits events, rewrites Run
+  snapshots, or reads a live Entity/Simulation. It consumes immutable artifact
+  truth only; version N always renders as version N.
+- The renderer is a generic, product-neutral pipeline (Anything Wars is merely
+  the first producer): `MediaArtifactVersion → buildResultGraphic()` →
+  validated bounded `ResultGraphicV1` → pure deterministic `renderResultGraphicSvg()`
+  → SVG, then a server-only `@resvg/resvg-js` rasterizer → PNG. The render model
+  and SVG renderer are isomorphic, so the Studio live preview is byte-identical
+  in design to the download.
+- Two export types: **RESULT_CARD** (winner/tie headline, winner initials,
+  detail line, top-3 ranking, branding) and **STORY_POSTER** (creator title, 2–4
+  enabled storyboard moments, authoritative result strip). Formats: **PNG** and
+  **SVG** (no JPEG/PDF/video). Three social ratios map to exact pixels —
+  `LANDSCAPE_16_9` 1920×1080, `PORTRAIT_9_16` 1080×1920, `SQUARE_1_1` 1080×1080 —
+  and an optional request override produces any ratio from one artifact. No
+  client-supplied dimensions are ever accepted.
+- **SVG safety:** every creator/Run-derived string passes through `escapeXml`
+  before entering markup; participant colors are validated to strict hex with a
+  brand fallback; `<script>…` and `"><image href="file:///…">` render as inert
+  text. Previews load the SVG through an `<img>` (no script execution) and the
+  endpoint sends `X-Content-Type-Options: nosniff`.
+- **Participant imagery** is deterministic initials + brand color in v1;
+  **no remote participant image is ever fetched** (no SSRF surface). Safe
+  embedding of immutable images is a documented future enhancement.
+- **Permissions/isolation:** reuses `media.view` (no new permission). The service
+  loads the artifact via the workspace-scoped `getMediaArtifact`, so foreign
+  artifacts return a safe NotFound; the route authenticates via
+  `requireApiContext`. `GET /api/media/artifacts/[artifactId]/export?version&type&format&ratio`
+  streams the file with correct `Content-Type`, attachment `Content-Disposition`
+  and a safe slug filename (e.g. `lion-vs-robot-result-card-v3-vertical.png`).
+- **Boundaries:** rendering is synchronous and bounded (capped SVG size, preset
+  dimensions only); there is deliberately **no** `MediaExportJob` queue, no binary
+  storage, and **no audit event** for this read-only, repeat-clickable action
+  (documented decision, consistent with the "significant mutations" audit model).
+  `next.config.ts` lists `@resvg/resvg-js` in `serverExternalPackages`; it is
+  dynamically imported and never enters the client bundle. No Prisma schema,
+  Runtime Protocol v1, Core, module or storyboard-foundation change.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -1011,15 +1070,47 @@ durable bootstrap plan remains in
   `/create` retained zero document overflow and the browser reported no console
   errors. The only out-of-bounds Create geometry remains decorative artwork
   clipped inside its own preview card.
+- Image / Post Export v1 automated gates (direct): `npx vitest run` passes
+  **373 tests in 38 files**, preserving the 350 Creator/Media Foundation baseline
+  and adding 23 — pure render-model tests (schema-valid models for
+  battle/race/survival, verbatim winner/tie/ranking, historical participant
+  names, bounded ordered poster highlights, color/initials safety, aspect→pixel
+  maps), pure SVG tests (valid root, exact dimensions, determinism, `escapeXml`,
+  script- and attribute-breakout injection rendered inert, bounded size) and
+  DB-backed export-service tests (real PNG signature + exact dimensions via the
+  native rasterizer, SVG content type + safe filename, ratio/type overrides,
+  rejected formats/types, unknown version, workspace-viewer allowed vs foreign
+  NotFound, and version-1 output stable across a version-2 edit). `npx tsc
+  --noEmit`, `npx eslint .`, `npx prisma validate` and `npx next build` all pass;
+  one new dependency (`@resvg/resvg-js`) was added to `package.json` +
+  `package-lock.json` and `serverExternalPackages`.
+- Headless-browser + HTTP QA was performed against an **isolated `next start`
+  server on port 3025 over a disposable seeded database** (a session row seeded
+  directly; no dev data touched). Real HTTP export checks confirmed: PNG/SVG
+  downloads for Result Card + Story Poster across Landscape/Vertical/Square and
+  a historical version, each with the correct `Content-Type`,
+  `Content-Disposition` filename, `Content-Length`, `nosniff`, valid PNG
+  signatures and exact pixel dimensions; and the negative cases — no-cookie
+  **401**, foreign/unknown-artifact **404**, unknown version **404**, bad
+  format/type **400**. Headless Chrome (CDP) loaded `/studio/[artifactId]` at
+  **390 / 768 / 1024 / 1440 px** with a seeded session: zero horizontal overflow
+  at every width, the "Preview & export" panel and Download control present, and
+  the shared SVG preview `<img>` actually loaded (preview === export). The
+  rendered PNGs were visually reviewed for all type × ratio combinations. All
+  disposable QA artifacts (server, seeded DB, scripts, Chrome profile,
+  screenshots, downloads) were removed before review.
 
 ## Known limits
 
-- Creator / Media Foundation v1 creates validated storyboard metadata and a
-  browser result card preview. It does not render image/video files, edit a
-  timeline, mix audio, generate AI direction, publish, share publicly or store
-  binary media. Only completed `battle-v1`, `race-v1` and `survival-v1` Runs
-  currently have storyboard adapters. Historical versions are listed in the v1
-  editor; a dedicated previous-version viewer can be added when needed.
+- Image / Post Export v1 renders real **PNG/SVG** result cards and story posters
+  from saved storyboards, but it does **not** publish, share publicly, connect
+  social accounts, render video/MP4, mix audio, generate AI direction, embed
+  remote participant imagery, or store binary media. Only completed `battle-v1`,
+  `race-v1` and `survival-v1` Runs have storyboard adapters, so only those export.
+  Deterministic initials/color stand in for participant portraits in v1.
+- Creator / Media Foundation v1 creates validated storyboard metadata. Historical
+  versions are listed in the v1 editor and can be exported individually; a
+  dedicated previous-version on-screen viewer can be added when needed.
 - Tournament System v1 supports Entity participants, single elimination and one
   round-robin cycle with Battle duel, head-to-head Race or head-to-head Survival
   Matches. It does not yet implement multi-participant Race/Survival Matches, Teams,
@@ -1088,26 +1179,32 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Creator / Media Foundation v1
-  current HEAD — feat: add SIMVERSE Creator Media Foundation v1
+  Image / Post Export v1
+  current HEAD — feat: add SIMVERSE image post export v1
+  (builds on Creator / Media Foundation v1 5012b33)
 
 COMMITTED HANDOFF CHECKPOINT:
-  current HEAD — feat: add SIMVERSE Creator Media Foundation v1
+  current HEAD — feat: add SIMVERSE image post export v1
 
 CHECKPOINT STATUS:
-  STATUS: CREATOR / MEDIA FOUNDATION v1 COMPLETE AND CHECKPOINTED
-  GATES: vitest 350/35, tsc, eslint, prisma validate/generate, next build, diff --check — all pass
-  SCOPE: generic storyboards from completed Battle/Race/Survival Runs; Core truth unchanged
+  STATUS: IMAGE / POST EXPORT v1 COMPLETE AND CHECKPOINTED
+  GATES: vitest 373/38, tsc, eslint, prisma validate, next build, diff --check — all pass
+  QA: isolated-server HTTP download/header/auth checks + headless-Chrome
+      responsive pass at 390/768/1024/1440; rendered PNGs visually reviewed
+  SCOPE: PNG/SVG result cards + story posters from immutable artifact versions;
+         Core/Foundation truth unchanged; one new dep (@resvg/resvg-js)
+  NEW DEP: @resvg/resvg-js (server-only SVG→PNG; in serverExternalPackages)
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review, then choose a separately approved next track. Logical future
-  Creator/Media work includes an export/render checkpoint and a reviewed
-  public/unlisted sharing model. Animation Studio, Video Studio and AI Director
-  remain separate future systems. Two untracked docs/*.png vision images remain
-  owner-controlled. Do not access D: or resume Unreal work until the external
-  storage is stable.
+  Owner review, then choose a separately approved next track. The next likely
+  Creator/Media checkpoint is Public / Unlisted Sharing v1 (do NOT build it
+  automatically — stop for owner review first). Later: Video Studio, AI Director
+  and Animation Studio remain separate future systems; safe participant-image
+  embedding and a dedicated previous-version viewer are small follow-ups. Two
+  untracked docs/*.png vision images remain owner-controlled. Do not access D: or
+  resume Unreal work until the external storage is stable.
 ```

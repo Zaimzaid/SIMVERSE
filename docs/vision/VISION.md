@@ -321,17 +321,25 @@ Possible outputs include:
 - summaries
 - hashtags
 
-Creator / Media Foundation v1 now implements the first structured part of this
+Creator / Media Foundation v1 implemented the first structured part of this
 flow: a completed authoritative Battle, Race or Survival Run can produce a
 workspace-owned `STORYBOARD` artifact with immutable presentation versions,
-bounded deterministic highlights, aspect ratio metadata and a browser result
-card preview. The artifact keeps saved winner, tie, ranking, participant and
-event references separate from creator-written copy.
+bounded deterministic highlights, aspect ratio metadata and a result card
+preview. The artifact keeps saved winner, tie, ranking, participant and event
+references separate from creator-written copy.
 
-Rendered image/video export, a timeline editor, audio, AI direction, publishing
-and sharing remain later Creator/Media capabilities. Each must build on the
-versioned artifact boundary and continue treating Core and module output as
-authoritative.
+**Image / Post Export v1** takes the next step: a saved artifact version now
+renders into a real, downloadable **PNG or SVG** — a result card or a story
+poster, in 16:9, 9:16 or 1:1 — through a generic, product-neutral render model
+and a server-side SVG→PNG rasterizer. This is the first real content a creator
+can take out of SIMVERSE. Export consumes immutable artifact truth only and adds
+a third clause to the authority boundary: **Core decides what happened,
+Creator/Media decides how it is presented, Export renders that presentation.**
+
+Rendered **video** export, a timeline editor, audio, AI direction, publishing
+and public **sharing** remain later Creator/Media capabilities. Each must build
+on the versioned artifact boundary and continue treating Core and module output
+as authoritative.
 
 ---
 
