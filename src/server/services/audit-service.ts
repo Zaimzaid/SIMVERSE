@@ -76,7 +76,10 @@ export type AuditAction =
   | "media.artifact.created"
   | "media.artifact.version_created"
   | "media.artifact.archived"
-  | "media.artifact.restored";
+  | "media.artifact.restored"
+  | "media.share.created"
+  | "media.share.updated"
+  | "media.share.revoked";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

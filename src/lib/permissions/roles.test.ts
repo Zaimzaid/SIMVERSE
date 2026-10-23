@@ -36,6 +36,7 @@ describe("permissions matrix", () => {
     expect(can("CREATOR", "workspace.edit")).toBe(false);
     expect(can("CREATOR", "media.create")).toBe(true);
     expect(can("CREATOR", "media.edit")).toBe(true);
+    expect(can("CREATOR", "media.share")).toBe(true);
   });
 
   it("CREATOR can edit/duplicate/archive projects and simulations, but not delete them", () => {
@@ -72,6 +73,17 @@ describe("permissions matrix", () => {
     expect(can("VIEWER", "media.view")).toBe(true);
     expect(can("VIEWER", "media.create")).toBe(false);
     expect(can("VIEWER", "media.edit")).toBe(false);
+  });
+
+  it("media.share (publishing) is for content owners, not editors/viewers", () => {
+    expect(can("OWNER", "media.share")).toBe(true);
+    expect(can("ADMIN", "media.share")).toBe(true);
+    expect(can("CREATOR", "media.share")).toBe(true);
+    // Publishing is an ownership-level action; it mirrors media.create, not media.edit.
+    expect(can("EDITOR", "media.share")).toBe(false);
+    expect(can("OPERATOR", "media.share")).toBe(false);
+    expect(can("ANALYST", "media.share")).toBe(false);
+    expect(can("VIEWER", "media.share")).toBe(false);
   });
 
   it("CREATOR and EDITOR can manage Experience Profiles", () => {

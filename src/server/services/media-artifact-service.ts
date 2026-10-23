@@ -501,6 +501,12 @@ export async function archiveMediaArtifact(
     action: "media.artifact.archived", actorUserId: userId, workspaceId,
     entityType: "MediaArtifact", entityId: artifactId, metadata: { version: appended.version },
   });
+  // Archiving suspends any public share. Restoring does NOT auto-republish it;
+  // the creator must deliberately re-share (see PUBLIC_SHARING_V1.md).
+  await prisma.mediaShare.updateMany({
+    where: { artifactId, workspaceId, visibility: { not: "PRIVATE" } },
+    data: { visibility: "PRIVATE" },
+  });
   return getMediaArtifact(userId, workspaceId, artifactId);
 }
 

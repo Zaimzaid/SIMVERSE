@@ -11,9 +11,9 @@
 
 - **Audit date:** 2026-10-15.
 - **Inspected checkpoint:** current `HEAD`
-  (`feat: add SIMVERSE image post export v1`), which builds on Creator / Media
-  Foundation v1 `5012b33`, after Beginner Experience v1.1 `0ca7fdc`, the
-  browser-QA/auth fix `7a4eb47`, and Beginner Creation Experience v1 `8699345`.
+  (`feat: add SIMVERSE public sharing v1`), which builds on Image / Post Export
+  v1 `b7a1693` and Creator / Media Foundation v1 `5012b33`, after Beginner
+  Experience v1.1 `0ca7fdc` and Anything Wars v0 `52eea9c`.
 - **Method:** direct inspection of `src/`, `prisma/schema.prisma`, services,
   modules, routes, components, and the committed status history. Claims are
   grounded in code that exists, not in roadmap intent.
@@ -47,7 +47,7 @@ When evidence is ambiguous, the lower estimate is used.
 | **Simulation Modules** | FUNCTIONAL (Battle/Race/Survival/Tournament) | Three real modules + generic tournament; all other modes NOT STARTED. |
 | **Creation** | PARTIAL | Entity/World/Simulation creators are usable; completed Runs become versioned storyboards that now export to real PNG/SVG result cards and posters. |
 | **Experience / Runtime** | PARTIAL | Three.js Web Preview + Standard Animation work; high-fidelity/world/AI runtimes NOT STARTED or paused. |
-| **Social** | NOT STARTED | No code exists. |
+| **Social** | FOUNDATION → PARTIAL | Version-pinned public/unlisted sharing of media artifacts now works; discovery, profiles, community NOT STARTED. |
 | **Business** | NOT STARTED | No code exists. |
 | **Products** | PARTIAL (Anything Wars only) | Anything Wars is the only built product; all others are concepts. |
 

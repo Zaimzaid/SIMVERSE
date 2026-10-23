@@ -4,29 +4,30 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Latest completed checkpoint:** **Image / Post Export v1**, committed at
-  current `HEAD` (`feat: add SIMVERSE image post export v1`). It is the first
-  real portable content output and builds on **Creator / Media Foundation v1**
-  `5012b33`, which follows Beginner Experience v1.1 `0ca7fdc`, the browser-QA/
-  auth accessibility fix `7a4eb47`, Beginner Creation Experience v1 `8699345`,
-  and Anything Wars v0 `52eea9c`.
-- **Checkpoint scope (Image / Post Export v1):** render a saved immutable
-  `MediaArtifactVersion` into a shareable **PNG or SVG** — a `RESULT_CARD` or
-  `STORY_POSTER` — via a generic `ResultGraphicV1` render model, a pure
+- **Latest completed checkpoint:** **Public / Unlisted Sharing v1**, committed at
+  current `HEAD` (`feat: add SIMVERSE public sharing v1`). It adds the **Share**
+  layer and completes the first full creator loop (Create → Simulate → Experience
+  → Create Content → Export → Share). It builds on **Image / Post Export v1**
+  `b7a1693`, which builds on **Creator / Media Foundation v1** `5012b33`, after
+  Beginner Experience v1.1 `0ca7fdc` and Anything Wars v0 `52eea9c`.
+- **Checkpoint scope (Public / Unlisted Sharing v1):** a creator can expose one
+  immutable `MediaArtifactVersion` through a **version-pinned** public link that
+  is PRIVATE (default), UNLISTED or PUBLIC. Adds the `MediaShare` model (one per
+  artifact, stable high-entropy `publicId`), the `media.share` permission
+  (OWNER/ADMIN/CREATOR), an authorized share API, a Studio "Sharing" panel, an
+  unauthenticated public page `/s/[publicId]` (no platform shell, SEO-aware) with
+  a public image endpoint `/s/[publicId]/image` reusing the export render, and a
+  strict public-safe `PublicMediaShareV1` projection that leaks no internal ids.
+  Archiving suspends a share; restoring does not auto-republish. Full detail:
+  [architecture/PUBLIC_SHARING_V1.md](architecture/PUBLIC_SHARING_V1.md).
+- **Prior committed checkpoint:** **Image / Post Export v1** `b7a1693` — render a
+  saved `MediaArtifactVersion` into a shareable PNG/SVG (`RESULT_CARD` or
+  `STORY_POSTER`) via a generic `ResultGraphicV1` render model, a pure
   deterministic SVG renderer, and a server-only `@resvg/resvg-js` rasterizer.
-  Adds an authorized `GET` export endpoint, a Studio "Preview & export" panel
-  whose live preview *is* the exported SVG, three social aspect ratios, historical
-  -version export, hardened SVG escaping, and the existing `media.view`
-  permission. Export consumes immutable artifact truth and performs no result
-  calculation, no remote image fetch, and no binary storage. Full detail:
-  [architecture/MEDIA_EXPORT_V1.md](architecture/MEDIA_EXPORT_V1.md).
-- **Prior committed checkpoint:** **Creator / Media Foundation v1** `5012b33` —
-  generic workspace-owned `MediaArtifact` identities, immutable
-  `MediaArtifactVersion` history, strict `StoryboardV1`, deterministic
-  Battle/Race/Survival storyboard adapters, dedicated media permissions and audit
-  events, authorized APIs, a real `/studio` library/editor, authoritative result
-  card previews, and completed Run `Create Content` actions. Creator/Media reads
-  saved Run truth and never writes Core outcomes, events, snapshots or RNG.
+  See [architecture/MEDIA_EXPORT_V1.md](architecture/MEDIA_EXPORT_V1.md). Earlier:
+  **Creator / Media Foundation v1** `5012b33` (generic `MediaArtifact` +
+  immutable `MediaArtifactVersion` storyboards from completed Battle/Race/Survival
+  Runs).
 - **Canonical UX + capability docs:** product-experience standards now live in
   [UX_PRINCIPLES.md](UX_PRINCIPLES.md) and the honest maturity inventory in
   [MASTER_CAPABILITY_MAP.md](MASTER_CAPABILITY_MAP.md).
@@ -913,6 +914,53 @@ durable bootstrap plan remains in
   dynamically imported and never enters the client bundle. No Prisma schema,
   Runtime Protocol v1, Core, module or storyboard-foundation change.
 
+## Creator / Media Platform — Public / Unlisted Sharing v1
+
+- Adds the **Share** layer, completing the first full creator loop: **Create →
+  Simulate → Experience → Create Content → Export → Share**. Sharing is always an
+  explicit creator action; the default for everything stays PRIVATE.
+- `MediaShare` is one row per artifact (`artifactId @unique`) that pins **one
+  immutable `MediaArtifactVersion`** and carries a `visibility`
+  (PRIVATE | UNLISTED | PUBLIC), a stable high-entropy `publicId`
+  (`randomBytes(16).toString("base64url")`), and an optional `titleOverride`.
+  Visibility is the single source of truth for public access. A share never makes
+  the pinned version mutable; editing the artifact (a new version) never changes
+  an active share — the creator repoints it deliberately.
+- Privacy semantics: **PRIVATE** = workspace-only, no public link; **UNLISTED** =
+  anyone with the link may view (page served `noindex, nofollow`; it is *not*
+  authentication); **PUBLIC** = anyone may view and the page may be indexed
+  (future Explore eligible — Explore itself is not built).
+- New central permission **`media.share`** → OWNER/ADMIN/CREATOR (mirrors
+  `media.create`). Reading share state uses `media.view`; mutations use
+  `media.share`, enforced server-side with workspace-scoped safe NotFound.
+- Authorized API `GET|POST|DELETE /api/media/artifacts/[artifactId]/share` and a
+  Studio **Sharing** panel (visibility radio, version selector, optional public
+  title, copy-link/open/revoke). Changing the artifact's current version never
+  silently moves an existing share.
+- Public, unauthenticated viewer at **`/s/[publicId]`** — outside the proxy
+  matcher, rendered without the platform shell. It resolves only active
+  UNLISTED/PUBLIC shares of non-archived artifacts via a separate
+  `getPublicMediaShare` service; PRIVATE, revoked, archived and unknown ids all
+  return a safe 404 that hides prior existence. A public image endpoint
+  **`/s/[publicId]/image`** reuses the Image/Post Export render (same design,
+  `no-store` so revocation is immediate) and backs `og:image`.
+- Strict **`PublicMediaShareV1`** projection, resolved entirely to safe display
+  values: title/subtitle/description, mode + module label, authoritative result
+  (headline/detail/completion/winner & tie **names**/ranking), participant display
+  identity (name, category, hex color, initials), and enabled scenes. It never
+  contains `runParticipantId`, `sourceEntityId`, workspace/member ids, the source
+  Run id, the seed, raw events, audit or permission data.
+- Lifecycle: `media.share.created/updated/revoked` audits (small metadata only).
+  Revoke sets PRIVATE (immediate 404). **Archiving an artifact suspends its
+  share; restoring does not auto-republish** (plus a defense-in-depth status
+  check at resolve time). All creator text is rendered as React/escaped text
+  (no `dangerouslySetInnerHTML`); participant colors are validated hex.
+- Deliberate non-goals: no Explore/discovery, Creator Profiles, following,
+  likes/comments, external social-platform publishing, view counts, monetization,
+  rate limiter (none exists) or moderation console, and no Video Studio. A
+  moderation foundation is documented as a prerequisite before broad public
+  launch. No Core, module, Runtime Protocol, Export-render or Foundation change.
+
 ## Verification and QA
 
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
@@ -1099,15 +1147,49 @@ durable bootstrap plan remains in
   rendered PNGs were visually reviewed for all type × ratio combinations. All
   disposable QA artifacts (server, seeded DB, scripts, Chrome profile,
   screenshots, downloads) were removed before review.
+- Public / Unlisted Sharing v1 automated gates (direct): `npx vitest run` passes
+  **384 tests in 39 files** (373 Export baseline + 10 new share-service tests + 1
+  new permission test). The share tests cover creation and the stable public id,
+  public resolution (UNLISTED/PUBLIC resolve anonymously; PRIVATE, revoked,
+  unknown and archived do not), version pinning + repoint, archive-suspends /
+  restore-does-not-republish, Creator-may-share vs Editor/Viewer denied, foreign
+  workspace isolation, invalid version + archived rejection, the public image
+  signature, the public projection excluding every internal identifier, and
+  creator markup remaining inert plain text (escaped in the render). `npx tsc
+  --noEmit`, `npx eslint .`, `npx prisma validate`, `npx prisma generate` and
+  `npx next build` all pass; the build emits the new `/s/[publicId]`,
+  `/s/[publicId]/image` and `/api/media/artifacts/[artifactId]/share` routes. No
+  new dependency was added.
+- Isolated-server + HTTP + headless-Chrome QA (disposable seeded DB on port 3025;
+  a session row seeded directly; dev data untouched). HTTP checks confirmed, over
+  real requests: an anonymous PUBLIC page resolves (200, `index, follow`, no
+  platform shell) and leaks **no** workspace / Run / Entity / runParticipant ids;
+  its image endpoint returns a valid `no-store` PNG; an UNLISTED page is
+  `noindex`; revoked, unknown-id and archived pages (and their image endpoints)
+  return **404**; repointing to version 2 (authed) updates the anonymous page;
+  revoking (authed) makes it **404 immediately**; and an anonymous `/studio`
+  request is redirected (307). Headless Chrome then loaded the **anonymous**
+  public page at **390 / 768 / 1024 / 1440 px**: zero horizontal overflow, the
+  hero render image loaded, the result / storyboard / ranking / competitors and
+  "Create your own" CTA rendered, and no platform sidebar appeared. Screenshots
+  were visually reviewed. All disposable QA artifacts were removed before review.
 
 ## Known limits
 
+- Public / Unlisted Sharing v1 is SIMVERSE-hosted link sharing only. It does
+  **not** provide Explore / discovery / search, Creator Profiles or public creator
+  identity (the page shows only "Created in SIMVERSE"), following / likes /
+  comments / notifications, external social-platform publishing, view counts /
+  analytics, monetization, a rate limiter (no such infrastructure exists yet) or a
+  moderation console. One share per artifact; the `publicId` is stable (re-sharing
+  reuses it) — link rotation and safe participant-image embedding are future
+  follow-ups. A moderation foundation is a prerequisite before broad public launch.
 - Image / Post Export v1 renders real **PNG/SVG** result cards and story posters
-  from saved storyboards, but it does **not** publish, share publicly, connect
-  social accounts, render video/MP4, mix audio, generate AI direction, embed
-  remote participant imagery, or store binary media. Only completed `battle-v1`,
-  `race-v1` and `survival-v1` Runs have storyboard adapters, so only those export.
-  Deterministic initials/color stand in for participant portraits in v1.
+  from saved storyboards, but it does **not** render video/MP4, mix audio,
+  generate AI direction, embed remote participant imagery, or store binary media.
+  Only completed `battle-v1`, `race-v1` and `survival-v1` Runs have storyboard
+  adapters, so only those export. Deterministic initials/color stand in for
+  participant portraits in v1.
 - Creator / Media Foundation v1 creates validated storyboard metadata. Historical
   versions are listed in the v1 editor and can be exported individually; a
   dedicated previous-version on-screen viewer can be added when needed.
@@ -1179,32 +1261,37 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Image / Post Export v1
-  current HEAD — feat: add SIMVERSE image post export v1
-  (builds on Creator / Media Foundation v1 5012b33)
+  Public / Unlisted Sharing v1
+  current HEAD — feat: add SIMVERSE public sharing v1
+  (builds on Image / Post Export v1 b7a1693 and Creator / Media Foundation v1 5012b33)
 
 COMMITTED HANDOFF CHECKPOINT:
-  current HEAD — feat: add SIMVERSE image post export v1
+  current HEAD — feat: add SIMVERSE public sharing v1
 
 CHECKPOINT STATUS:
-  STATUS: IMAGE / POST EXPORT v1 COMPLETE AND CHECKPOINTED
-  GATES: vitest 373/38, tsc, eslint, prisma validate, next build, diff --check — all pass
-  QA: isolated-server HTTP download/header/auth checks + headless-Chrome
-      responsive pass at 390/768/1024/1440; rendered PNGs visually reviewed
-  SCOPE: PNG/SVG result cards + story posters from immutable artifact versions;
-         Core/Foundation truth unchanged; one new dep (@resvg/resvg-js)
-  NEW DEP: @resvg/resvg-js (server-only SVG→PNG; in serverExternalPackages)
+  STATUS: PUBLIC / UNLISTED SHARING v1 COMPLETE AND CHECKPOINTED
+  GATES: vitest 384/39, tsc, eslint, prisma validate/generate, next build, diff --check — all pass
+  QA: isolated-server HTTP (anon resolve, 404 cases, no-leak, pinning, repoint,
+      revoke→404) + headless-Chrome ANONYMOUS public page at 390/768/1024/1440;
+      screenshots visually reviewed
+  SCOPE: version-pinned PRIVATE/UNLISTED/PUBLIC sharing of immutable artifact
+         versions; safe public projection + public viewer; no new dependency
+  FIRST PUBLIC SURFACE: /s/[publicId] is SIMVERSE's first unauthenticated content
+         surface; rate-limiting + moderation are documented pre-launch prerequisites
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review, then choose a separately approved next track. The next likely
-  Creator/Media checkpoint is Public / Unlisted Sharing v1 (do NOT build it
-  automatically — stop for owner review first). Later: Video Studio, AI Director
-  and Animation Studio remain separate future systems; safe participant-image
-  embedding and a dedicated previous-version viewer are small follow-ups. Two
-  untracked docs/*.png vision images remain owner-controlled. Do not access D: or
-  resume Unreal work until the external storage is stable.
+  Owner review. The first full creator loop (Create → Simulate → Experience →
+  Create Content → Export → Share) now exists end-to-end. SIMVERSE is still NOT
+  ready for broad public release (needs asset pipeline, templates, account
+  lifecycle hardening, production infra, moderation foundations, richer worlds/3D).
+  Likely next social-layer checkpoints — each separately approved, do NOT start
+  automatically — are Creator Profiles and Explore, which must build on this
+  version-pinned public-safe projection. Small follow-ups: share-link rotation,
+  safe participant-image embedding, a previous-version viewer. Two untracked
+  docs/*.png vision images remain owner-controlled. Do not access D: or resume
+  Unreal work until the external storage is stable.
 ```

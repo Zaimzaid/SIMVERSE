@@ -50,6 +50,7 @@ model User {
   createdTournaments        Tournament[]                @relation("TournamentCreator")
   createdMediaArtifacts     MediaArtifact[]             @relation("MediaArtifactCreator")
   createdMediaVersions      MediaArtifactVersion[]      @relation("MediaArtifactVersionCreator")
+  createdMediaShares        MediaShare[]                @relation("MediaShareCreator")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -77,6 +78,7 @@ model Workspace {
   experienceProfiles   ExperienceProfile[]
   tournaments          Tournament[]
   mediaArtifacts       MediaArtifact[]
+  mediaShares          MediaShare[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -1097,6 +1099,7 @@ model MediaArtifact {
   sourceRun SimulationRun          @relation(fields: [sourceRunId], references: [id], onDelete: Restrict)
   createdBy User?                  @relation("MediaArtifactCreator", fields: [createdById], references: [id], onDelete: SetNull)
   versions  MediaArtifactVersion[]
+  share     MediaShare?
 
   @@index([workspaceId, status, updatedAt])
   @@index([workspaceId, type, updatedAt])
@@ -1123,4 +1126,32 @@ model MediaArtifactVersion {
   @@unique([artifactId, version])
   @@index([artifactId, createdAt])
   @@index([createdById])
+}
+
+// ============================================================================
+// PUBLIC / UNLISTED SHARING v1
+//
+// MediaShare exposes one immutable MediaArtifactVersion through a stable,
+// high-entropy publicId. Visibility is the single source of truth for public
+// access (PRIVATE = not accessible). One share per artifact; sharing is always
+// an explicit creator action and never mutates the pinned version.
+// ============================================================================
+
+model MediaShare {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  artifactId      String   @unique
+  artifactVersion Int
+  visibility      String   @default("PRIVATE")
+  publicId        String   @unique
+  titleOverride   String?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  artifact  MediaArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  createdBy User?         @relation("MediaShareCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, visibility, updatedAt])
 }

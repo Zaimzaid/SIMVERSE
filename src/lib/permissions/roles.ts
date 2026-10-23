@@ -60,6 +60,7 @@ export const PERMISSIONS = [
   "media.view",
   "media.create",
   "media.edit",
+  "media.share",
   "analytics.view",
   "team.manage",
   "settings.manage",
@@ -109,6 +110,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, readonly Permission[] | "*"> = {
     "media.view",
     "media.create",
     "media.edit",
+    "media.share",
     "analytics.view",
   ],
   OPERATOR: [

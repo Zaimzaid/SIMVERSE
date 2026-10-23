@@ -35,6 +35,8 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { ExportPanel } from "./export-panel";
+import { SharePanel } from "./share-panel";
+import type { MediaShareVisibility } from "@/lib/media/share/constants";
 
 interface EditorArtifact {
   id: string;
@@ -65,6 +67,14 @@ interface EditorArtifact {
   }[];
 }
 
+interface EditorShare {
+  exists: boolean;
+  visibility: MediaShareVisibility;
+  pinnedVersion: number | null;
+  publicId: string | null;
+  titleOverride: string | null;
+}
+
 interface ArtifactResponse { artifact: { id: string; currentVersion: number } }
 
 const sceneTone: Record<StoryboardSceneV1["kind"], string> = {
@@ -76,7 +86,7 @@ const sceneTone: Record<StoryboardSceneV1["kind"], string> = {
   OUTRO: "border-purple/35 bg-purple/10",
 };
 
-export function StoryboardEditor({ artifact, canEdit }: { artifact: EditorArtifact; canEdit: boolean }) {
+export function StoryboardEditor({ artifact, canEdit, canShare, share }: { artifact: EditorArtifact; canEdit: boolean; canShare: boolean; share: EditorShare }) {
   const router = useRouter();
   const { toast } = useToast();
   const [title, setTitle] = useState(artifact.version.title);
@@ -201,6 +211,14 @@ export function StoryboardEditor({ artifact, canEdit }: { artifact: EditorArtifa
             currentVersion={artifact.currentVersion}
             versions={artifact.versions.map((entry) => entry.version)}
             defaultAspectRatio={artifact.version.aspectRatio}
+          />
+
+          <SharePanel
+            artifactId={artifact.id}
+            currentVersion={artifact.currentVersion}
+            versions={artifact.versions.map((entry) => entry.version)}
+            canShare={canShare}
+            initialShare={share}
           />
 
           <section aria-labelledby="storyboard-heading" className="space-y-4">

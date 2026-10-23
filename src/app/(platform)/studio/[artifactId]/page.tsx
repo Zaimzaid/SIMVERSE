@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NotFoundError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getMediaArtifact } from "@/server/services/media-artifact-service";
+import { getArtifactShare } from "@/server/services/media-share-service";
 import { StoryboardEditor } from "@/components/media/storyboard-editor";
 
 export const metadata: Metadata = { title: "Storyboard · Studio" };
@@ -17,10 +18,19 @@ export default async function StoryboardPage({ params }: PageProps) {
     if (error instanceof NotFoundError) notFound();
     throw error;
   }
+  const share = await getArtifactShare(user.id, workspace.id, artifactId);
   return (
     <StoryboardEditor
       key={artifact.currentVersion}
       canEdit={permissions.includes("media.edit")}
+      canShare={permissions.includes("media.share")}
+      share={{
+        exists: share.exists,
+        visibility: share.visibility,
+        pinnedVersion: share.pinnedVersion,
+        publicId: share.publicId,
+        titleOverride: share.titleOverride,
+      }}
       artifact={{
         id: artifact.id,
         type: artifact.type,
