@@ -4,8 +4,15 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
+- **Active feature track:** **SIMVERSE Earth - Phase 1: Project Foundation and
+  Architecture** on `feature/simverse-earth-land`, based on `0faaa71`. This is a
+  documentation-only architecture checkpoint. Eight documents under
+  `docs/earth/` define requirements, geography/parcels, system and database
+  architecture, user journeys, implementation phases, acceptance tests and the
+  decision log. No Earth implementation, dependency, Prisma model, database
+  migration, route, map, parcel, acquisition or construction feature exists yet.
 - **Latest completed checkpoint:** **Public / Unlisted Sharing v1**, committed at
-  current `HEAD` (`feat: add SIMVERSE public sharing v1`). It adds the **Share**
+  baseline `0faaa71`. It adds the **Share**
   layer and completes the first full creator loop (Create → Simulate → Experience
   → Create Content → Export → Share). It builds on **Image / Post Export v1**
   `b7a1693`, which builds on **Creator / Media Foundation v1** `5012b33`, after
@@ -42,7 +49,7 @@
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-15.
+- **Last updated:** 2026-10-24.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -54,6 +61,47 @@
   Runtime Protocol v1 and Battle, Race and Survival mechanics are unchanged.
   Creator / Media Foundation v1 consumes completed Battle, Race and Survival
   Runs downstream as versioned storyboards. It performs no result calculation.
+
+## SIMVERSE Earth - Phase 1 architecture
+
+- Earth is designed as an integrated SIMVERSE Product backed by reusable
+  Platform and Core services. Existing accounts, server-side authorization,
+  audit conventions, immutable Asset/World versions and selected Three.js
+  loader/cleanup patterns are reusable.
+- Dedicated geography, parcel, ownership and construction records are proposed.
+  Global sourced geography must not be stored as a large World Blueprint JSON
+  document, and Earth is not a Simulation Module.
+- MapLibre GL JS is proposed for globe/map exploration, a separate Three.js
+  renderer for the construction editor, and PostgreSQL/PostGIS for production
+  spatial data and claim concurrency. These are architecture proposals only;
+  no dependency is installed and the current SQLite schema is unchanged.
+- Geography preserves source/version/license/checksum and explicitly represents
+  point-only, missing, approximate and disputed boundaries. DevelopmentZones,
+  rather than administrative boundaries, define virtual eligibility.
+- Parcel candidates are deterministic and generated on demand. The initial
+  default base size is approved at 25 m by 25 m (625 m²), configurable only by
+  approved immutable development-zone rules. Only reserved/acquired/developed
+  or explicitly blocked parcels become rows.
+- Guests may see and visually manipulate Earth. Opening a protected location,
+  browsing parcel availability or acquiring property requires authentication.
+  Protected destination intent is preserved through the existing login/register
+  flow and reauthorized after authentication.
+- The planned acquisition path uses database locks, uniqueness and idempotency;
+  ownership history and published building versions are append-only. Every
+  acquisition surface must state that SIMVERSE property is virtual and grants
+  no real-world rights.
+- Phase 1 closure approves geoBoundaries gbOpen with Nigeria/Lagos as the Phase
+  2 data proof. Remaining gates include license verification, disputed-territory
+  policy, PostgreSQL migration approach, acquisition/starter/transfer rules,
+  owner privacy, Asset publication and moderation.
+- Phase 1 documentation verification passed TypeScript, ESLint, Prisma schema
+  validation, the Next.js production build and documentation whitespace checks.
+  The full Vitest run passed 382 tests in 38 files, then reported a worker-start
+  timeout for `custom-attribute-dialog.test.tsx`; its focused rerun passed both
+  tests. All 384 existing assertions therefore passed across the two runs, but
+  the single full-suite command did not exit cleanly and must not be reported as
+  a clean gate.
+- Unreal remains paused and D: remains off limits.
 
 ## Official architecture and visual direction
 
@@ -1262,11 +1310,11 @@ durable bootstrap plan remains in
 ```text
 LAST COMPLETED (COMMITTED):
   Public / Unlisted Sharing v1
-  current HEAD — feat: add SIMVERSE public sharing v1
+  baseline 0faaa71 — chore: save latest SIMVERSE development before recovery audit
   (builds on Image / Post Export v1 b7a1693 and Creator / Media Foundation v1 5012b33)
 
 COMMITTED HANDOFF CHECKPOINT:
-  current HEAD — feat: add SIMVERSE public sharing v1
+  0faaa71 — chore: save latest SIMVERSE development before recovery audit
 
 CHECKPOINT STATUS:
   STATUS: PUBLIC / UNLISTED SHARING v1 COMPLETE AND CHECKPOINTED
@@ -1279,19 +1327,20 @@ CHECKPOINT STATUS:
   FIRST PUBLIC SURFACE: /s/[publicId] is SIMVERSE's first unauthenticated content
          surface; rate-limiting + moderation are documented pre-launch prerequisites
 
+ACTIVE FEATURE TRACK (UNCOMMITTED):
+  SIMVERSE Earth — Phase 1: Project Foundation and Architecture
+  BRANCH: feature/simverse-earth-land
+  SCOPE: documentation only; eight docs/earth architecture documents plus this handoff
+  IMPLEMENTATION: NOT STARTED
+
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review. The first full creator loop (Create → Simulate → Experience →
-  Create Content → Export → Share) now exists end-to-end. SIMVERSE is still NOT
-  ready for broad public release (needs asset pipeline, templates, account
-  lifecycle hardening, production infra, moderation foundations, richer worlds/3D).
-  Likely next social-layer checkpoints — each separately approved, do NOT start
-  automatically — are Creator Profiles and Explore, which must build on this
-  version-pinned public-safe projection. Small follow-ups: share-link rotation,
-  safe participant-image embedding, a previous-version viewer. Two untracked
-  docs/*.png vision images remain owner-controlled. Do not access D: or resume
-  Unreal work until the external storage is stable.
+  Commit the reviewed Phase 1 documentation, then begin Phase 2 Global Geography
+  Engine on this feature branch with a reproducible geoBoundaries gbOpen
+  Nigeria/Lagos proof and an isolated, reversible PostgreSQL/PostGIS plan. Do
+  not create parcels, implement acquisition, or build the construction editor.
+  Do not access D: or resume Unreal work until the external storage is stable.
 ```
