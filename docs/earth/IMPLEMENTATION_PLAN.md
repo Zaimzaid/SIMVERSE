@@ -8,12 +8,19 @@ slice must preserve existing SIMVERSE behavior and produce a reviewable,
 tested checkpoint. A failed gate is fixed within the Earth track rather than
 hidden by starting another feature.
 
-Phase 1 is documentation only. No later phase begins until this architecture and
-the blocking decisions in [DECISION_LOG.md](DECISION_LOG.md) are approved.
+The **eight phases in this document are the authoritative roadmap numbering**.
+Earlier discussion that described ten stages is superseded by this plan; no
+approved commitment was dropped. The earlier technical-proof work is grouped in
+Phase 2, the read-only public experience in Phase 3, zones and parcel discovery
+in Phase 4, acquisition in Phase 5, construction in Phase 6, developed-property
+rights in Phase 7, and release hardening in Phase 8.
+
+Phases 1 and 2 are committed and complete. Phase 3 is implemented and verified
+in the current feature-branch checkpoint. Phase 4 has not started.
 
 ## 2. Baseline and branch policy
 
-- Baseline: `0faaa71` on `origin/master`.
+- Phase 3 baseline: `11f5ab1` on `feature/simverse-earth-land`.
 - Feature branch: `feature/simverse-earth-land`.
 - D: remains off limits because of recorded storage I/O instability.
 - Do not mix Unreal runtime work into this branch.
@@ -22,7 +29,7 @@ the blocking decisions in [DECISION_LOG.md](DECISION_LOG.md) are approved.
 - Use disposable databases and profiles for tests; never repurpose `dev.db`.
 - Major dependencies require approval after a focused technical proof.
 
-## 3. Phase 1 - Foundation and architecture (current)
+## 3. Phase 1 - Foundation and architecture (complete)
 
 ### Deliverables
 
@@ -45,7 +52,7 @@ the blocking decisions in [DECISION_LOG.md](DECISION_LOG.md) are approved.
 - branch and working-tree status are reported;
 - owner explicitly approves or changes the architecture.
 
-## 4. Phase 2 - Technical foundations and regional proof
+## 4. Phase 2 - Technical foundations and regional proof (complete)
 
 This phase proves risky foundations before product UI.
 
@@ -77,7 +84,11 @@ reproducible; owner approves cutover.
 **Exit:** no fabricated boundary, correct attribution, bounded tile sizes, a
 measured browser report at 390/768/1024/1440 px, and a dependency decision.
 
-### 2C. Parcel algorithm proof
+### 2C. Parcel algorithm proof (preserved; deferred to Phase 4)
+
+Phase 2 closed the geography, MapLibre and PostGIS foundation without creating
+virtual parcels. This approved proof remains required before Phase 4 parcel
+discovery and must not be interpreted as completed Phase 2 implementation.
 
 1. Implement a pure versioned coordinate/grid library.
 2. Verify local metric projection against known control distances.
@@ -88,25 +99,27 @@ measured browser report at 390/768/1024/1440 px, and a dependency decision.
 **Exit:** conformance fixtures and hashes are stable across repeated runs and
 the owner approves parcel size/edge rules.
 
-## 5. Phase 3 - Read-only Earth Explorer
+## 5. Phase 3 - Read-only Earth Explorer (implemented and verified)
 
 ### Scope
 
 - public `/earth` route outside the authenticated Platform shell;
-- globe/map and accessible list/search;
+- real MapLibre globe with a local, versioned Natural Earth land overview;
+- accessible country list and public-safe country search;
 - place hierarchy, breadcrumbs, boundary-quality disclosure and attribution;
 - public globe overview and required attribution without protected location
   detail;
 - existing login/register flow with bounded protected-destination intent;
 - responsive loading/error/no-WebGL states;
-- feature flag and initially bounded launch scope.
+- initially bounded catalog coverage (Nigeria is the sole verified country).
 
-### APIs
+### APIs and delivery
 
-- place search/detail/children;
-- immutable dataset-version vector tiles;
-- active zone summaries;
-- health/manifest diagnostics for administrators.
+- public allowlisted overview, country search and signed destination-intent
+  endpoints under `/api/earth/public/`;
+- immutable static MVT overview tiles under `/earth/overview/v1/tiles/`;
+- existing authenticated place search/detail/children/boundary/status routes;
+- no zone, parcel, ownership or acquisition endpoint.
 
 ### Exit criteria
 
@@ -116,6 +129,10 @@ the owner approves parcel size/edge rules.
 - raw world-scale GeoJSON is never loaded;
 - accessibility and responsive browser cases pass;
 - no acquisition or misleading unavailable action is exposed.
+
+All criteria above passed in Chrome 155 against an isolated database. Evidence
+and measured limits are recorded in
+[PHASE_3_EARTH_EXPLORER.md](PHASE_3_EARTH_EXPLORER.md).
 
 ## 6. Phase 4 - Development zones and parcel discovery
 
@@ -330,6 +347,7 @@ the prior reviewed revision rather than an in-place geometry rewrite.
 
 ## 14. Immediate next action
 
-Owner reviews Phase 1 and resolves the blocking decisions. After approval, the
-first implementation work is Phase 2A/2B/2C technical proof, not acquisition or
-the building editor.
+Owner reviews the verified Phase 3 checkpoint and decides whether to merge the
+feature branch. Phase 4 must not begin before separate approval. Its first gate
+is the preserved parcel-algorithm proof above; acquisition and construction
+remain later phases.

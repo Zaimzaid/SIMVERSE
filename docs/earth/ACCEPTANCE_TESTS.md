@@ -2,10 +2,10 @@
 
 ## 1. Purpose
 
-This is the system acceptance catalog. Tests labeled **Phase 1** apply now.
-Later tests become gates only when their phase and underlying product decisions
-are approved. Proposed performance numbers are starting budgets, not current
-claims.
+This is the system acceptance catalog. Phases 1-3 are implemented and their
+closure evidence is recorded below. Later tests become gates only when their
+phase and underlying product decisions are approved. Proposed performance
+numbers are starting budgets, not current claims.
 
 ## 2. Phase 1 architecture acceptance
 
@@ -243,3 +243,29 @@ The authenticated Phase 2 explorer does not implement Phase 3 guest behavior.
 Phase 3 may present a public allowlisted globe shell, but a protected selection
 must travel through a bounded same-origin intent, authentication and fresh
 server-side place/workspace authorization before detail is returned.
+
+## 17. Phase 3 closure evidence (2026-10-25)
+
+| Gate | Actual result |
+| --- | --- |
+| Public globe | **Passed.** Anonymous `/earth` returns 200 and renders a real MapLibre globe from local versioned MVT land tiles without requiring a workspace. |
+| Public projection | **Passed.** Overview and search expose strict country-only fields. Nigeria is supported; guest Lagos search returns no locality record, and protected geography APIs return 401. |
+| Tile delivery | **Passed.** The pinned Natural Earth 5.1.2 source generates 21 property-stripped tiles for zooms 0-2 totaling 35,184 bytes. A representative tile returns 200; browser network events observed worker tile responses and no raw GeoJSON request. |
+| Preserved intent | **Passed.** Selection creates an HMAC-SHA-256 signed, fixed-purpose, ten-minute place intent. It contains no return URL; tampering/expiry fail safely, and both login and registration restore Nigeria only after a fresh protected service lookup. |
+| Authorized hierarchy | **Passed.** An authenticated active workspace sees Nigeria's 37 subdivisions, selects Lagos State, then selects Lagos `CITY` as `POINT_ONLY` with actual `Point` geometry and no fabricated polygon. |
+| Map interaction | **Passed.** Rotation, zoom and reset produce distinct rendered frames. Controls remain usable and do not overlap the public navigation surface. |
+| Mobile and responsive | **Passed.** Chrome at 390, 768, 1024 and 1440 px reports viewport-width document bounds with no horizontal overflow. |
+| Keyboard and motion | **Passed.** The authentication dialog has usable focus order, closes with Escape, and reduced-motion preference disables automatic globe rotation. |
+| No-WebGL fallback | **Passed.** Helpful limitation copy appears and the country list/authentication path remain usable. |
+| Browser diagnostics | **Passed.** No console errors, page exceptions, HTTP 500 responses or genuine request failures. Five aborted tile requests were expected camera/teardown cancellations. |
+| Measured development profile | **Recorded, not a release SLO.** Chrome 155 headless/SwiftShader on Windows reported 4,968 ms navigation-to-ready, 2,547 ms map-load callback, 1,181 ms Nigeria-to-Lagos-State navigation, 25 main-thread resources, 1,410,846 transferred bytes and a 24,259,281-byte used-heap snapshot. |
+| Automated regression | **Passed.** 407 tests in 46 files, TypeScript, ESLint, Prisma validate/generate, Next production build and `git diff --check`. |
+
+The real-browser artifacts are
+[the Phase 3 screenshots and machine-readable record](evidence/), and the full
+implementation and verification report is
+[PHASE_3_EARTH_EXPLORER.md](PHASE_3_EARTH_EXPLORER.md). The browser run used an
+isolated database and profile; all disposable QA state was removed afterward.
+Runtime Protocol v1, SimulationRun snapshots, the Prisma schema and simulation
+mechanics were unchanged. Phase 4 parcels, ownership, acquisition and
+construction remain unimplemented.

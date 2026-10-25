@@ -4,14 +4,18 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Active feature track:** **SIMVERSE Earth - Phase 2: Global Geography
-  Engine** on `feature/simverse-earth-land`. Phase 2 is fully verified and its
-  implementation is committed as `c723578`. The pinned Nigeria/Lagos source,
-  reproducible importer, global geography catalog, authenticated APIs, internal
-  MapLibre explorer and isolated PostGIS proof all pass their closure gates.
-  Phase 3 has not started and the feature branch has not been merged.
-- **Latest completed checkpoint:** **SIMVERSE Earth Phase 2 - Global Geography
-  Engine**, implemented as `c723578`. It includes real Chrome verification and
+- **Active feature track:** **SIMVERSE Earth - Phase 3: Interactive 3D Earth
+  Explorer** on `feature/simverse-earth-land`. The implementation and closure
+  verification are complete in the current checkpoint. The public MapLibre
+  globe, pinned Natural Earth vector tiles, safe country projection, signed
+  authentication intent, authorized Nigeria/Lagos navigation and responsive
+  fallback behavior pass their gates. Phase 4 has not started and the feature
+  branch has not been merged.
+- **Latest completed checkpoint:** **SIMVERSE Earth Phase 3 - Interactive 3D
+  Earth Explorer** in this feature-branch checkpoint, based on the committed
+  Phase 2 handoff `11f5ab1`.
+  It passes 407 tests across 46 files and actual Chrome 155 browser verification.
+  Phase 2 was implemented as `c723578` and closed as `11f5ab1`, including
   successful PostgreSQL 17.11/PostGIS 3.6.4 execution in GitHub Actions run
   [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
   Phase 1 was committed as `fe9dbf7` and closed the guest-access,
@@ -67,6 +71,41 @@
   Creator / Media Foundation v1 consumes completed Battle, Race and Survival
   Runs downstream as versioned storyboards. It performs no result calculation.
 
+## SIMVERSE Earth - Phase 3 Interactive 3D Earth Explorer
+
+- `/earth` is now a public route with a real MapLibre globe, accessible country
+  list/search, rotation, zoom, reset, responsive presentation and a useful
+  no-WebGL fallback. It requires neither a Platform workspace nor protected
+  geography access to render the globe.
+- The overview uses a pinned Natural Earth 5.1.2 1:110m public-domain land
+  snapshot. The deterministic generator emits 21 property-stripped MVT files
+  for zooms 0-2 totaling 35,184 bytes. Source revision, checksum, license and
+  per-tile hashes are committed; raw GeoJSON is not served at runtime.
+- Public overview/search services return a strict country-only projection. The
+  current reviewed catalog exposes Nigeria; subdivision, locality, geometry,
+  workspace and internal revision details remain on existing protected paths.
+- A guest selection creates an HMAC-SHA-256 signed, fixed-purpose, ten-minute
+  place intent. Login and registration preserve it, while `/earth/restore`
+  verifies it and performs a fresh authenticated workspace/place lookup before
+  entering `/earth/geography`. No arbitrary redirect URL is accepted.
+- Public endpoints have validated bounds and process-local fixed-window limits.
+  The in-memory limiter is intentionally bounded; horizontally scaled
+  production requires shared rate-limit infrastructure.
+- Actual Chrome 155 verification covered public globe rendering, worker tile
+  delivery, country search, guest gating, login and registration restoration,
+  post-logout 401 behavior, Nigeria's 37 subdivisions, Lagos State and Lagos
+  `CITY` as real `Point` / `POINT_ONLY` data, focus/Escape, reduced motion,
+  WebGL fallback and 390/768/1024/1440 px layouts. No console error, page
+  exception, HTTP 500 or genuine request failure occurred.
+- Phase 3 passes 407 tests across 46 files, TypeScript, ESLint, Prisma
+  validation/client generation, the Next production build and whitespace
+  checks. Detailed architecture, measurements, evidence and limits are in
+  [earth/PHASE_3_EARTH_EXPLORER.md](earth/PHASE_3_EARTH_EXPLORER.md).
+- No Prisma schema, Runtime Protocol v1, SimulationRun snapshot or simulation
+  mechanics file changed. Phase 4 parcels, ownership, acquisition, payment and
+  construction are not implemented. Unreal remains paused and D: remains off
+  limits.
+
 ## SIMVERSE Earth - Phase 2 Global Geography Engine
 
 - Dedicated global reference models now track datasets, immutable dataset
@@ -94,7 +133,8 @@
   155 verifies sourced Nigeria/Lagos rendering, search, selection, zoom/drag,
   camera controls, keyboard focus, 390 px layout and the list-based no-WebGL
   fallback. Four screenshots and a JSON run record are under `docs/earth/evidence`.
-  Production homepage and guest Earth integration remain Phase 3.
+  Phase 3 now builds the public entry and authentication transition on this
+  protected explorer without weakening its access boundary.
 - Phase 2 verification passes 399 tests across 42 files, TypeScript, ESLint,
   Prisma validation/client generation, the Next.js production build and
   whitespace checks. The focused Phase 2 suite passes 15 tests across three
@@ -111,9 +151,9 @@
   constraints, foreign keys, required indexes, one-current-revision uniqueness,
   atomic same-database repeat rejection and clean fresh-database initialization.
   No application datasource cutover occurred.
-- Phase 3 may add a public allowlisted globe shell, while protected locations
-  remain behind a bounded same-origin return intent, authentication and fresh
-  server-side place/workspace authorization. Existing Phase 2 APIs stay private.
+- Phase 3 adds a public allowlisted globe shell, while protected locations
+  remain behind a bounded signed intent, authentication and fresh server-side
+  place/workspace authorization. Existing Phase 2 APIs stay private.
 - Full implementation, source, API, explorer, quality and limitation details:
   [earth/PHASE_2_GEOGRAPHY_ENGINE.md](earth/PHASE_2_GEOGRAPHY_ENGINE.md). The
   reversible cutover plan is
@@ -1073,6 +1113,19 @@ durable bootstrap plan remains in
 
 ## Verification and QA
 
+- SIMVERSE Earth Phase 3 direct `npx vitest run` passes **407 tests in 46
+  files**, including signed-intent validation, strict public projections,
+  rate-limit bounds and deterministic overview-tile integrity. `npx tsc
+  --noEmit`, `npx eslint .`, `npx prisma validate`, `npx prisma generate`,
+  `npm run build` and `git diff --check` pass. The tile generator reproduces 21
+  MVT files totaling 35,184 bytes from the pinned Natural Earth source.
+- Phase 3 real-browser QA used Chrome 155 on Windows with SwiftShader WebGL, an
+  isolated database and a disposable browser profile. It verified the public
+  globe and controls, country-only guest search, signed login/register restore,
+  protected Nigeria/Lagos hierarchy, point-only locality truth, logout denial,
+  keyboard focus, reduced motion, no-WebGL fallback and no overflow at 390,
+  768, 1024 or 1440 px. Evidence is committed under `docs/earth/evidence/`; all
+  disposable QA state was removed.
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
 - Phase 6 automated coverage includes VisualProfile validation and suggestions,
   service authorization/isolation/lifecycle, immutable Run snapshots, old-run
@@ -1286,6 +1339,11 @@ durable bootstrap plan remains in
 
 ## Known limits
 
+- Earth Phase 3 has one reviewed catalog country (Nigeria). Its Natural Earth
+  land tiles are coarse zoom 0-2 visual context, not administrative, locality
+  or parcel authority. The public API limiter is process local, and browser
+  measurements cover one Chrome/Windows headless environment. Phase 4 must
+  separately prove deterministic parcel generation before any property work.
 - Public / Unlisted Sharing v1 is SIMVERSE-hosted link sharing only. It does
   **not** provide Explore / discovery / search, Creator Profiles or public creator
   identity (the page shows only "Created in SIMVERSE"), following / likes /
@@ -1370,24 +1428,24 @@ durable bootstrap plan remains in
   model, World, Unreal, networking, streaming, or runtime-repository changes.
 
 ```text
-LAST COMPLETED (COMMITTED):
-  SIMVERSE Earth — Phase 2: Global Geography Engine
-  c723578 — feat: add SIMVERSE Earth geography engine
+LAST COMPLETED (FEATURE BRANCH CHECKPOINT):
+  SIMVERSE Earth — Phase 3: Interactive 3D Earth Explorer
+  THIS CHECKPOINT — implementation, browser evidence and closure docs
 
-COMMITTED HANDOFF CHECKPOINT:
-  c723578 — feat: add SIMVERSE Earth geography engine
+COMMITTED PREDECESSOR:
+  11f5ab1 — docs: close SIMVERSE Earth Phase 2 verification
 
 CHECKPOINT STATUS:
-  STATUS: EARTH PHASE 2 FULLY VERIFIED ON FEATURE BRANCH
-  PHASE 3: NOT STARTED
+  STATUS: EARTH PHASE 3 IMPLEMENTED AND FULLY VERIFIED IN THIS CHECKPOINT
+  PHASE 4: NOT STARTED
 
 ACTIVE FEATURE TRACK:
-  SIMVERSE Earth — Phase 2: Global Geography Engine complete
+  SIMVERSE Earth — Phase 3: Interactive 3D Earth Explorer complete
   BRANCH: feature/simverse-earth-land
-  SCOPE: sourced/versioned geography catalog, importer, authenticated APIs,
-         MapLibre explorer, isolated PostGIS proof and migration plan
-  LOCAL GATES: vitest 399/42, tsc, eslint, prisma validate/generate,
-               next build, diff --check and real Chrome QA — all pass
+  SCOPE: public MapLibre globe, pinned Natural Earth MVT overview, strict
+         country projection, signed auth intent, protected Nigeria/Lagos flow
+  LOCAL GATES: vitest 407/46, tsc, eslint, prisma validate/generate,
+               next build, diff --check and real Chrome 155 QA — all pass
   POSTGIS GATE: GitHub Actions 40155016832 — PASS on PostgreSQL 17.11 /
                 PostGIS 3.6.4
   MERGE: NOT PERFORMED
@@ -1398,7 +1456,7 @@ PAUSED PARALLEL TRACK:
 
 NEXT ACTION:
   Owner review and merge decision for feature/simverse-earth-land. Do not begin
-  Phase 3, create parcels, implement acquisition, or build the construction
+  Phase 4, create parcels, implement acquisition, or build the construction
   editor without approval. Do not access D: or resume Unreal work until the
   external storage is stable.
 ```

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Globe2 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { buttonClasses } from "@/components/ui/button";
 
@@ -10,30 +11,43 @@ export function SiteHeader({ authed }: { authed: boolean }) {
         <Logo size="md" />
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-secondary md:flex">
-          <a href="#platform" className="transition-colors hover:text-foreground">
+          <Link href="/#platform" className="transition-colors hover:text-foreground">
             Platform
-          </a>
-          <a href="#products" className="transition-colors hover:text-foreground">
+          </Link>
+          <Link href="/earth" className="text-accent transition-colors hover:text-accent-hover">
+            Explore Earth
+          </Link>
+          <Link href="/#products" className="transition-colors hover:text-foreground">
             Products
-          </a>
-          <a href="#how" className="transition-colors hover:text-foreground">
+          </Link>
+          <Link href="/#how" className="transition-colors hover:text-foreground">
             How it works
-          </a>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/earth"
+            aria-label="Explore Earth"
+            className={`${buttonClasses({ variant: "ghost", size: "sm" })} md:hidden`}
+          >
+            <Globe2 className="size-4" />
+            <span className="hidden sm:inline">Explore Earth</span>
+          </Link>
           {authed ? (
             <Link href="/dashboard" className={buttonClasses({ variant: "primary", size: "sm" })}>
               Go to dashboard
             </Link>
           ) : (
             <>
-              <Link
-                href="/login"
-                className={buttonClasses({ variant: "ghost", size: "sm" })}
-              >
-                Log in
-              </Link>
+              <span className="hidden sm:contents">
+                <Link
+                  href="/login"
+                  className={buttonClasses({ variant: "ghost", size: "sm" })}
+                >
+                  Log in
+                </Link>
+              </span>
               <Link
                 href="/register"
                 className={buttonClasses({ variant: "primary", size: "sm" })}

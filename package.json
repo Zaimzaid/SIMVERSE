@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "earth:import:nigeria": "node --experimental-strip-types scripts/import-earth-geography.mjs",
+    "earth:generate:overview": "node scripts/generate-earth-overview-tiles.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -43,10 +44,12 @@
     "dotenv": "^17.4.2",
     "eslint": "10.10.0",
     "eslint-config-next": "16.3.5",
+    "geojson-vt": "^5.0.4",
     "jsdom": "^30.0.1",
     "prisma": "7.10.0",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vitest": "5.0.0"
+    "vitest": "5.0.0",
+    "vt-pbf": "^3.1.3"
   }
 }

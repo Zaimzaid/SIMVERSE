@@ -54,6 +54,11 @@ in this document.
 | EARTH-037 | APPROVED | Record the supported Lagos locality from GeoNames as `POINT_ONLY`. | A sourced point supports navigation without fabricating or implying a validated city boundary. |
 | EARTH-038 | APPROVED | Use MapLibre's globe projection for the authenticated internal Phase 2 explorer; defer the public production homepage to Phase 3. | The proof can be evaluated without prematurely replacing the approved guest journey. |
 | EARTH-039 | APPROVED | Keep SQLite active while preparing an isolated PostgreSQL 17/PostGIS 3.6 proof and staged migration plan. | Existing application data stays intact; no provider cutover occurs without runtime proof and explicit review. |
+| EARTH-040 | APPROVED | Use pinned Natural Earth 5.1.2 1:110m land as the Phase 3 public globe context and ship deterministic property-stripped MVT tiles. | Natural Earth is public domain, the revision and source hash are recorded, and low-zoom land silhouettes do not disclose protected catalog detail. |
+| EARTH-041 | APPROVED | Project only allowlisted country records from the active geography catalog to guests; keep subdivision, locality and geometry detail on the authenticated Phase 2 routes. | The public globe can identify supported destinations while the established workspace authorization boundary remains intact. |
+| EARTH-042 | APPROVED | Preserve a protected Earth selection with a fixed-purpose HMAC-signed ten-minute place intent and reauthorize it after login or registration. | The token carries no arbitrary return URL, and a valid signature cannot bypass fresh membership, workspace or permission checks. |
+| EARTH-043 | APPROVED | Treat the eight phases in `IMPLEMENTATION_PLAN.md` as the canonical Earth roadmap. | Earlier ten-stage discussion is consolidated without dropping commitments; parcel proof begins the separately approved Phase 4 gate. |
+| EARTH-044 | APPROVED | Use bounded process-local rate limits for the Phase 3 single-process public API foundation. | A shared rate limiter is required before horizontally scaled production deployment. |
 
 ## 3. Open decisions and approval owners
 
@@ -165,3 +170,17 @@ For every decision change:
   with clearly synthetic, non-production test geometry.
 - Verified the authenticated MapLibre explorer in Chrome at desktop/mobile sizes,
   including keyboard focus, camera interaction and its no-WebGL fallback.
+
+### 2026-10-25 - Phase 3 interactive Earth explorer
+
+- Added a public `/earth` MapLibre globe backed by a pinned Natural Earth
+  5.1.2 snapshot and 21 deterministic low-zoom MVT files totaling 35,184 bytes.
+- Added strict public country overview/search projections and bounded
+  process-local request limits without opening the Phase 2 protected APIs.
+- Added signed, expiring, fixed-purpose destination intents through the existing
+  login/register flow, followed by fresh workspace authorization on restore.
+- Verified Nigeria, all 37 subdivisions, Lagos State and point-only Lagos in a
+  real Chrome run, plus interaction, responsive layouts, keyboard flow,
+  reduced motion, no-WebGL fallback and public-data separation.
+- Passed 407 tests across 46 files, TypeScript, ESLint, Prisma validation/client
+  generation, the production build and whitespace checks. Phase 4 did not start.

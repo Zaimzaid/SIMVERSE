@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { AuthCard, FormError } from "./auth-card";
 
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +45,11 @@ export function LoginForm({ next }: { next?: string }) {
       return;
     }
 
-    const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+    const target = earthIntent
+      ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
+      : next && next.startsWith("/") && !next.startsWith("//")
+        ? next
+        : "/dashboard";
     router.replace(target);
     router.refresh();
   }
@@ -57,7 +61,10 @@ export function LoginForm({ next }: { next?: string }) {
       footer={
         <>
           New to SIMVERSE?{" "}
-          <Link href="/register" className="font-medium text-accent hover:underline">
+          <Link
+            href={earthIntent ? `/register?earthIntent=${encodeURIComponent(earthIntent)}` : "/register"}
+            className="font-medium text-accent hover:underline"
+          >
             Create an account
           </Link>
         </>

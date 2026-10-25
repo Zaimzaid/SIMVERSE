@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "id": "natural-earth-land-110m-v1",
+  "dataset": "Natural Earth",
+  "layer": "land",
+  "scale": "1:110m",
+  "sourceVersion": "5.1.2",
+  "sourceRevision": "f1890d9f152c896d250a77557a5751a93d494776",
+  "sourceUrl": "https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-land/",
+  "licenseName": "Public Domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "attribution": "Made with Natural Earth.",
+  "sourceSha256": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9",
+  "tileFormat": "application/vnd.mapbox-vector-tile",
+  "tileTemplate": "/earth/overview/v1/tiles/{z}/{x}/{y}.pbf",
+  "minZoom": 0,
+  "maxZoom": 2,
+  "extent": 4096,
+  "tileCount": 21,
+  "totalBytes": 35184,
+  "generatedBy": "scripts/generate-earth-overview-tiles.mjs",
+  "tiles": [
+    {
+      "path": "tiles/0/0/0.pbf",
+      "bytes": 8927,
+      "sha256": "4ad1b3a022a981ca681d8c3490b812f262cae3e1fe70d232739f4d6bd6123788"
+    },
+    {
+      "path": "tiles/1/0/0.pbf",
+      "bytes": 4016,
+      "sha256": "b2558727c953bd5dae9c71172b5117f2a079eccca4249fd9f32df46abd0622a3"
+    },
+    {
+      "path": "tiles/1/0/1.pbf",
+      "bytes": 1354,
+      "sha256": "4da600af6dac6ca04b9ca3c75eca4663c6683d30dd04ebb06723223e4c6910df"
+    },
+    {
+      "path": "tiles/1/1/0.pbf",
+      "bytes": 3551,
+      "sha256": "619501d75e940ca99d832159ab32d7ed82ad430d29d6d0788f6801b0d713f8d2"
+    },
+    {
+      "path": "tiles/1/1/1.pbf",
+      "bytes": 2273,
+      "sha256": "832999431da784e095441e6165cd15e4935e63600d54098d2fccc6505ad6367d"
+    },
+    {
+      "path": "tiles/2/0/0.pbf",
+      "bytes": 1281,
+      "sha256": "c44da3297c99b9c77e290919fb81c26d6636d2b26296b6a56f3aaf404ae04e89"
+    },
+    {
+      "path": "tiles/2/0/1.pbf",
+      "bytes": 1095,
+      "sha256": "24b57b20058a2200a6aa4f7c339d7fd8300848ee9d713ce09c9e2ed04f93cffd"
+    },
+    {
+      "path": "tiles/2/0/2.pbf",
+      "bytes": 77,
+      "sha256": "e13de7b3d92dbf342d3eab38950541ae2db47f59726d6681473e76923b04fdf3"
+    },
+    {
+      "path": "tiles/2/0/3.pbf",
+      "bytes": 531,
+      "sha256": "a640e27ee53982506313092f222c49a2f7ec3e7bd219d21dcc8e0bf00e95ff00"
+    },
+    {
+      "path": "tiles/2/1/0.pbf",
+      "bytes": 1035,
+      "sha256": "c4fe9d6b4393bd4689c0b3886656208a7ec2e7f7ec7042986ae5c84051b86528"
+    },
+    {
+      "path": "tiles/2/1/1.pbf",
+      "bytes": 2242,
+      "sha256": "33b0b19054602e6fb7b145db3d3ff92abc8ab94651b9bcbc0ee772c56b2a6b06"
+    },
+    {
+      "path": "tiles/2/1/2.pbf",
+      "bytes": 577,
+      "sha256": "8dcef0fdd18c85918cc1f4541961eb5bea5b8851ac2eaf3fa9f28363c6ef12f6"
+    },
+    {
+      "path": "tiles/2/1/3.pbf",
+      "bytes": 637,
+      "sha256": "237ecd98dfea5da3d1c36114cc66cd44c3ba19bd8bdb85df36fef6d1bd50a624"
+    },
+    {
+      "path": "tiles/2/2/0.pbf",
+      "bytes": 642,
+      "sha256": "da9bd6515bc9ce916a9bda6532fddb7d6d79a9f3a11f831522ebabf32b6e5dba"
+    },
+    {
+      "path": "tiles/2/2/1.pbf",
+      "bytes": 1841,
+      "sha256": "21cb6e9281609598a708fb5f40a30ce1dffbbb74fa2f0f9f8acf698961528c25"
+    },
+    {
+      "path": "tiles/2/2/2.pbf",
+      "bytes": 495,
+      "sha256": "d062f66fa5c4a8ebf3b4c85238dfe377c809825c9daad8684aaf4117906d1a79"
+    },
+    {
+      "path": "tiles/2/2/3.pbf",
+      "bytes": 286,
+      "sha256": "6e6843cb6a04a931eb263679876a7709a595e437047f3c7ca1818d981efe574b"
+    },
+    {
+      "path": "tiles/2/3/0.pbf",
+      "bytes": 488,
+      "sha256": "5f64bab89a90136ef86334e34493f43cd43b608a033ce01032b66db52f0c3cf7"
+    },
+    {
+      "path": "tiles/2/3/1.pbf",
+      "bytes": 1532,
+      "sha256": "1708ee28ac7de2944ea74ea7ffa78e5d6e6ddba5851825f17615b6823afa2009"
+    },
+    {
+      "path": "tiles/2/3/2.pbf",
+      "bytes": 1931,
+      "sha256": "2d8465d3931b2a90912d486cb15a9b789ddd769722fdf92d855a0f57f824f188"
+    },
+    {
+      "path": "tiles/2/3/3.pbf",
+      "bytes": 373,
+      "sha256": "129ad4316bec3d24593fb03e32313353d517352e92be7628ccaae297561efe2b"
+    }
+  ]
+}
