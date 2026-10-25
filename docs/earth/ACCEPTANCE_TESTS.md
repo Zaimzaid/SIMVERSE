@@ -230,7 +230,14 @@ Every phase report must include:
 | No-WebGL fallback | **Passed.** A WebGL-disabled browser context receives helpful fallback copy and keeps the place hierarchy usable. |
 | Browser evidence | **Passed.** Four screenshots were captured and visually reviewed; the machine-readable run record is under `docs/earth/evidence/`. |
 | Local regression | **Passed.** 399 tests in 42 files, TypeScript, ESLint, Prisma validate/generate, Next production build and `git diff --check`. |
-| Real PostGIS execution | **Pending first CI run.** The Ubuntu/PostGIS service-container workflow is committed with Phase 2 because Docker and `psql` are unavailable locally. |
+| Real PostGIS execution | **Passed.** GitHub Actions run [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832) used PostgreSQL 17.11/PostGIS 3.6.4 and verified extension/schema initialization, valid and invalid geometry behavior, required spatial/hierarchy/current-revision indexes, foreign keys, one-current-revision uniqueness, atomic same-database repeat rejection and independent fresh-database initialization. |
+
+The run used the isolated `postgis/postgis:17-3.6-alpine` service and did not
+alter the SQLite application or a development database. Its complete log is
+artifact
+[`12584422007`](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832/artifacts/12584422007),
+with SHA-256 digest
+`de0245af73551b67512ee1ee582a30f86e978631a9d152d4aad21685b94aa65c`.
 
 The authenticated Phase 2 explorer does not implement Phase 3 guest behavior.
 Phase 3 may present a public allowlisted globe shell, but a protected selection

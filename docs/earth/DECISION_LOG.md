@@ -155,9 +155,12 @@ For every decision change:
 - Added a versioned geography catalog and idempotent checksum-verified importer,
   separate from World Blueprints.
 - Added authenticated bounded read APIs and an internal MapLibre globe proof.
-- Preserved SQLite and prepared a reversible PostGIS proof/migration plan. A
-  GitHub Actions service-container gate now covers real execution because Docker
-  and `psql` are unavailable locally; its first run remains the closure gate.
+- Preserved SQLite and prepared a reversible PostGIS proof/migration plan.
+  GitHub Actions run
+  [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832)
+  executed the service-container gate successfully on PostgreSQL 17.11/PostGIS
+  3.6.4, including constraints, indexes, atomic repeat behavior and a clean
+  fresh-database bootstrap.
 - Generalized the source-manifest importer and proved a second ISO country path
   with clearly synthetic, non-production test geometry.
 - Verified the authenticated MapLibre explorer in Chrome at desktop/mobile sizes,

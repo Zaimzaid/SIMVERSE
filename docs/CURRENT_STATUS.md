@@ -5,14 +5,16 @@
 
 - **Version:** 0.1.0.
 - **Active feature track:** **SIMVERSE Earth - Phase 2: Global Geography
-  Engine** on `feature/simverse-earth-land`. Phase 1 was committed as `fe9dbf7`.
-  Phase 2 now has a pinned Nigeria/Lagos source snapshot, reproducible import,
-  global geography catalog, authenticated read services/APIs, isolated PostGIS
-  proof schema and internal MapLibre globe explorer. Local implementation,
-  regression and real-browser verification pass. The first real PostGIS GitHub
-  Actions run is the remaining closure gate; Phase 2 changes are uncommitted.
-- **Latest completed checkpoint:** **SIMVERSE Earth Phase 1 - Project Foundation
-  and Architecture**, committed as `fe9dbf7`. It closed the guest-access,
+  Engine** on `feature/simverse-earth-land`. Phase 2 is fully verified and its
+  implementation is committed as `c723578`. The pinned Nigeria/Lagos source,
+  reproducible importer, global geography catalog, authenticated APIs, internal
+  MapLibre explorer and isolated PostGIS proof all pass their closure gates.
+  Phase 3 has not started and the feature branch has not been merged.
+- **Latest completed checkpoint:** **SIMVERSE Earth Phase 2 - Global Geography
+  Engine**, implemented as `c723578`. It includes real Chrome verification and
+  successful PostgreSQL 17.11/PostGIS 3.6.4 execution in GitHub Actions run
+  [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
+  Phase 1 was committed as `fe9dbf7` and closed the guest-access,
   destination-preservation, 25 m x 25 m base-parcel and virtual-only ownership
   decisions. The previous product checkpoint was **Public / Unlisted Sharing
   v1**, committed at baseline `0faaa71`. It adds the **Share**
@@ -102,11 +104,13 @@
   revision and repeat-import behavior without presenting synthetic geometry as
   authentic data.
 - SQLite remains the application datasource and uses the repository's existing
-  `prisma db push` convention. An isolated PostgreSQL 17/PostGIS 3.6 Compose/SQL
-  proof is prepared with SRID/validity constraints and GiST indexing. Docker and
-  `psql` are absent locally, so `.github/workflows/earth-postgis-verification.yml`
-  will execute the bootstrap and constraint suite in a real isolated service
-  container after the feature branch is pushed.
+  `prisma db push` convention. The isolated PostGIS workflow passed on
+  PostgreSQL 17.11/PostGIS 3.6.4 in GitHub Actions run
+  [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
+  It verified extension/schema initialization, WGS84 validity/type/SRID
+  constraints, foreign keys, required indexes, one-current-revision uniqueness,
+  atomic same-database repeat rejection and clean fresh-database initialization.
+  No application datasource cutover occurred.
 - Phase 3 may add a public allowlisted globe shell, while protected locations
   remain behind a bounded same-origin return intent, authentication and fresh
   server-side place/workspace authorization. Existing Phase 2 APIs stay private.
@@ -131,7 +135,7 @@
 - Phase 1 proposed MapLibre GL JS for globe/map exploration, a separate Three.js
   renderer for the construction editor, and PostgreSQL/PostGIS for production
   spatial data and claim concurrency. Phase 2 now evaluates MapLibre in the
-  internal explorer and prepares an isolated PostGIS schema while retaining the
+  internal explorer and verifies an isolated PostGIS schema while retaining the
   current SQLite datasource.
 - Geography preserves source/version/license/checksum and explicitly represents
   point-only, missing, approximate and disputed boundaries. DevelopmentZones,
@@ -1367,32 +1371,34 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  SIMVERSE Earth — Phase 1: Project Foundation and Architecture
-  fe9dbf7 — docs: define SIMVERSE Earth foundation
+  SIMVERSE Earth — Phase 2: Global Geography Engine
+  c723578 — feat: add SIMVERSE Earth geography engine
 
 COMMITTED HANDOFF CHECKPOINT:
-  fe9dbf7 — docs: define SIMVERSE Earth foundation
+  c723578 — feat: add SIMVERSE Earth geography engine
 
 CHECKPOINT STATUS:
-  STATUS: EARTH PHASE 1 COMPLETE AND CHECKPOINTED
-  PHASE 2: IMPLEMENTED; LOCAL REGRESSION AND BROWSER QA PASS
+  STATUS: EARTH PHASE 2 FULLY VERIFIED ON FEATURE BRANCH
+  PHASE 3: NOT STARTED
 
-ACTIVE FEATURE TRACK (UNCOMMITTED):
-  SIMVERSE Earth — Phase 2: Global Geography Engine closure
+ACTIVE FEATURE TRACK:
+  SIMVERSE Earth — Phase 2: Global Geography Engine complete
   BRANCH: feature/simverse-earth-land
   SCOPE: sourced/versioned geography catalog, importer, authenticated APIs,
          MapLibre explorer, isolated PostGIS proof and migration plan
   LOCAL GATES: vitest 399/42, tsc, eslint, prisma validate/generate,
                next build, diff --check and real Chrome QA — all pass
-  REMAINING GATE: push branch and record the real PostGIS GitHub Actions result
+  POSTGIS GATE: GitHub Actions 40155016832 — PASS on PostgreSQL 17.11 /
+                PostGIS 3.6.4
+  MERGE: NOT PERFORMED
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Commit and push the Phase 2 implementation, let the isolated PostGIS workflow
-  execute, record its actual versions/results, then close Phase 2. Do not begin
-  Phase 3, create parcels, implement acquisition, or build the construction editor.
-  Do not access D: or resume Unreal work until the external storage is stable.
+  Owner review and merge decision for feature/simverse-earth-land. Do not begin
+  Phase 3, create parcels, implement acquisition, or build the construction
+  editor without approval. Do not access D: or resume Unreal work until the
+  external storage is stable.
 ```
