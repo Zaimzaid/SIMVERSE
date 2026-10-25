@@ -4,15 +4,18 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Active feature track:** **SIMVERSE Earth - Phase 1: Project Foundation and
-  Architecture** on `feature/simverse-earth-land`, based on `0faaa71`. This is a
-  documentation-only architecture checkpoint. Eight documents under
-  `docs/earth/` define requirements, geography/parcels, system and database
-  architecture, user journeys, implementation phases, acceptance tests and the
-  decision log. No Earth implementation, dependency, Prisma model, database
-  migration, route, map, parcel, acquisition or construction feature exists yet.
-- **Latest completed checkpoint:** **Public / Unlisted Sharing v1**, committed at
-  baseline `0faaa71`. It adds the **Share**
+- **Active feature track:** **SIMVERSE Earth - Phase 2: Global Geography
+  Engine** on `feature/simverse-earth-land`. Phase 1 was committed as `fe9dbf7`.
+  Phase 2 now has a pinned Nigeria/Lagos source snapshot, reproducible import,
+  global geography catalog, authenticated read services/APIs, isolated PostGIS
+  proof schema and internal MapLibre globe explorer. Local implementation,
+  regression and real-browser verification pass. The first real PostGIS GitHub
+  Actions run is the remaining closure gate; Phase 2 changes are uncommitted.
+- **Latest completed checkpoint:** **SIMVERSE Earth Phase 1 - Project Foundation
+  and Architecture**, committed as `fe9dbf7`. It closed the guest-access,
+  destination-preservation, 25 m x 25 m base-parcel and virtual-only ownership
+  decisions. The previous product checkpoint was **Public / Unlisted Sharing
+  v1**, committed at baseline `0faaa71`. It adds the **Share**
   layer and completes the first full creator loop (Create → Simulate → Experience
   → Create Content → Export → Share). It builds on **Image / Post Export v1**
   `b7a1693`, which builds on **Creator / Media Foundation v1** `5012b33`, after
@@ -49,7 +52,7 @@
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-24.
+- **Last updated:** 2026-10-25.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -62,7 +65,61 @@
   Creator / Media Foundation v1 consumes completed Battle, Race and Survival
   Runs downstream as versioned storyboards. It performs no result calculation.
 
-## SIMVERSE Earth - Phase 1 architecture
+## SIMVERSE Earth - Phase 2 Global Geography Engine
+
+- Dedicated global reference models now track datasets, immutable dataset
+  versions, import runs, stable places, parent hierarchy and immutable place
+  revisions. Geography remains separate from workspace-authored World
+  Blueprints.
+- The committed source manifest pins geoBoundaries gbOpen revision `9469f09`
+  for Nigeria ADM0/ADM1 and GeoNames Nigeria data retrieved 2026-10-24 for the
+  Lagos locality point. It records source URLs, attribution, CC BY 4.0 licenses,
+  expected counts and SHA-256 checksums.
+- The verified proof contains 39 records: Nigeria, all 37 first-level
+  subdivisions including Lagos State, and one Lagos locality point. Boundaries
+  are real sourced generalized geometry. The locality is explicitly
+  `POINT_ONLY`; no city polygon was fabricated.
+- `npm run earth:import:nigeria` validates WGS84 coordinates, rings, checksums,
+  counts and duplicate identities; derives deterministic IDs/bounds/hashes;
+  records import history; and safely verifies/skips existing immutable
+  revisions. The first development import created 39 records and the second
+  skipped the same 39 without duplication.
+- Authenticated APIs and services provide country/subdivision listing, supported
+  locations, normalized name search, bounded boundary responses, hierarchy,
+  boundary-quality issues and dataset/import status. They reuse the existing
+  API context, `workspace.view` membership guard, Zod validation and safe errors.
+- `/earth/geography` is an internal authenticated MapLibre globe proof. Chrome
+  155 verifies sourced Nigeria/Lagos rendering, search, selection, zoom/drag,
+  camera controls, keyboard focus, 390 px layout and the list-based no-WebGL
+  fallback. Four screenshots and a JSON run record are under `docs/earth/evidence`.
+  Production homepage and guest Earth integration remain Phase 3.
+- Phase 2 verification passes 399 tests across 42 files, TypeScript, ESLint,
+  Prisma validation/client generation, the Next.js production build and
+  whitespace checks. The focused Phase 2 suite passes 15 tests across three
+  files.
+- The manifest importer is country-neutral. A clearly synthetic second-country
+  `CA` / `CAN` fixture proves ISO identity, hierarchy, provenance, quality,
+  revision and repeat-import behavior without presenting synthetic geometry as
+  authentic data.
+- SQLite remains the application datasource and uses the repository's existing
+  `prisma db push` convention. An isolated PostgreSQL 17/PostGIS 3.6 Compose/SQL
+  proof is prepared with SRID/validity constraints and GiST indexing. Docker and
+  `psql` are absent locally, so `.github/workflows/earth-postgis-verification.yml`
+  will execute the bootstrap and constraint suite in a real isolated service
+  container after the feature branch is pushed.
+- Phase 3 may add a public allowlisted globe shell, while protected locations
+  remain behind a bounded same-origin return intent, authentication and fresh
+  server-side place/workspace authorization. Existing Phase 2 APIs stay private.
+- Full implementation, source, API, explorer, quality and limitation details:
+  [earth/PHASE_2_GEOGRAPHY_ENGINE.md](earth/PHASE_2_GEOGRAPHY_ENGINE.md). The
+  reversible cutover plan is
+  [earth/POSTGIS_MIGRATION_PLAN.md](earth/POSTGIS_MIGRATION_PLAN.md).
+- No parcel, ownership, acquisition, payment, Development Zone or construction
+  implementation exists. Runtime Protocol v1, SimulationRun snapshots and all
+  simulation mechanics remain unchanged. Unreal remains paused and D: remains
+  off limits.
+
+## Committed SIMVERSE Earth - Phase 1 architecture
 
 - Earth is designed as an integrated SIMVERSE Product backed by reusable
   Platform and Core services. Existing accounts, server-side authorization,
@@ -71,10 +128,11 @@
 - Dedicated geography, parcel, ownership and construction records are proposed.
   Global sourced geography must not be stored as a large World Blueprint JSON
   document, and Earth is not a Simulation Module.
-- MapLibre GL JS is proposed for globe/map exploration, a separate Three.js
+- Phase 1 proposed MapLibre GL JS for globe/map exploration, a separate Three.js
   renderer for the construction editor, and PostgreSQL/PostGIS for production
-  spatial data and claim concurrency. These are architecture proposals only;
-  no dependency is installed and the current SQLite schema is unchanged.
+  spatial data and claim concurrency. Phase 2 now evaluates MapLibre in the
+  internal explorer and prepares an isolated PostGIS schema while retaining the
+  current SQLite datasource.
 - Geography preserves source/version/license/checksum and explicitly represents
   point-only, missing, approximate and disputed boundaries. DevelopmentZones,
   rather than administrative boundaries, define virtual eligibility.
@@ -1309,38 +1367,32 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (COMMITTED):
-  Public / Unlisted Sharing v1
-  baseline 0faaa71 — chore: save latest SIMVERSE development before recovery audit
-  (builds on Image / Post Export v1 b7a1693 and Creator / Media Foundation v1 5012b33)
+  SIMVERSE Earth — Phase 1: Project Foundation and Architecture
+  fe9dbf7 — docs: define SIMVERSE Earth foundation
 
 COMMITTED HANDOFF CHECKPOINT:
-  0faaa71 — chore: save latest SIMVERSE development before recovery audit
+  fe9dbf7 — docs: define SIMVERSE Earth foundation
 
 CHECKPOINT STATUS:
-  STATUS: PUBLIC / UNLISTED SHARING v1 COMPLETE AND CHECKPOINTED
-  GATES: vitest 384/39, tsc, eslint, prisma validate/generate, next build, diff --check — all pass
-  QA: isolated-server HTTP (anon resolve, 404 cases, no-leak, pinning, repoint,
-      revoke→404) + headless-Chrome ANONYMOUS public page at 390/768/1024/1440;
-      screenshots visually reviewed
-  SCOPE: version-pinned PRIVATE/UNLISTED/PUBLIC sharing of immutable artifact
-         versions; safe public projection + public viewer; no new dependency
-  FIRST PUBLIC SURFACE: /s/[publicId] is SIMVERSE's first unauthenticated content
-         surface; rate-limiting + moderation are documented pre-launch prerequisites
+  STATUS: EARTH PHASE 1 COMPLETE AND CHECKPOINTED
+  PHASE 2: IMPLEMENTED; LOCAL REGRESSION AND BROWSER QA PASS
 
 ACTIVE FEATURE TRACK (UNCOMMITTED):
-  SIMVERSE Earth — Phase 1: Project Foundation and Architecture
+  SIMVERSE Earth — Phase 2: Global Geography Engine closure
   BRANCH: feature/simverse-earth-land
-  SCOPE: documentation only; eight docs/earth architecture documents plus this handoff
-  IMPLEMENTATION: NOT STARTED
+  SCOPE: sourced/versioned geography catalog, importer, authenticated APIs,
+         MapLibre explorer, isolated PostGIS proof and migration plan
+  LOCAL GATES: vitest 399/42, tsc, eslint, prisma validate/generate,
+               next build, diff --check and real Chrome QA — all pass
+  REMAINING GATE: push branch and record the real PostGIS GitHub Actions result
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Commit the reviewed Phase 1 documentation, then begin Phase 2 Global Geography
-  Engine on this feature branch with a reproducible geoBoundaries gbOpen
-  Nigeria/Lagos proof and an isolated, reversible PostgreSQL/PostGIS plan. Do
-  not create parcels, implement acquisition, or build the construction editor.
+  Commit and push the Phase 2 implementation, let the isolated PostGIS workflow
+  execute, record its actual versions/results, then close Phase 2. Do not begin
+  Phase 3, create parcels, implement acquisition, or build the construction editor.
   Do not access D: or resume Unreal work until the external storage is stable.
 ```

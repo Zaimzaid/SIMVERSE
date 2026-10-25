@@ -143,6 +143,136 @@ model AuditLog {
 // never schema. Everything is workspace-scoped for strict tenant isolation.
 // ============================================================================
 
+// ============================================================================
+// SIMVERSE EARTH - GLOBAL GEOGRAPHY CATALOG (Earth Phase 2)
+//
+// Geography is global sourced reference data, not workspace-authored World
+// Blueprint content. Geometry remains WGS84 GeoJSON in the SQLite baseline.
+// The isolated PostGIS proof schema provides native geometry + GiST indexes for
+// the later reversible database migration.
+// ============================================================================
+
+model EarthGeoDataset {
+  id          String   @id @default(cuid())
+  providerKey String
+  releaseType String
+  name        String
+  sourceUrl   String
+  licenseName String
+  licenseUrl  String
+  attribution String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions EarthGeoDatasetVersion[]
+
+  @@unique([providerKey, releaseType])
+  @@index([providerKey])
+}
+
+model EarthGeoDatasetVersion {
+  id               String    @id @default(cuid())
+  datasetId        String
+  versionKey       String
+  sourceRevision   String
+  status           String    @default("STAGED")
+  manifestChecksum String
+  sourceMetadata   String
+  importedAt       DateTime?
+  activatedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  dataset   EarthGeoDataset         @relation(fields: [datasetId], references: [id], onDelete: Restrict)
+  imports   EarthGeoImport[]
+  revisions EarthGeoPlaceRevision[]
+
+  @@unique([datasetId, versionKey])
+  @@index([datasetId, status])
+  @@index([sourceRevision])
+}
+
+model EarthGeoImport {
+  id               String    @id @default(cuid())
+  datasetVersionId String
+  importKey        String    @unique
+  status           String
+  sourceManifest   String
+  sourceChecksum   String
+  recordsRead      Int       @default(0)
+  recordsCreated   Int       @default(0)
+  recordsUpdated   Int       @default(0)
+  recordsSkipped   Int       @default(0)
+  errorSummary     String?
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  datasetVersion EarthGeoDatasetVersion @relation(fields: [datasetVersionId], references: [id], onDelete: Restrict)
+
+  @@index([datasetVersionId, startedAt])
+  @@index([status, startedAt])
+}
+
+model EarthGeoPlace {
+  id              String   @id @default(cuid())
+  publicId        String   @unique
+  canonicalKey    String   @unique
+  kind            String
+  name            String
+  normalizedName  String
+  isoAlpha2       String?
+  isoAlpha3       String?
+  adminLevel      Int?
+  parentId        String?
+  sourceProvider  String
+  sourceFeatureId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  parent    EarthGeoPlace?          @relation("EarthGeoHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children  EarthGeoPlace[]         @relation("EarthGeoHierarchy")
+  revisions EarthGeoPlaceRevision[]
+
+  @@index([parentId, kind, name])
+  @@index([kind, normalizedName])
+  @@index([isoAlpha3, adminLevel])
+  @@index([sourceProvider, sourceFeatureId])
+}
+
+model EarthGeoPlaceRevision {
+  id                        String   @id @default(cuid())
+  placeId                   String
+  datasetVersionId          String
+  revision                  Int
+  sourceBoundaryId          String?
+  sourceName                String
+  geometryType              String
+  geometryGeoJson           String?
+  bboxWest                  Float?
+  bboxSouth                 Float?
+  bboxEast                  Float?
+  bboxNorth                 Float?
+  labelLongitude            Float?
+  labelLatitude             Float?
+  coordinateReferenceSystem String   @default("EPSG:4326")
+  boundaryQuality           String
+  verificationStatus        String
+  sourceProperties          String   @default("{}")
+  contentHash               String
+  isCurrent                 Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+
+  place          EarthGeoPlace          @relation(fields: [placeId], references: [id], onDelete: Restrict)
+  datasetVersion EarthGeoDatasetVersion @relation(fields: [datasetVersionId], references: [id], onDelete: Restrict)
+
+  @@unique([placeId, revision])
+  @@unique([placeId, datasetVersionId])
+  @@index([placeId, isCurrent])
+  @@index([datasetVersionId])
+  @@index([boundaryQuality, verificationStatus])
+  @@index([bboxWest, bboxEast])
+  @@index([bboxSouth, bboxNorth])
+}
+
 /// A generic object that may participate in or exist inside a simulation.
 /// Products may rename this in their own UI (e.g. "Competitor"); the model stays generic.
 model Entity {

@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "shapeName": "Synthetic Canada Test Fixture",
+        "shapeISO": "CAN",
+        "shapeID": "synthetic-can-adm0-v1",
+        "shapeGroup": "CAN",
+        "shapeType": "ADM0",
+        "synthetic": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-110, 45], [-90, 45], [-90, 60], [-110, 60], [-110, 45]]]
+      }
+    }
+  ]
+}

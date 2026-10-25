@@ -50,6 +50,10 @@ in this document.
 | EARTH-033 | REJECTED | Store global map/model binaries in Prisma rows. | Use object/vector tile storage and safe immutable references. |
 | EARTH-034 | REJECTED | Measure parcels globally in Web Mercator. | Distance/area distortion is unacceptable for stable metric parcels. |
 | EARTH-035 | REJECTED | Install major dependencies during Phase 1. | Architecture must be reviewed first. |
+| EARTH-036 | APPROVED | Pin the Phase 2 Nigeria proof to geoBoundaries gbOpen revision `9469f09`, with source metadata, checksums and attribution. | Imports are reproducible and a provider update must create a new dataset version. |
+| EARTH-037 | APPROVED | Record the supported Lagos locality from GeoNames as `POINT_ONLY`. | A sourced point supports navigation without fabricating or implying a validated city boundary. |
+| EARTH-038 | APPROVED | Use MapLibre's globe projection for the authenticated internal Phase 2 explorer; defer the public production homepage to Phase 3. | The proof can be evaluated without prematurely replacing the approved guest journey. |
+| EARTH-039 | APPROVED | Keep SQLite active while preparing an isolated PostgreSQL 17/PostGIS 3.6 proof and staged migration plan. | Existing application data stays intact; no provider cutover occurs without runtime proof and explicit review. |
 
 ## 3. Open decisions and approval owners
 
@@ -143,3 +147,18 @@ For every decision change:
   permitted only through approved immutable development-zone rules.
 - Reconfirmed that SIMVERSE land and property are virtual and never convey
   ownership or rights in real-world land or structures.
+
+### 2026-10-24 - Phase 2 geography implementation
+
+- Pinned and attributed the Nigeria ADM0/ADM1 geoBoundaries source and a
+  point-only Lagos locality from GeoNames.
+- Added a versioned geography catalog and idempotent checksum-verified importer,
+  separate from World Blueprints.
+- Added authenticated bounded read APIs and an internal MapLibre globe proof.
+- Preserved SQLite and prepared a reversible PostGIS proof/migration plan. A
+  GitHub Actions service-container gate now covers real execution because Docker
+  and `psql` are unavailable locally; its first run remains the closure gate.
+- Generalized the source-manifest importer and proved a second ISO country path
+  with clearly synthetic, non-production test geometry.
+- Verified the authenticated MapLibre explorer in Chrome at desktop/mobile sizes,
+  including keyboard focus, camera interaction and its no-WebGL fallback.

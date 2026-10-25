@@ -2,6 +2,14 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // SIMVERSE Earth global geography catalog (children and immutable source
+  // history first, then the self-referencing place hierarchy and datasets).
+  await prisma.earthGeoPlaceRevision.deleteMany();
+  await prisma.earthGeoImport.deleteMany();
+  await prisma.earthGeoPlace.updateMany({ data: { parentId: null } });
+  await prisma.earthGeoPlace.deleteMany();
+  await prisma.earthGeoDatasetVersion.deleteMany();
+  await prisma.earthGeoDataset.deleteMany();
   // Creator/Media artifacts reference completed Runs with Restrict semantics.
   await prisma.mediaArtifactVersion.deleteMany();
   await prisma.mediaArtifact.deleteMany();

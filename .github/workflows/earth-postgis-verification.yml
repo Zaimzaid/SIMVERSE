@@ -1,0 +1,128 @@
+name: Earth PostGIS Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/simverse-earth-land
+    paths:
+      - .github/workflows/earth-postgis-verification.yml
+      - infrastructure/earth-postgis/**
+
+permissions:
+  contents: read
+
+jobs:
+  verify-earth-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgis:
+        image: postgis/postgis:17-3.6-alpine
+        env:
+          POSTGRES_DB: simverse_earth_verify
+          POSTGRES_USER: simverse_verify
+          POSTGRES_PASSWORD: simverse-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U simverse_verify -d simverse_earth_verify"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Record database versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          service_id="${{ job.services.postgis.id }}"
+          {
+            echo "Container image: postgis/postgis:17-3.6-alpine"
+            docker exec "$service_id" psql \
+              -U simverse_verify \
+              -d simverse_earth_verify \
+              -v ON_ERROR_STOP=1 \
+              -c "SELECT version();" \
+              -c "CREATE EXTENSION IF NOT EXISTS postgis;" \
+              -c "SELECT PostGIS_Full_Version();"
+          } | tee postgis-verification.log
+
+      - name: Initialize and verify the Earth schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          service_id="${{ job.services.postgis.id }}"
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/001-earth-geography.sql \
+            2>&1 | tee -a postgis-verification.log
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/verify/phase2-verification.sql \
+            2>&1 | tee -a postgis-verification.log
+
+      - name: Verify bootstrap repeat behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          service_id="${{ job.services.postgis.id }}"
+          before_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision);")"
+
+          set +e
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/001-earth-geography.sql \
+            >> postgis-verification.log 2>&1
+          repeat_status=$?
+          set -e
+
+          if [ "$repeat_status" -eq 0 ]; then
+            echo "ERROR: the versioned one-time bootstrap unexpectedly accepted a second application." | tee -a postgis-verification.log
+            exit 1
+          fi
+
+          after_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision);")"
+          if [ "$before_counts" != "$after_counts" ]; then
+            echo "ERROR: failed repeat application changed persisted rows ($before_counts -> $after_counts)." | tee -a postgis-verification.log
+            exit 1
+          fi
+          echo "PASS: second application is rejected atomically; row counts remain $after_counts." | tee -a postgis-verification.log
+
+          docker exec "$service_id" psql \
+            -U simverse_verify \
+            -d postgres \
+            -v ON_ERROR_STOP=1 \
+            -c "CREATE DATABASE simverse_earth_fresh_repeat;" \
+            2>&1 | tee -a postgis-verification.log
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_fresh_repeat \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/001-earth-geography.sql \
+            2>&1 | tee -a postgis-verification.log
+          docker exec "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_fresh_repeat \
+            -v ON_ERROR_STOP=1 \
+            -c "SELECT extversion AS postgis_version FROM pg_extension WHERE extname = 'postgis';" \
+            -c "SELECT count(*) AS earth_table_count FROM information_schema.tables WHERE table_schema = 'earth_geo';" \
+            2>&1 | tee -a postgis-verification.log
+          echo "PASS: the same bootstrap initializes an independent fresh database." | tee -a postgis-verification.log
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: earth-postgis-verification
+          path: postgis-verification.log
+          if-no-files-found: error

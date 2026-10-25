@@ -217,3 +217,22 @@ Every phase report must include:
 - known limits and deferred tests;
 - `git status` and proof that databases, tiles, profiles, logs and screenshots are
   not accidentally staged.
+
+## 16. Phase 2 closure evidence (2026-10-25)
+
+| Gate | Actual result |
+| --- | --- |
+| Geography import | **Passed.** Pinned Nigeria/Lagos data produces 39 stable places; repeat import skips all 39 without duplicate revisions. |
+| Country-neutral ingestion | **Passed.** A clearly synthetic `CA` / `CAN` fixture and `ADMIN1` child pass unit and database integration tests. The fixture is labeled non-authentic and never enters production data. |
+| Authentication | **Passed.** The page/API/service chain requires authentication, active workspace membership and `workspace.view`; anonymous access redirects and foreign workspaces fail safely. |
+| Chrome/WebGL | **Passed.** Chrome 155 renders sourced Nigeria and Lagos geometry, search, selection, zoom/drag/navigation controls, quality labels and attribution. |
+| Mobile and keyboard | **Passed.** 390 by 844 has no document overflow; the labeled search control receives keyboard focus and Enter submits. |
+| No-WebGL fallback | **Passed.** A WebGL-disabled browser context receives helpful fallback copy and keeps the place hierarchy usable. |
+| Browser evidence | **Passed.** Four screenshots were captured and visually reviewed; the machine-readable run record is under `docs/earth/evidence/`. |
+| Local regression | **Passed.** 399 tests in 42 files, TypeScript, ESLint, Prisma validate/generate, Next production build and `git diff --check`. |
+| Real PostGIS execution | **Pending first CI run.** The Ubuntu/PostGIS service-container workflow is committed with Phase 2 because Docker and `psql` are unavailable locally. |
+
+The authenticated Phase 2 explorer does not implement Phase 3 guest behavior.
+Phase 3 may present a public allowlisted globe shell, but a protected selection
+must travel through a bounded same-origin intent, authentication and fresh
+server-side place/workspace authorization before detail is returned.

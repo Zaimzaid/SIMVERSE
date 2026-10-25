@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "shapeName": "Synthetic Ontario Test Region",
+        "shapeISO": "CA-ON",
+        "shapeID": "synthetic-ca-on-adm1-v1",
+        "shapeGroup": "CAN",
+        "shapeType": "ADM1",
+        "synthetic": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-100, 46], [-92, 46], [-92, 52], [-100, 52], [-100, 46]]]
+      }
+    }
+  ]
+}

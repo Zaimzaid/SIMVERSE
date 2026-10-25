@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "name": "SIMVERSE Earth supported Nigeria localities",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "geonames:2332459",
+      "properties": {
+        "geonameId": "2332459",
+        "name": "Lagos",
+        "asciiName": "Lagos",
+        "featureClass": "P",
+        "featureCode": "PPLA2",
+        "countryCode": "NG",
+        "countryIsoAlpha3": "NGA",
+        "admin1Code": "05",
+        "parentShapeISO": "NG-LA",
+        "population": 15388000,
+        "timezone": "Africa/Lagos",
+        "sourceModifiedDate": "2023-10-25",
+        "boundaryAvailable": false
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.39467, 6.45407]
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "scope": "SYNTHETIC TEST FIXTURE ONLY - not authentic geography",
+  "coordinateReferenceSystem": "EPSG:4326",
+  "sources": [
+    {
+      "providerKey": "synthetic-test-boundaries",
+      "providerName": "Synthetic Geography Test Fixture",
+      "releaseType": "test-only",
+      "versionKey": "synthetic-can-v1",
+      "sourceRevision": "fixture-v1",
+      "sourceUrl": "https://example.invalid/simverse-earth-synthetic-fixture",
+      "licenseName": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Synthetic SIMVERSE test fixture; not authentic geography",
+      "adapter": "GEOBOUNDARIES",
+      "verificationStatus": "PENDING_REVIEW",
+      "coverage": [
+        {
+          "name": "Synthetic Canada Test Fixture",
+          "isoAlpha2": "CA",
+          "isoAlpha3": "CAN"
+        }
+      ],
+      "layers": [
+        {
+          "level": "ADM0",
+          "boundaryId": "synthetic-can-adm0",
+          "sourceName": "SIMVERSE synthetic test data",
+          "sourceUrl": "https://example.invalid/simverse-earth-synthetic-fixture/adm0",
+          "file": "ADM0.geojson",
+          "sha256": "501d5ebd319b4e04859e209c8ba6ef42b51c46f48bb0877c7c6688a8f971c4f4",
+          "featureCount": 1,
+          "geometryDetail": "Synthetic rectangle for importer tests only",
+          "boundaryQuality": "APPROXIMATE_BOUNDARY"
+        },
+        {
+          "level": "ADM1",
+          "boundaryId": "synthetic-ca-on-adm1",
+          "sourceName": "SIMVERSE synthetic test data",
+          "sourceUrl": "https://example.invalid/simverse-earth-synthetic-fixture/adm1",
+          "file": "ADM1.geojson",
+          "sha256": "471aa4102e269f617a944e16f6aad75e6975967588b48c6b1fe5285f89b9abf1",
+          "featureCount": 1,
+          "geometryDetail": "Synthetic rectangle for importer tests only",
+          "boundaryQuality": "APPROXIMATE_BOUNDARY"
+        }
+      ]
+    }
+  ]
+}

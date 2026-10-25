@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "scope": "SIMVERSE Earth Phase 2 Nigeria/Lagos proof",
+  "coordinateReferenceSystem": "EPSG:4326",
+  "sources": [
+    {
+      "providerKey": "geoboundaries",
+      "providerName": "geoBoundaries",
+      "releaseType": "gbOpen",
+      "versionKey": "gbopen-nga-9469f09",
+      "sourceRevision": "9469f09",
+      "sourceUrl": "https://www.geoboundaries.org/api/current/gbOpen/NGA/",
+      "licenseName": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "geoBoundaries; underlying Nigeria boundary source: GRID3",
+      "adapter": "GEOBOUNDARIES",
+      "verificationStatus": "VERIFIED_SOURCE",
+      "coverage": [
+        {
+          "name": "Nigeria",
+          "isoAlpha2": "NG",
+          "isoAlpha3": "NGA"
+        }
+      ],
+      "layers": [
+        {
+          "level": "ADM0",
+          "boundaryId": "NGA-ADM0-39225661",
+          "boundaryYearRepresented": "2022",
+          "buildDate": "2023-12-12",
+          "sourceName": "GRID3",
+          "sourceUrl": "https://data.grid3.org/datasets/grid3-nigeria-state-boundaries/",
+          "file": "geoboundaries/gbopen-9469f09/NGA/ADM0.geojson",
+          "sha256": "22bef6ad05ad58ab1594c8e12199526b4595a857b3955eec41224ca9547f1977",
+          "featureCount": 1,
+          "geometryDetail": "geoBoundaries simplified GeoJSON",
+          "boundaryQuality": "GENERALIZED_BOUNDARY"
+        },
+        {
+          "level": "ADM1",
+          "boundaryId": "NGA-ADM1-27671186",
+          "boundaryYearRepresented": "2022",
+          "buildDate": "2023-12-12",
+          "sourceName": "GRID3",
+          "sourceUrl": "https://data.grid3.org/datasets/grid3-nigeria-state-boundaries/",
+          "file": "geoboundaries/gbopen-9469f09/NGA/ADM1.geojson",
+          "sha256": "edd28050c7f1ae40471424605f74e4d2df83502e4f301089761ae18f8ae2fbbf",
+          "featureCount": 37,
+          "geometryDetail": "geoBoundaries simplified GeoJSON",
+          "boundaryQuality": "GENERALIZED_BOUNDARY"
+        }
+      ]
+    },
+    {
+      "providerKey": "geonames",
+      "providerName": "GeoNames",
+      "releaseType": "country-dump-derived-points",
+      "versionKey": "geonames-ng-2026-10-24-bdf3d76c",
+      "sourceRevision": "NG.zip retrieved 2026-10-24; sha256 bdf3d76c54362a680b307e07d1207e52a7febd153aaf08fef520744e622b7342",
+      "sourceUrl": "https://download.geonames.org/export/dump/NG.zip",
+      "licenseName": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution": "GeoNames (https://www.geonames.org/)",
+      "adapter": "GEONAMES_SUPPORTED_LOCALITIES",
+      "verificationStatus": "VERIFIED_SOURCE",
+      "coverage": [
+        {
+          "name": "Nigeria",
+          "isoAlpha2": "NG",
+          "isoAlpha3": "NGA"
+        }
+      ],
+      "layers": [
+        {
+          "level": "SUPPORTED_LOCALITIES",
+          "file": "geonames/NG-2026-10-24/supported-localities.geojson",
+          "sha256": "42dd73347859ff4646f9eb1a2515fa016d006094931c5f8e6f6be7d9a3b6a594",
+          "featureCount": 1,
+          "geometryDetail": "WGS84 point only; no locality boundary",
+          "boundaryQuality": "POINT_ONLY"
+        }
+      ]
+    }
+  ]
+}
