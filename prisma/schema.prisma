@@ -30,6 +30,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  playerIdentity PlayerIdentity?
+
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
   sessions        Session[]
@@ -61,6 +63,56 @@ model User {
   createdEarthZoneVersions  EarthDevelopmentZoneVersion[]        @relation("EarthZoneVersionCreator")
   reviewedEarthZoneVersions EarthDevelopmentZoneVersion[]        @relation("EarthZoneVersionReviewer")
   earthZoneLifecycleEvents  EarthDevelopmentZoneLifecycleEvent[] @relation("EarthZoneLifecycleActor")
+}
+
+// ============================================================================
+// SIMVERSE PLAYER IDENTITY — Phase 1
+// This virtual identity is not a real government document, nationality,
+// citizenship, passport, residency or title to land. Profile privacy is
+// private by default. Workspace privileges stay entirely separate.
+// ============================================================================
+
+model PlayerIdentity {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  simverseId     String   @unique
+  username       String?  @unique
+  creatorName    String?
+  biography      String   @default("")
+  bannerUrl      String?
+  profileVisibility String @default("PRIVATE") // PRIVATE | PUBLIC; app validated
+  experienceMode String   @default("BOTH")      // PLAYER | CREATOR | BOTH
+  homeCountryId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  homeCountry    EarthGeoPlace?        @relation("PlayerHomeCountry", fields: [homeCountryId], references: [id], onDelete: SetNull)
+  citizenships   PlayerCitizenship[]
+
+  @@index([profileVisibility, username])
+  @@index([homeCountryId])
+}
+
+// A citizenship ledger foundation, not a passport issuer.
+// Only future separately authorized workflows may award ACTIVE citizenship.
+// Phase 1 profile edits never insert, grant or approve citizenship records.
+model PlayerCitizenship {
+  id              String   @id @default(cuid())
+  playerIdentityId String
+  countryPlaceId  String
+  status          String   @default("PENDING_REVIEW")
+  category        String   @default("STANDARD")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  reviewedAt      DateTime?
+  reviewNote      String?
+
+  identity  PlayerIdentity @relation(fields: [playerIdentityId], references: [id], onDelete: Cascade)
+  country   EarthGeoPlace  @relation("PlayerCitizenshipCountry", fields: [countryPlaceId], references: [id], onDelete: Restrict)
+
+  @@unique([playerIdentityId, countryPlaceId])
+  @@index([countryPlaceId, status])
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -242,6 +294,8 @@ model EarthGeoPlace {
   children  EarthGeoPlace[]         @relation("EarthGeoHierarchy")
   revisions EarthGeoPlaceRevision[]
   developmentZones EarthDevelopmentZone[]
+  homeCountryIdentities PlayerIdentity[] @relation("PlayerHomeCountry")
+  virtualCitizenships  PlayerCitizenship[] @relation("PlayerCitizenshipCountry")
 
   @@index([parentId, kind, name])
   @@index([kind, normalizedName])
