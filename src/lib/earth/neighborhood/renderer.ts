@@ -89,16 +89,21 @@ export class NeighborhoodRenderer {
   private showWalkers: ReturnType<typeof createMarinaV02Scene>["walkers"] = [];
   private showTextures: Texture[] = [];
   private elapsed = 0;
+  private perfWindowStart = 0;
+  private perfFrames = 0;
+  private onMetrics: (fps: number, drawCalls: number) => void;
 
   constructor(
     canvas: HTMLCanvasElement,
     quality: NeighborhoodQuality,
     onSelect: (selection: NeighborhoodSelection) => void,
     onMove: (x: number, z: number) => void,
+    onMetrics: (fps: number, drawCalls: number) => void = () => {},
   ) {
     this.canvas = canvas;
     this.onSelect = onSelect;
     this.onMove = onMove;
+    this.onMetrics = onMetrics;
     this.quality = quality;
     this.renderer = new WebGLRenderer({ canvas, antialias: quality !== "LOW", powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "HIGH" ? 1.7 : quality === "MEDIUM" ? 1.25 : 1));
@@ -458,6 +463,16 @@ export class NeighborhoodRenderer {
       this.lastDraw = timestamp;
       this.update(delta);
       this.renderer.render(this.scene, this.camera);
+      // Report actual rendered-frame cadence, not an invented FPS target.
+      this.perfFrames += 1;
+      if (!this.perfWindowStart) this.perfWindowStart = timestamp;
+      const elapsed = timestamp - this.perfWindowStart;
+      if (elapsed >= 1000) {
+        this.onMetrics(Math.round(this.perfFrames * 1000 / elapsed),
+          this.renderer.info.render.calls);
+        this.perfFrames = 0;
+        this.perfWindowStart = timestamp;
+      }
     }
     this.raf = requestAnimationFrame(this.tick);
   };
