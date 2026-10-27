@@ -220,7 +220,7 @@ export function TopBar({
             <X className="size-5" />
           </button>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto p-2" role="listbox" aria-label="Pages">
+        <nav className="max-h-[60vh] overflow-y-auto p-2" aria-label="Search results">
           {results.length ? results.map((item) => {
             const Icon = item.icon;
             return (
