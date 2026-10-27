@@ -284,3 +284,190 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+
+/* ---- Illustrated world backgrounds: first-party original SVG assets. ---- */
+/* Images remain decorative; links, readable text and map canvases sit above. */
+.simverse-scene-root {
+  position: relative;
+  isolation: isolate;
+}
+.simverse-scene-backdrop {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 72% 8%, rgba(45, 168, 199, .23), transparent 42%),
+    url("/backgrounds/simverse-world-atlas.svg");
+  background-size: cover, cover;
+  background-position: center, 60% center;
+  background-repeat: no-repeat;
+  opacity: .26;
+}
+.simverse-scene-root[data-simverse-area="build"] .simverse-scene-backdrop,
+.simverse-scene-root[data-simverse-area="simulations"] .simverse-scene-backdrop {
+  background-image:
+    radial-gradient(circle at 70% 12%, rgba(122, 95, 206, .22), transparent 48%),
+    url("/backgrounds/simverse-creator-grid.svg");
+}
+.simverse-scene-root[data-simverse-area="identity"] .simverse-scene-backdrop {
+  background-image:
+    radial-gradient(circle at 83% 16%, rgba(30, 173, 194, .22), transparent 47%),
+    url("/backgrounds/simverse-identity-cards.svg");
+}
+.simverse-scene-root[data-simverse-area="home"] .simverse-scene-backdrop {
+  background-image:
+    linear-gradient(180deg, rgba(5, 18, 40, .16), transparent 50%),
+    url("/backgrounds/simverse-city-night.svg");
+  opacity: .19;
+}
+.simverse-scene-root[data-simverse-area="economy"] .simverse-scene-backdrop {
+  background-image:
+    radial-gradient(circle at 66% 12%, rgba(32, 196, 174, .23), transparent 48%),
+    url("/backgrounds/simverse-world-atlas.svg");
+}
+[data-theme="light"] .simverse-scene-backdrop {
+  opacity: .24;
+}
+[data-theme="light"] .simverse-scene-root[data-simverse-area="home"] .simverse-scene-backdrop {
+  background-image:
+    linear-gradient(180deg, rgba(227, 241, 248, .18), transparent 55%),
+    url("/backgrounds/simverse-city-day.svg");
+  opacity: .23;
+}
+/* Still scenic, but clear enough for a map to retain visual priority. */
+.simverse-scene-root[data-simverse-focus="true"] .simverse-scene-backdrop {
+  opacity: .10;
+}
+[data-theme="light"] .simverse-scene-root[data-simverse-focus="true"] .simverse-scene-backdrop {
+  opacity: .13;
+}
+
+/* The home hero is visually immersive in BOTH themes, not a white rectangle. */
+.simverse-home-hero,
+.simverse-public-hero {
+  background-color: #071426;
+  background-image:
+    linear-gradient(92deg, rgba(4, 13, 30, .95), rgba(7, 23, 42, .82) 40%, rgba(6, 21, 44, .14) 100%),
+    url("/backgrounds/simverse-city-night.svg");
+  background-size: cover;
+  background-position: center, 66% center;
+  background-repeat: no-repeat;
+}
+[data-theme="light"] .simverse-home-hero,
+[data-theme="light"] .simverse-public-hero {
+  background-color: #d9eef3;
+  background-image:
+    linear-gradient(92deg, rgba(239, 248, 248, .98), rgba(232, 244, 249, .88) 40%, rgba(215, 235, 236, .10) 100%),
+    url("/backgrounds/simverse-city-day.svg");
+}
+.simverse-home-hero h1,
+.simverse-public-hero h1,
+.simverse-home-hero .hero-title,
+.simverse-public-hero .hero-title { color: #f8fafc; }
+.simverse-home-hero p.hero-description,
+.simverse-public-hero p.hero-description { color: #e2edf4; }
+.simverse-home-hero .hero-eyebrow,
+.simverse-public-hero .hero-eyebrow {
+  border-color: rgba(111, 229, 239, .45);
+  background: rgba(10, 71, 89, .5);
+  color: #baf5f4;
+}
+[data-theme="light"] .simverse-home-hero h1,
+[data-theme="light"] .simverse-public-hero h1,
+[data-theme="light"] .simverse-home-hero .hero-title,
+[data-theme="light"] .simverse-public-hero .hero-title { color: #13283b; }
+[data-theme="light"] .simverse-home-hero p.hero-description,
+[data-theme="light"] .simverse-public-hero p.hero-description { color: #30495d; }
+[data-theme="light"] .simverse-home-hero .hero-eyebrow,
+[data-theme="light"] .simverse-public-hero .hero-eyebrow {
+  border-color: rgba(8, 105, 128, .3);
+  background: rgba(215, 245, 244, .82);
+  color: #075b70;
+}
+/* Keep action cards in front of illustrations; no image under form inputs. */
+.simverse-home-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 18%;
+  background: linear-gradient(0deg, var(--surface) 0%, transparent);
+  opacity: .18;
+  pointer-events: none;
+}
+.simverse-public-hero {
+  min-height: 39rem;
+}
+
+/* Section banners provide visual identity on Profile/Create/Economy/Simulate. */
+.simverse-page-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  min-height: 11rem;
+  padding: clamp(1.4rem, 4vw, 2.25rem);
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(95deg, rgba(8, 24, 42, .97), rgba(12, 38, 61, .88) 47%, rgba(11, 45, 66, .26) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+  background-size: cover;
+  background-position: center, center;
+  box-shadow: 0 18px 40px -32px rgba(0, 0, 0, .5);
+}
+.simverse-page-scene--create,
+.simverse-page-scene--simulation {
+  background-image:
+    linear-gradient(95deg, rgba(10, 20, 44, .96), rgba(31, 30, 74, .86) 49%, rgba(26, 39, 69, .18) 100%),
+    url("/backgrounds/simverse-creator-grid.svg");
+}
+.simverse-page-scene--profile,
+.simverse-page-scene--documents {
+  background-image:
+    linear-gradient(95deg, rgba(10, 28, 45, .97), rgba(16, 53, 69, .86) 47%, rgba(15, 73, 87, .16) 100%),
+    url("/backgrounds/simverse-identity-cards.svg");
+}
+.simverse-page-scene--economy {
+  background-image:
+    linear-gradient(95deg, rgba(8, 32, 33, .98), rgba(12, 62, 61, .86) 48%, rgba(24, 96, 96, .16) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+}
+.simverse-page-scene :is(h1, h2) { color: #fff !important; }
+.simverse-page-scene p { color: #d4e5ee !important; }
+.simverse-page-scene .text-accent { color: #74edf0 !important; }
+[data-theme="light"] .simverse-page-scene {
+  background-color: #e9f5f8;
+  background-image:
+    linear-gradient(95deg, rgba(239, 249, 250, .99), rgba(229, 245, 250, .90) 45%, rgba(216, 239, 242, .10) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+}
+[data-theme="light"] .simverse-page-scene--create,
+[data-theme="light"] .simverse-page-scene--simulation {
+  background-image:
+    linear-gradient(95deg, rgba(246, 245, 252, .98), rgba(237, 239, 251, .91) 45%, rgba(228, 231, 250, .09) 100%),
+    url("/backgrounds/simverse-creator-grid.svg");
+}
+[data-theme="light"] .simverse-page-scene--profile,
+[data-theme="light"] .simverse-page-scene--documents {
+  background-image:
+    linear-gradient(95deg, rgba(238, 249, 250, .99), rgba(231, 247, 250, .91) 45%, rgba(216, 241, 242, .09) 100%),
+    url("/backgrounds/simverse-identity-cards.svg");
+}
+[data-theme="light"] .simverse-page-scene--economy {
+  background-image:
+    linear-gradient(95deg, rgba(237, 251, 247, .99), rgba(226, 245, 244, .91) 45%, rgba(206, 235, 235, .10) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+}
+[data-theme="light"] .simverse-page-scene :is(h1, h2) { color: #15293f !important; }
+[data-theme="light"] .simverse-page-scene p { color: #38536a !important; }
+[data-theme="light"] .simverse-page-scene .text-accent { color: #087c90 !important; }
+@media (max-width: 640px) {
+  .simverse-home-hero,
+  .simverse-public-hero { background-position: center, 72% center; }
+  .simverse-page-scene { background-position: center, 65% center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .simverse-scene-backdrop { background-attachment: scroll; }
+}
