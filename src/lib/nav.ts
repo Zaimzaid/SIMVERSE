@@ -17,6 +17,7 @@ import {
   FileBadge2,
   Plane,
   BriefcaseBusiness,
+  ClipboardList,
   Users,
   type LucideIcon,
 } from "lucide-react";
