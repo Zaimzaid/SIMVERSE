@@ -22,6 +22,7 @@ import type { EarthParcelView, EarthZoneDetail, EarthZoneSummary } from "@/lib/e
 import { earthPlaceFocusMaxZoom, isEarthSettlement } from "@/lib/earth/navigation";
 import { EMPTY_FEATURE_COLLECTION, createEarthOverviewStyle } from "@/lib/earth/map-style";
 import { EARTH_OVERVIEW_V1 } from "@/lib/earth/public";
+import { earthZoneOverviewFeatures } from "@/lib/earth/zone-overview";
 import type { EarthBoundaryView, EarthPlaceDetail, EarthPlaceSummary } from "@/lib/earth/types";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonClasses } from "@/components/ui/button";
@@ -119,6 +120,14 @@ export function GeographyExplorer({
   const parcelQueryRef = useRef<{ bbox: string; zoom: number } | null>(null);
   const parcelsRef = useRef<EarthParcelView[]>([]);
   const selectParcelRef = useRef<(id: string) => void>(() => undefined);
+  const zonesRef = useRef<EarthZoneSummary[]>([]);
+  const selectZoneRef = useRef<(id: string) => void>(() => undefined);
+
+  zonesRef.current = zones;
+  selectZoneRef.current = (id) => {
+    const zone = zonesRef.current.find((item) => item.id === id);
+    if (zone) void showZone(zone);
+  };
 
   parcelsRef.current = parcels;
   selectParcelRef.current = (id) => {
@@ -207,6 +216,31 @@ export function GeographyExplorer({
               "circle-stroke-color": "#fff7d6",
               "circle-stroke-width": 2,
             },
+          });
+          map.addSource("development-zone-overview", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "development-zone-overview-markers",
+            type: "circle",
+            source: "development-zone-overview",
+            minzoom: 5,
+            maxzoom: 16,
+            paint: {
+              "circle-radius": 11,
+              "circle-color": "#fbbf24",
+              "circle-opacity": 0.86,
+              "circle-stroke-color": "#172554",
+              "circle-stroke-width": 3,
+            },
+          });
+          map.on("click", "development-zone-overview-markers", (event) => {
+            const zoneId = event.features?.[0]?.properties?.id;
+            if (typeof zoneId === "string") selectZoneRef.current(zoneId);
+          });
+          map.on("mouseenter", "development-zone-overview-markers", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "development-zone-overview-markers", () => {
+            map.getCanvas().style.cursor = "";
           });
           map.addSource("development-zone", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
           map.addLayer({
@@ -324,6 +358,11 @@ export function GeographyExplorer({
     ], { padding: 40, duration: 0, maxZoom: 18 });
     if (map.getZoom() < 16) map.setZoom(16);
   }, [activeZone, mapReady]);
+
+  useEffect(() => {
+    updateMapSource(mapRef.current, "development-zone-overview",
+      featureCollection(earthZoneOverviewFeatures(zones)));
+  }, [mapReady, zones]);
 
   useEffect(() => {
     updateMapSource(mapRef.current, "development-zone", activeZone
@@ -749,6 +788,7 @@ export function GeographyExplorer({
             </p>
             {zones.length ? (
               <div className="mt-3 space-y-2">
+                <p className="text-xs text-secondary">Select a zone below or tap its amber map marker. Zone markers show approximate locations; outlines and individual plots appear when you open a zone.</p>
                 {zones.map((zone) => (
                   <button
                     key={zone.id}
