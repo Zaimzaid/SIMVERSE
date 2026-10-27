@@ -66,6 +66,10 @@ export function describeAuditAction(
       return { icon: FileText, label: "SIMVERSE virtual travel agreement proposed" };
     case "player.governance.treaty_approved":
       return { icon: CheckCircle2, label: "SIMVERSE virtual travel agreement approved" };
+    case "player.economy.profession_selected":
+      return { icon: CheckCircle2, label: "SIMVERSE profession and starter credits activated" };
+    case "player.economy.business_draft_created":
+      return { icon: FileText, label: "SIMVERSE virtual business draft created" };
     case "workspace.created":
       return {
         icon: Sparkles,
