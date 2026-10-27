@@ -5,6 +5,7 @@ import { requireUser } from "@/server/context";
 import { getMyPlayerIdentity } from "@/server/services/player-identity-service";
 import { getMyVirtualDocuments } from "@/server/services/player-document-service";
 import { PlayerDocumentCenter } from "@/components/player/player-document-center";
+import { DualCitizenshipPreview } from "@/components/player/dual-citizenship-preview";
 import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "Virtual Citizenship & Documents | SIMVERSE" };
@@ -21,6 +22,7 @@ export default async function MyVirtualDocumentsPage() {
       <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">← Back to my player identity</Link>
       <Link href="/profile/travel" className="inline-block text-sm font-semibold text-accent hover:underline">Virtual travel & immigration →</Link>
     </div>
+    <DualCitizenshipPreview countries={docs.countries}/>
     <PlayerDocumentCenter initial={docs} username={identity.username} homeCountryId={identity.homeCountryId}/>
   </div>;
 }
