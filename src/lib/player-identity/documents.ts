@@ -25,6 +25,7 @@ export function qualificationChecklist(input: {
   hasUsername: boolean;
   homeCountryMatches: boolean;
   hasActiveVirtualCitizenship: boolean;
+  eligibleSecondCitizenship?: boolean;
 }): Array<{ id: string; description: string; satisfied: boolean }> {
   const checks = [
     { id: "identity", description: "Registered SIMVERSE username", satisfied: input.hasUsername },
@@ -32,8 +33,8 @@ export function qualificationChecklist(input: {
   if (input.kind === "CITIZENSHIP") {
     checks.push({
       id: "home",
-      description: "Chosen SIMVERSE home country matches the application country",
-      satisfied: input.homeCountryMatches,
+      description: "First citizenship in selected virtual home country, or qualified second citizenship under approved country policies",
+      satisfied: input.homeCountryMatches || input.eligibleSecondCitizenship === true,
     });
   }
   if (input.kind === "NATIONAL_PASSPORT" || input.kind === "INTERNATIONAL_PASSPORT") {
