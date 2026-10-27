@@ -7,7 +7,7 @@ import {
   type BufferGeometry, type Material, type Texture,
 } from "three";
 import {
-  createNeighborhoodWorld, moveWalker,
+  createNeighborhoodWorld, isWalkable, moveWalker,
   type NeighborhoodBuilding, type NeighborhoodWorld,
 } from "./world";
 import { animateMarinaResidents, createMarinaV02Scene } from "./showcase-v02";
@@ -399,6 +399,17 @@ export class NeighborhoodRenderer {
     this.keyLight.castShadow = quality === "HIGH";
     this.renderer.toneMappingExposure = quality === "HIGH" ? 1.12 : 1.17;
     this.resize();
+  }
+  focusShowcase() {
+    // Walkable south-east plaza path looking toward the more detailed
+    // boulevard shopfronts. Does not teleport outside world bounds.
+    const x = 18, z = 8;
+    if (!isWalkable(this.world, x, z)) return;
+    this.walker.x = x; this.walker.z = z;
+    this.yaw = -1.12;
+    this.pitch = 0.28;
+    this.mode = "WALK";
+    this.onMove(x, z);
   }
   setCameraMode(mode: NeighborhoodCameraMode) { this.mode = mode; }
   setJoystick(forward: number, strafe: number) { this.joystick = { forward, strafe }; }
