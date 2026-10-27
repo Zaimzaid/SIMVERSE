@@ -1826,6 +1826,7 @@ model EconomyLab {
   creatorId   String
   name        String
   stateJson   String
+  access      String @default("PRIVATE") // PRIVATE or WORKSPACE (explicit creator opt-in)
   revision    Int @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
