@@ -33,8 +33,10 @@ export default async function MyProfilePage() {
   ]);
   return (
     <div className="mx-auto max-w-5xl space-y-7">
-      <PageHeader icon={IdCard} eyebrow="My SIMVERSE" title="Player identity"
-        description="Your personal hub for profile settings, virtual-world documents, travel and careers." />
+      <div className="simverse-page-scene simverse-page-scene--profile">
+        <PageHeader icon={IdCard} eyebrow="My SIMVERSE" title="Player identity"
+          description="Your personal hub for profile settings, virtual-world documents, travel and careers." />
+      </div>
       <section aria-label="Player services" className="grid gap-3 sm:grid-cols-3">
         {profileDestinations.map((destination) => {
           const Icon = destination.icon;
