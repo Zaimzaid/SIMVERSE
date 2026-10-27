@@ -31,6 +31,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   playerIdentity PlayerIdentity?
+  virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
+  virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
@@ -89,6 +91,8 @@ model PlayerIdentity {
   user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   homeCountry    EarthGeoPlace?        @relation("PlayerHomeCountry", fields: [homeCountryId], references: [id], onDelete: SetNull)
   citizenships   PlayerCitizenship[]
+  documentApplications PlayerDocumentApplication[]
+  virtualDocuments PlayerVirtualDocument[]
 
   @@index([profileVisibility, username])
   @@index([homeCountryId])
@@ -103,6 +107,7 @@ model PlayerCitizenship {
   countryPlaceId  String
   status          String   @default("PENDING_REVIEW")
   category        String   @default("STANDARD")
+  sourceApplicationId String? @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   reviewedAt      DateTime?
@@ -113,6 +118,71 @@ model PlayerCitizenship {
 
   @@unique([playerIdentityId, countryPlaceId])
   @@index([countryPlaceId, status])
+}
+
+// Player-only applications and approvals. No governmental/real-world authority.
+// The pilot permits one application per type and virtual country; denials
+// require future policy workflow before resubmission.
+model PlayerDocumentApplication {
+  id               String    @id @default(cuid())
+  identityId       String
+  countryPlaceId   String
+  kind             String    // CITIZENSHIP | NATIONAL_PASSPORT | INTERNATIONAL_PASSPORT | RESIDENCY
+  status           String    @default("PENDING_REVIEW") // PENDING_REVIEW | APPROVED | DENIED
+  statement        String    @default("")
+  eligibilityJson  String    @default("{}")
+  reviewNote       String?
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  identity    PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  country     EarthGeoPlace  @relation("DocumentApplicationCountry", fields: [countryPlaceId], references: [id], onDelete: Restrict)
+  reviewedBy User?          @relation("DocumentReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  document   PlayerVirtualDocument?
+
+  @@unique([identityId, countryPlaceId, kind])
+  @@index([countryPlaceId, status, createdAt])
+  @@index([identityId, createdAt])
+}
+
+// Fictional in-world record, not a replica or real passport.
+// All issuances require a separate authorized country reviewer and a
+// validated application. A credential has no real-world travel significance.
+model PlayerVirtualDocument {
+  id            String   @id @default(cuid())
+  applicationId String   @unique
+  identityId    String
+  kind          String
+  serial        String   @unique
+  status        String   @default("ISSUED") // ISSUED | REVOKED
+  issuedAt      DateTime @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+
+  application PlayerDocumentApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  identity    PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId, kind, status])
+  @@index([expiresAt])
+}
+
+// Country-scoped review access is explicitly provisioned outside public APIs;
+// Earth stewardship, workspace owner/admin and player profile roles NEVER
+// convey passport/citizenship review authority.
+model PlayerDocumentReviewer {
+  id             String   @id @default(cuid())
+  userId         String
+  countryPlaceId String
+  isActive       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  user    User          @relation("DocumentReviewerUser", fields: [userId], references: [id], onDelete: Cascade)
+  country EarthGeoPlace @relation("DocumentReviewerCountry", fields: [countryPlaceId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, countryPlaceId])
+  @@index([countryPlaceId, isActive])
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -296,6 +366,8 @@ model EarthGeoPlace {
   developmentZones EarthDevelopmentZone[]
   homeCountryIdentities PlayerIdentity[] @relation("PlayerHomeCountry")
   virtualCitizenships  PlayerCitizenship[] @relation("PlayerCitizenshipCountry")
+  virtualDocumentApplications PlayerDocumentApplication[] @relation("DocumentApplicationCountry")
+  virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerCountry")
 
   @@index([parentId, kind, name])
   @@index([kind, normalizedName])
