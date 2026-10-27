@@ -97,6 +97,7 @@ export function GeographyExplorer({
   const [selected, setSelected] = useState<EarthPlaceSummary | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<EarthBoundaryView | null>(null);
   const [subdivisions, setSubdivisions] = useState<EarthPlaceSummary[]>([]);
+  const [localGovernments, setLocalGovernments] = useState<EarthPlaceSummary[]>([]);
   const [localities, setLocalities] = useState<EarthPlaceSummary[]>([]);
   const [hierarchy, setHierarchy] = useState<EarthPlaceSummary[]>([]);
   const [search, setSearch] = useState("");
@@ -113,6 +114,7 @@ export function GeographyExplorer({
   const [landMessage, setLandMessage] = useState("");
   const [nextParcelCursor, setNextParcelCursor] = useState<string | null>(null);
   const [mapZoom, setMapZoom] = useState(1.6);
+  const [streetMapEnabled, setStreetMapEnabled] = useState(true);
   const parcelQueryRef = useRef<{ bbox: string; zoom: number } | null>(null);
   const parcelsRef = useRef<EarthParcelView[]>([]);
   const selectParcelRef = useRef<(id: string) => void>(() => undefined);
@@ -156,6 +158,24 @@ export function GeographyExplorer({
             "horizon-fog-blend": 0.7,
             "fog-ground-blend": 0.55,
             "atmosphere-blend": 0.88,
+          });
+          // Street context is intentionally an interactive, viewport-only tile layer.
+          // OSM tiles are not a source for bulk downloads or offline replication.
+          // Replace with licensed/self-hosted tiles before high-traffic deployment.
+          map.addSource("earth-street-context", {
+            type: "raster",
+            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            maxzoom: 19,
+            attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>',
+          });
+          map.addLayer({
+            id: "earth-street-context",
+            type: "raster",
+            source: "earth-street-context",
+            minzoom: 5,
+            layout: { visibility: "visible" },
+            paint: { "raster-opacity": 0.98, "raster-fade-duration": 0 },
           });
           map.addSource("selected-geography", {
             type: "geojson",
@@ -266,6 +286,15 @@ export function GeographyExplorer({
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!mapReady || !map?.getLayer("earth-street-context")) return;
+    map.setLayoutProperty("earth-street-context", "visibility", streetMapEnabled ? "visible" : "none");
+    if (map.getLayer("selected-fill")) {
+      map.setPaintProperty("selected-fill", "fill-opacity", streetMapEnabled ? 0.12 : 0.34);
+    }
+  }, [mapReady, streetMapEnabled]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!mapReady || !map || !selected || !selectedFeature) return;
     const source = map.getSource("selected-geography") as GeoJSONSource | undefined;
     source?.setData(selectedFeature as Parameters<GeoJSONSource["setData"]>[0]);
@@ -276,10 +305,12 @@ export function GeographyExplorer({
       ], {
         padding: 70,
         duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700,
-        maxZoom: selected.kind === "COUNTRY" ? 5 : 8,
+        maxZoom: selected.kind === "COUNTRY" ? 5
+          : selected.kind === "ADMIN1" ? 9
+          : selected.kind === "ADMIN2" ? 12 : 15,
       });
     } else if (selected.label) {
-      map.easeTo({ center: selected.label, zoom: 9, duration: 0 });
+      map.easeTo({ center: selected.label, zoom: 13, duration: 0 });
     }
   }, [mapReady, selected, selectedFeature]);
 
@@ -368,14 +399,12 @@ export function GeographyExplorer({
     setSelectedFeature(boundary.data.feature);
     const items = children.data?.items ?? [];
     setHierarchy(selectedPlace.hierarchy);
-    if (selectedPlace.kind === "COUNTRY") {
-      setSubdivisions(items.filter((item) => item.kind === "ADMIN1"));
-      setLocalities([]);
-    } else if (selectedPlace.kind === "ADMIN1") {
-      setLocalities(items.filter((item) => ["CITY", "TOWN", "LOCALITY"].includes(item.kind)));
-    } else {
-      setLocalities([]);
-    }
+    setSubdivisions(selectedPlace.kind === "COUNTRY"
+      ? items.filter((item) => item.kind === "ADMIN1") : []);
+    setLocalGovernments(selectedPlace.kind === "ADMIN1"
+      ? items.filter((item) => item.kind === "ADMIN2") : []);
+    setLocalities(["ADMIN1", "ADMIN2"].includes(selectedPlace.kind)
+      ? items.filter((item) => ["CITY", "TOWN", "LOCALITY"].includes(item.kind)) : []);
     if (children.error) setMessage(children.error.message);
     setZones(landZones.data?.items ?? []);
     setZoneCatalogLoaded(true);
@@ -400,6 +429,7 @@ export function GeographyExplorer({
     setSelectedFeature(null);
     setHierarchy([]);
     setSubdivisions([]);
+    setLocalGovernments([]);
     setLocalities([]);
     setZones([]);
     setZoneCatalogLoaded(false);
@@ -499,6 +529,39 @@ export function GeographyExplorer({
     await loadParcelPage(activeZone, { bbox: [west, south, east, north].join(","), zoom });
   }
 
+  function focusLocation() {
+    const map = mapRef.current;
+    if (!selected || !map) return;
+    if (selected.geometryType === "Point" && selected.label) {
+      map.easeTo({
+        center: selected.label,
+        zoom: 13,
+        duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500,
+      });
+    } else if (selected.bbox) {
+      map.fitBounds([
+        [selected.bbox[0], selected.bbox[1]],
+        [selected.bbox[2], selected.bbox[3]],
+      ], {
+        padding: 60,
+        maxZoom: selected.kind === "COUNTRY" ? 5
+          : selected.kind === "ADMIN1" ? 9
+          : selected.kind === "ADMIN2" ? 12 : 15,
+        duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500,
+      });
+    }
+  }
+
+  function focusZone() {
+    const map = mapRef.current;
+    if (!activeZone || !map) return;
+    map.fitBounds([
+      [activeZone.bbox[0], activeZone.bbox[1]],
+      [activeZone.bbox[2], activeZone.bbox[3]],
+    ], { padding: 40, duration: 0, maxZoom: 18 });
+    if (map.getZoom() < 16) map.setZoom(16);
+  }
+
   function chooseParcel(parcel: EarthParcelView) {
     setSelectedParcel(parcel);
     const map = mapRef.current;
@@ -561,10 +624,15 @@ export function GeographyExplorer({
         </div>
         <div className="relative h-[28rem] min-h-[26rem] w-full bg-[#071323] sm:h-[34rem]">
           <div ref={mapElement} className="h-full w-full" aria-label="Interactive protected geography and virtual parcel map" data-protected-earth-map={mapReady ? "ready" : mapError ? "fallback" : "loading"} />
-          <div className="absolute left-3 top-3 z-10 rounded-xl border border-white/10 bg-background/75 p-1 backdrop-blur">
+          <div className="absolute left-3 top-3 z-10 flex flex-wrap items-center gap-1 rounded-xl border border-white/10 bg-background/85 p-1 backdrop-blur">
             <Button type="button" variant="icon" size="sm" onClick={returnToGlobe} aria-label="Return to full Earth globe" title="Return to globe" disabled={!mapReady}>
               <RotateCcw className="size-4" />
             </Button>
+            <Button type="button" size="sm" variant={streetMapEnabled ? "secondary" : "ghost"} onClick={() => setStreetMapEnabled((enabled) => !enabled)} disabled={!mapReady} aria-pressed={streetMapEnabled}>
+              <MapIcon className="size-3.5" /> Streets
+            </Button>
+            {selected ? <Button type="button" size="sm" variant="ghost" onClick={focusLocation} disabled={!mapReady}>Focus place</Button> : null}
+            {activeZone ? <Button type="button" size="sm" variant="ghost" onClick={focusZone} disabled={!mapReady}>Focus plots</Button> : null}
           </div>
           {!mapReady && !mapError ? (
             <div className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-secondary">
@@ -587,7 +655,8 @@ export function GeographyExplorer({
           ) : null}
         </div>
         <div className="border-t border-border px-4 py-3 text-xs text-muted">
-          Made with Natural Earth · {datasetLabels.join(" · ") || "No active protected dataset. Run the Nigeria import command."}
+          Geography: Natural Earth · {datasetLabels.join(" · ") || "No active protected dataset. Run the Nigeria import command."}
+          {streetMapEnabled ? " · Interactive street context: © OpenStreetMap contributors (not a 3D city)" : ""}
         </div>
       </section>
 
@@ -647,9 +716,18 @@ export function GeographyExplorer({
           </section>
         ) : null}
 
+        {selected?.kind === "ADMIN1" ? (
+          <section className="rounded-2xl border border-border bg-surface p-4">
+            <h2 className="mb-3 text-sm font-semibold">Local government areas</h2>
+            {localGovernments.length
+              ? <div className="max-h-72 space-y-2 overflow-y-auto pr-1">{localGovernments.map(placeButton)}</div>
+              : <p className="text-sm text-muted">LGA boundaries have not been imported for this state yet. The street map provides additional place context where available.</p>}
+          </section>
+        ) : null}
+
         {localities.length ? (
           <section className="rounded-2xl border border-border bg-surface p-4">
-            <h2 className="mb-3 text-sm font-semibold">Supported localities</h2>
+            <h2 className="mb-3 text-sm font-semibold">Cities, towns and localities</h2>
             <div className="space-y-2">{localities.map(placeButton)}</div>
           </section>
         ) : null}
