@@ -1,9 +1,9 @@
 import {
-  ACESFilmicToneMapping, AmbientLight, BoxGeometry, CanvasTexture, CircleGeometry,
+  ACESFilmicToneMapping, AmbientLight, BoxGeometry, CanvasTexture,
   Color, CylinderGeometry, DirectionalLight, DoubleSide, EdgesGeometry, FogExp2,
   Group, InstancedMesh, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
   MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry,
-  Raycaster, Scene, SphereGeometry, SRGBColorSpace, Vector2, Vector3, WebGLRenderer,
+  Raycaster, Scene, SphereGeometry, SRGBColorSpace, Vector2, WebGLRenderer,
   type BufferGeometry, type Material, type Texture,
 } from "three";
 import {
@@ -34,6 +34,7 @@ export class NeighborhoodRenderer {
   private readonly pointer = new Vector2();
   private readonly scenery = new Group();
   private readonly highlight = new Group();
+  private readonly plotGuides = new Group();
   private readonly keyLight = new DirectionalLight(0xfff1cf, 2.15);
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test((event.target as HTMLElement | null)?.tagName ?? "")) return;
@@ -77,7 +78,6 @@ export class NeighborhoodRenderer {
   private joystick = { forward: 0, strafe: 0 };
   private yaw = 0.55;
   private pitch = 0.38;
-  private lastTime = 0;
   private lastDraw = 0;
   private frame = 0;
   private running = false;
@@ -118,11 +118,14 @@ export class NeighborhoodRenderer {
     this.scene.add(this.keyLight);
     this.scene.add(this.scenery);
     this.scene.add(this.highlight);
+    this.plotGuides.visible = false;
+    this.scene.add(this.plotGuides);
     this.groundPlane = this.box(260, 0.18, 260, 0, -0.17, 0, 0x809e78);
     this.groundPlane.receiveShadow = quality === "HIGH";
     this.addStreets();
     this.addNeighborhoodBlocks();
     this.addBuildings();
+    this.addPlotGuides();
     this.addTrees();
     this.addStreetFurniture();
     this.addVehicles();
@@ -263,6 +266,18 @@ export class NeighborhoodRenderer {
       }
     }
   }
+  private addPlotGuides() {
+    const outlineMaterial = new LineBasicMaterial({ color: 0x46e6ee, transparent: true, opacity: 0.73 });
+    for (const plot of this.world.plots) {
+      const perimeter = new LineSegments(
+        new EdgesGeometry(new BoxGeometry(plot.width, 0.035, plot.depth)),
+        outlineMaterial,
+      );
+      perimeter.position.set(plot.x, 0.36, plot.z);
+      this.plotGuides.add(perimeter);
+    }
+  }
+  setPlotGuides(enabled: boolean) { this.plotGuides.visible = enabled; }
   private addTrees() {
     const count = this.quality === "LOW" ? Math.ceil(this.world.trees.length * 0.55) : this.world.trees.length;
     const trunks = new InstancedMesh(new CylinderGeometry(0.19, 0.26, 1, 7), this.mat(0x76553e), count);
@@ -345,6 +360,12 @@ export class NeighborhoodRenderer {
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hit = this.raycaster.intersectObjects(this.clickable, false)[0];
     const id = hit?.object.userData.buildingId as string | undefined;
+    for (const old of this.highlight.children) {
+      if (old instanceof LineSegments) {
+        old.geometry.dispose();
+        (old.material as LineBasicMaterial).dispose();
+      }
+    }
     this.highlight.clear();
     if (!id) { this.onSelect(null); return; }
     const building = this.world.buildings.find((candidate) => candidate.id === id);
@@ -359,10 +380,9 @@ export class NeighborhoodRenderer {
   }
   private readonly tick = (timestamp: number) => {
     if (!this.running) return;
-    const delta = Math.min(0.05, (timestamp - (this.lastTime || timestamp)) / 1000);
-    this.lastTime = timestamp;
     const throttle = this.quality === "LOW" ? 30 : this.quality === "MEDIUM" ? 45 : 60;
     if (timestamp - this.lastDraw >= 1000 / throttle) {
+      const delta = Math.min(0.05, (timestamp - (this.lastDraw || timestamp)) / 1000);
       this.lastDraw = timestamp;
       this.update(delta);
       this.renderer.render(this.scene, this.camera);
@@ -417,7 +437,7 @@ export class NeighborhoodRenderer {
   start() {
     if (this.running) return;
     this.running = true;
-    this.lastTime = 0; this.lastDraw = 0;
+    this.lastDraw = 0;
     this.raf = requestAnimationFrame(this.tick);
   }
   dispose() {
