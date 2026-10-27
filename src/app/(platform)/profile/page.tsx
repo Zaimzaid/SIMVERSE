@@ -17,6 +17,10 @@ export default async function MyProfilePage() {
   return <div className="mx-auto max-w-4xl space-y-6">
     <PageHeader icon={IdCard} title="My Player Identity"
       description="Manage your SIMVERSE-only character identity, privacy, creator presence and home-country preference." />
+    <Link href="/profile/documents"
+      className="block rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm font-semibold text-accent hover:underline">
+      Open SIMVERSE Citizenship, Passports &amp; Virtual Documents →
+    </Link>
     <PlayerIdentityForm initial={identity} countries={countries} />
   </div>;
 }
