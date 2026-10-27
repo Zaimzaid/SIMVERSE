@@ -23,6 +23,7 @@ export function NeighborhoodShowcase() {
   const [showPlots, setShowPlots] = useState(false);
   const [selection, setSelection] = useState<NeighborhoodSelection>(null);
   const [position, setPosition] = useState({ x: 0, z: 7 });
+  const [metrics, setMetrics] = useState<{ fps: number; drawCalls: number } | null>(null);
   const [failed, setFailed] = useState("");
   const [ready, setReady] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -43,6 +44,7 @@ export function NeighborhoodShowcase() {
         const engine = new Engine(canvas, effectiveQuality,
           (value) => { if (!cancelled) setSelection(value); },
           (x, z) => { if (!cancelled) setPosition({ x, z }); },
+          (fps, drawCalls) => { if (!cancelled) setMetrics({ fps, drawCalls }); },
         );
         engineRef.current = engine;
         engine.setCameraMode(cameraMode);
@@ -106,6 +108,9 @@ export function NeighborhoodShowcase() {
           </div>
         </div>
         <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+          <div className="rounded-xl border border-white/20 bg-[#0a1d2c]/90 px-3 py-2 text-xs font-mono text-cyan-200" aria-live="off">
+            {metrics ? `${metrics.fps} FPS · ${metrics.drawCalls} draws` : "Measuring FPS…"}
+          </div>
           <button type="button" onClick={() => {
             engineRef.current?.focusShowcase();
             setCameraMode("WALK");
@@ -228,7 +233,7 @@ export function NeighborhoodShowcase() {
 
       <footer className="pointer-events-none relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#061520]/90 px-4 py-2 text-[10px] text-slate-300 sm:px-6">
         <span className="flex items-center gap-1.5"><Info className="size-3.5 text-amber-300" /> Fictional scene — not a surveyed Lagos district, cadastral map, or available real-world property.</span>
-        <span className="font-mono text-cyan-200">SIMVERSE · Visual-first proof · Version 0.2</span>
+        <span className="font-mono text-cyan-200">SIMVERSE · Visual-first proof · Version 0.2 · FPS approximate</span>
       </footer>
     </main>
   );
