@@ -23,6 +23,8 @@ export default async function MyVirtualDocumentsPage() {
       <Link href="/profile/travel" className="inline-block text-sm font-semibold text-accent hover:underline">Virtual travel & immigration →</Link>
     </div>
     <DualCitizenshipPreview countries={docs.countries}/>
-    <PlayerDocumentCenter initial={docs} username={identity.username} homeCountryId={identity.homeCountryId}/>
+    <PlayerDocumentCenter initial={docs} username={identity.username} homeCountryId={identity.homeCountryId}
+      applicant={{ displayName: identity.displayName, username: identity.username,
+        avatarUrl: identity.avatarUrl, simverseId: identity.simverseId }}/>
   </div>;
 }
