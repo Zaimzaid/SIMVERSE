@@ -4,6 +4,9 @@ import { prisma } from "@/server/db/client";
 export async function resetDb(): Promise<void> {
   // Player identity references country catalog records; clear its children
   // before deleting Earth geography or the User account.
+  await prisma.playerVirtualDocument.deleteMany();
+  await prisma.playerDocumentApplication.deleteMany();
+  await prisma.playerDocumentReviewer.deleteMany();
   await prisma.playerCitizenship.deleteMany();
   await prisma.playerIdentity.deleteMany();
   // Earth Phase 4 global stewardship and immutable zone history. The stable
