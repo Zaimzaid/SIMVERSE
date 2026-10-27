@@ -17,6 +17,8 @@ export type AuditAction =
   | "player.governance.policy_activated"
   | "player.governance.treaty_proposed"
   | "player.governance.treaty_approved"
+  | "player.economy.profession_selected"
+  | "player.economy.business_draft_created"
   | "workspace.created"
   | "workspace.updated"
   | "entity.created"
