@@ -11,6 +11,7 @@ export interface VirtualCredentialApplicant {
   username: string | null;
   simverseId: string;
   avatarUrl: string | null;
+  playerIdIssuedAt: string | Date;
 }
 type Country = { id: string; name: string; isoAlpha2: string | null };
 export type CredentialApplication = {
@@ -76,6 +77,43 @@ function Fact({ label, value, contrast = "dark" }: {
       {value}
     </dd>
   </div>;
+}
+
+/** Every completed SIMVERSE profile gets a permanent player ID, but a
+ * three-year card display window is independent of that permanent number.
+ * This is not a country citizenship credential or a reviewer-issued passport.
+ */
+function PlayerIdCard({ applicant }: { applicant: VirtualCredentialApplicant }) {
+  const expires = new Date(applicant.playerIdIssuedAt);
+  expires.setUTCFullYear(expires.getUTCFullYear() + 3);
+  const status = documentDisplayStatus({ status: "ISSUED", expiresAt: expires });
+  return <article className="relative isolate overflow-hidden rounded-[1.5rem] border border-white/20 bg-gradient-to-br from-[#162333] via-[#133f57] to-[#0e676e] p-5 text-white shadow-xl sm:p-6">
+    <div className="pointer-events-none absolute -right-14 -top-10 size-44 rounded-full border-[28px] border-white/[0.07]" aria-hidden />
+    <div className="relative flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-200">SIMVERSE · PLAYER NETWORK</p>
+        <h3 className="mt-1 font-display text-lg font-semibold text-white">Virtual Player ID Card</h3>
+        <p className="mt-1 text-xs text-white/70">Your SIMVERSE identity · No citizenship implied</p>
+      </div>
+      <Status status={status} />
+    </div>
+    <div className="relative mt-5 flex gap-4">
+      <PlayerPortrait applicant={applicant} />
+      <dl className="grid min-w-0 flex-1 content-center gap-3">
+        <Fact contrast="light" label="Player name" value={applicant.displayName} />
+        <Fact contrast="light" label="Player number" value={applicant.simverseId} />
+        <Fact contrast="light" label="Player username" value={applicant.username ? `@${applicant.username}` : "Not set"} />
+      </dl>
+    </div>
+    <dl className="relative mt-5 grid grid-cols-2 gap-3 border-t border-white/20 pt-4">
+      <Fact contrast="light" label="Card issue date" value={formatDate(applicant.playerIdIssuedAt)} />
+      <Fact contrast="light" label="Card expiry date" value={formatDate(expires)} />
+    </dl>
+    <p className="relative mt-4 rounded-lg bg-black/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-white/85">
+      Fictional player card · Not legal identification
+    </p>
+    <p className="relative mt-2 text-[10px] text-white/65">The visual card may expire, but your permanent SIMVERSE player number never changes. Renewal is not yet supported.</p>
+  </article>;
 }
 
 /** Plastic card inspired by collectible fictional game identity cards. */
@@ -232,8 +270,21 @@ export function VirtualCredentialGallery({ applications, applicant }: {
             <IdCard className="size-4" aria-hidden /> {issued.length} issued
           </div>
         </div>
+        {applicant.username ? (
+          <div className="mt-5 max-w-2xl">
+            <PlayerIdCard applicant={applicant} />
+          </div>
+        ) : (
+          <p className="mt-4 rounded-xl border border-dashed border-border-strong bg-background px-4 py-3 text-sm text-secondary">
+            Complete your SIMVERSE username to display your permanent Player ID as a virtual card.
+          </p>
+        )}
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-foreground">Approved country credentials</h3>
+          <p className="mt-1 text-xs text-muted">Only independently approved documents appear below.</p>
+        </div>
         {!issued.length ? (
-          <div className="mt-5 flex items-start gap-3 rounded-xl border border-dashed border-border-strong bg-background p-5">
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-dashed border-border-strong bg-background p-5">
             <CalendarDays className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
             <div>
               <p className="text-sm font-semibold text-foreground">Your virtual card collection is empty</p>
