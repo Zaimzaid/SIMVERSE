@@ -54,7 +54,7 @@ export function createNeighborhoodWorld(): NeighborhoodWorld {
       // Central plaza stays open for the player spawn and civic greenspace.
       const isPark = blockX === 0 && blockZ === 0;
       if (isPark) continue;
-      for (const [offsetX, offsetZ] of [[-11, -11], [11, -11], [-11, 11], [11, 11]]) {
+      for (const [offsetX, offsetZ] of [[-11, -11], [11, -11], [-11, 11], [11, 11]] as const) {
         index += 1;
         const x = blockX + offsetX;
         const z = blockZ + offsetZ;
