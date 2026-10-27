@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { isImmersiveViewerPath } from "@/lib/viewer/immersive";
-import { areaForPath, navLabelForPath } from "@/lib/platform-navigation";
+import { areaForPath, navLabelForPath, visibleAreaItems } from "@/lib/platform-navigation";
 import { Drawer } from "@/components/ui/drawer";
 import { SidebarNav } from "./sidebar-nav";
 import { ContextRail } from "./context-rail";
