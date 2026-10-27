@@ -32,8 +32,6 @@ export function NeighborhoodShowcase() {
     let cancelled = false;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    setReady(false);
-    setFailed("");
     void import("@/lib/earth/neighborhood/renderer").then(({ NeighborhoodRenderer: Engine }) => {
       if (cancelled) return;
       try {
@@ -208,7 +206,11 @@ export function NeighborhoodShowcase() {
             <p className="mt-2 text-sm text-slate-200">{failed}</p>
             <p className="mt-2 text-xs text-slate-300">Your Earth geography and virtual plot lists remain available without this preview.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <button type="button" onClick={() => setRetry((value) => value + 1)}
+              <button type="button" onClick={() => {
+                setReady(false);
+                setFailed("");
+                setRetry((value) => value + 1);
+              }}
                 className="flex items-center gap-2 rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950">
                 <RotateCw className="size-4" /> Retry 3D
               </button>
