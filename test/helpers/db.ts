@@ -2,6 +2,14 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Earth Phase 4 global stewardship and immutable zone history. The stable
+  // zone points at its active version, so clear that projection before deleting
+  // lifecycle/version records.
+  await prisma.earthDevelopmentZoneLifecycleEvent.deleteMany();
+  await prisma.earthDevelopmentZone.updateMany({ data: { activeVersionId: null } });
+  await prisma.earthDevelopmentZoneVersion.deleteMany();
+  await prisma.earthDevelopmentZone.deleteMany();
+  await prisma.earthSteward.deleteMany();
   // SIMVERSE Earth global geography catalog (children and immutable source
   // history first, then the self-referencing place hierarchy and datasets).
   await prisma.earthGeoPlaceRevision.deleteMany();

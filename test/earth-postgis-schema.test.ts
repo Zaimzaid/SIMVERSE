@@ -29,4 +29,28 @@ describe("isolated Earth PostGIS proof", () => {
     expect(sql).toContain("CREATE TABLE earth_geo.import_run");
     expect(sql).toContain("WHERE is_current");
   });
+
+  it("defines immutable reviewed zones and spatial Phase 4 verification", async () => {
+    const [schema, verification, workflow] = await Promise.all([
+      projectFile("infrastructure/earth-postgis/init/002-earth-land.sql"),
+      projectFile("infrastructure/earth-postgis/verify/phase4-verification.sql"),
+      projectFile(".github/workflows/earth-postgis-verification.yml"),
+    ]);
+    expect(schema).toContain("CREATE TABLE earth_geo.development_zone_version");
+    expect(schema).toContain("geometry geometry(MultiPolygon, 4326) NOT NULL");
+    expect(schema).toContain("development_zone_version_immutable");
+    expect(schema).toContain("ST_CoveredBy(NEW.geometry");
+    expect(schema).toContain("development_zone_one_active_version_idx");
+    expect(schema).toContain("USING GIST (geometry)");
+    expect(schema).not.toContain("parcel_owner");
+    expect(schema).not.toContain("parcel_claim");
+    expect(verification).toContain("25) > 0.001");
+    expect(verification).toContain("625) > 0.001");
+    expect(verification).toContain("Stable parcel identifier derivation failed");
+    expect(verification).toContain("point-only development-zone geometry rejected");
+    expect(verification).toContain("invalid self-intersecting zone geometry rejected");
+    expect(verification).toContain("unsupported non-UTM projection rejected");
+    expect(workflow).toContain("002-earth-land.sql");
+    expect(workflow).toContain("phase4-verification.sql");
+  });
 });

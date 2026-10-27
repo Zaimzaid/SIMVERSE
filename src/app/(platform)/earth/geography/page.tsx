@@ -42,7 +42,7 @@ export default async function EarthGeographyPage({
       <PageHeader
         icon={Map}
         title="Earth Geography Explorer"
-        description="Navigate verified country, state and point-only locality data. Land acquisition, ownership and construction are not available."
+        description="Navigate sourced geography and discover approved SIMVERSE virtual development zones. Acquisition, ownership and construction are not available."
       />
       <GeographyExplorer
         initialCountries={countries.items}

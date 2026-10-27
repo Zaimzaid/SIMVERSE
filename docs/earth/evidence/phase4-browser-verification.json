@@ -1,0 +1,59 @@
+{
+  "verifiedAt": "2026-10-26T21:19:42.059Z",
+  "browser": "Google Chrome 155.0.8059.86",
+  "baseUrl": "http://localhost:3020",
+  "fixture": {
+    "zoneId": "zone_49b3ddf5e9b84200046d3512",
+    "versionId": "zonev_919a038920d42be245f87891",
+    "label": "Lagos Phase 4 Synthetic Test Zone",
+    "synthetic": true,
+    "realWorldOrCadastral": false,
+    "parentPlaceId": "geo_d4f56f4ce4e43d111f22eea1",
+    "requestedCenter": [
+      3.4,
+      6.55
+    ]
+  },
+  "authorization": {
+    "guestApiStatus": 401,
+    "authenticated": true
+  },
+  "explorer": {
+    "mapReady": true,
+    "parcelCount": 187,
+    "virtualNoticeVisible": true,
+    "syntheticNoticeVisible": true,
+    "acquisitionControlCount": 0,
+    "keyboardSelectionWorks": true,
+    "mapClickSelectionWorks": true,
+    "zoomControlWorks": true,
+    "mobileHasNoHorizontalOverflow": true,
+    "fallbackHelpful": true,
+    "selectedParcelText": [
+      "625 m²",
+      "25 m × 25 m",
+      "6.550339, 3.400792",
+      "Synthetic mixed-use validation"
+    ],
+    "mobileMapReady": true
+  },
+  "performance": {
+    "explorerReadyMs": 16197,
+    "zoneAndParcelsReadyMs": 50387,
+    "zoneApi": {
+      "status": 200,
+      "milliseconds": 693.1
+    },
+    "boundedParcelLimit": 200,
+    "warmExplorerReadyMs": 10974,
+    "warmZoneAndParcelsReadyMs": 2649
+  },
+  "consoleErrors": [],
+  "screenshots": [
+    "docs/earth/evidence/phase4-land-desktop.png",
+    "docs/earth/evidence/phase4-land-selected-parcel.png",
+    "docs/earth/evidence/phase4-land-map-selection.png",
+    "docs/earth/evidence/phase4-land-mobile.png",
+    "docs/earth/evidence/phase4-land-webgl-fallback.png"
+  ]
+}

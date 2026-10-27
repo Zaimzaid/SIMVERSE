@@ -79,7 +79,13 @@ export type AuditAction =
   | "media.artifact.restored"
   | "media.share.created"
   | "media.share.updated"
-  | "media.share.revoked";
+  | "media.share.revoked"
+  | "earth.zone.created"
+  | "earth.zone.version_created"
+  | "earth.zone.submitted"
+  | "earth.zone.activated"
+  | "earth.zone.retired"
+  | "earth.zone.rolled_back";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

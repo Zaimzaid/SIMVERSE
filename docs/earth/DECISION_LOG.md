@@ -59,6 +59,13 @@ in this document.
 | EARTH-042 | APPROVED | Preserve a protected Earth selection with a fixed-purpose HMAC-signed ten-minute place intent and reauthorize it after login or registration. | The token carries no arbitrary return URL, and a valid signature cannot bypass fresh membership, workspace or permission checks. |
 | EARTH-043 | APPROVED | Treat the eight phases in `IMPLEMENTATION_PLAN.md` as the canonical Earth roadmap. | Earlier ten-stage discussion is consolidated without dropping commitments; parcel proof begins the separately approved Phase 4 gate. |
 | EARTH-044 | APPROVED | Use bounded process-local rate limits for the Phase 3 single-process public API foundation. | A shared rate limiter is required before horizontally scaled production deployment. |
+| EARTH-045 | APPROVED | Use a pure versioned WGS84/UTM parcel algorithm and support only validated EPSG 32601-32660 and 32701-32760 projections in v1. | Metric dimensions remain deterministic without adding a runtime geospatial dependency; antimeridian, wrong-zone and wrong-hemisphere inputs fail explicitly. |
+| EARTH-046 | APPROVED | Admit only complete grid cells and reject every cell that intersects an exclusion. | Phase 4 avoids partial slivers and ambiguous edge ownership; a different edge rule requires a new algorithm version. |
+| EARTH-047 | APPROVED | Give each unclaimed parcel a SHA-256-derived public ID from immutable zone-version and grid coordinates, and derive it only on demand. | Repeated and independent-process queries are stable without a global parcel table. |
+| EARTH-048 | APPROVED | Keep Earth stewardship in a dedicated global grant, separate from workspace roles, and require an additional activation capability for active-inventory changes. | Workspace ownership cannot confer authority over global virtual-land supply. |
+| EARTH-049 | APPROVED | Use sourced place polygons only as containment context; every Development Zone is an explicit reviewed Polygon/MultiPolygon. | A GeoNames point cannot become a boundary, and administrative geography is not automatically eligible virtual land. |
+| EARTH-050 | APPROVED | Ship the Phase 4 browser fixture only as a clearly labeled synthetic demonstration zone. | It proves the experience without presenting invented geometry as cadastral or authentic land data. |
+| EARTH-051 | APPROVED | Keep SQLite as the application datasource while verifying equivalent native spatial constraints in the isolated PostgreSQL/PostGIS workflow. | Phase 4 adds metadata to the existing app without a destructive datasource migration; real spatial execution remains a separate reproducible gate. |
 
 ## 3. Open decisions and approval owners
 
@@ -184,3 +191,19 @@ For every decision change:
   reduced motion, no-WebGL fallback and public-data separation.
 - Passed 407 tests across 46 files, TypeScript, ESLint, Prisma validation/client
   generation, the production build and whitespace checks. Phase 4 did not start.
+
+### 2026-10-26 - Phase 4 development zones and parcel discovery
+
+- Added immutable Development Zone versions, separate global steward grants,
+  lifecycle history and explicit review/activation/retirement/rollback paths.
+- Implemented a pure WGS84/UTM grid engine with configurable local origin and
+  bearing, 25 m by 25 m defaults, full-cell inclusion, exclusion handling,
+  deterministic IDs and bounded viewport pagination.
+- Added authenticated zone, parcel, rule and eligibility APIs without any
+  reservation, ownership, payment or construction state.
+- Extended the protected geography explorer with truthful empty state,
+  synthetic demonstration labeling, map/list parcel selection, technical plot
+  detail, keyboard behavior, mobile layout and WebGL fallback.
+- Verified 425 tests across 48 files plus TypeScript, ESLint, Prisma validation
+  and generation, the production build and whitespace checks locally. Real
+  PostgreSQL/PostGIS execution remains the final closure gate.

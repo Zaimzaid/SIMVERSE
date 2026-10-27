@@ -15,12 +15,14 @@ Phase 2, the read-only public experience in Phase 3, zones and parcel discovery
 in Phase 4, acquisition in Phase 5, construction in Phase 6, developed-property
 rights in Phase 7, and release hardening in Phase 8.
 
-Phases 1 and 2 are committed and complete. Phase 3 is implemented and verified
-in the current feature-branch checkpoint. Phase 4 has not started.
+Phases 1 and 2 are committed and complete. Phase 3 is committed and verified at
+`9e98bcd`. Phase 4 is implemented and locally verified in the current
+feature-branch checkpoint; its isolated PostgreSQL/PostGIS workflow is the
+remaining closure gate. Phase 5 has not started.
 
 ## 2. Baseline and branch policy
 
-- Phase 3 baseline: `11f5ab1` on `feature/simverse-earth-land`.
+- Phase 4 baseline: `9e98bcd` on `feature/simverse-earth-land`.
 - Feature branch: `feature/simverse-earth-land`.
 - D: remains off limits because of recorded storage I/O instability.
 - Do not mix Unreal runtime work into this branch.
@@ -84,11 +86,11 @@ reproducible; owner approves cutover.
 **Exit:** no fabricated boundary, correct attribution, bounded tile sizes, a
 measured browser report at 390/768/1024/1440 px, and a dependency decision.
 
-### 2C. Parcel algorithm proof (preserved; deferred to Phase 4)
+### 2C. Parcel algorithm proof (completed in Phase 4)
 
 Phase 2 closed the geography, MapLibre and PostGIS foundation without creating
-virtual parcels. This approved proof remains required before Phase 4 parcel
-discovery and must not be interpreted as completed Phase 2 implementation.
+virtual parcels. Phase 4 completed this preserved proof as a pure, versioned,
+deterministic WGS84/UTM implementation before exposing parcel discovery.
 
 1. Implement a pure versioned coordinate/grid library.
 2. Verify local metric projection against known control distances.
@@ -134,25 +136,48 @@ All criteria above passed in Chrome 155 against an isolated database. Evidence
 and measured limits are recorded in
 [PHASE_3_EARTH_EXPLORER.md](PHASE_3_EARTH_EXPLORER.md).
 
-## 6. Phase 4 - Development zones and parcel discovery
+## 6. Phase 4 - Development zones and parcel discovery (implemented; closure verification in progress)
 
 ### Scope
 
 - steward-only versioned DevelopmentZone workflow;
-- validation/activation/rollback gates;
+- review, activation, retirement and rollback gates with append-only lifecycle
+  records;
+- explicit WGS84 Polygon/MultiPolygon geometry plus a recorded local UTM metric
+  grid, origin and bearing;
 - on-demand parcel viewport and detail queries;
-- zoning/availability overlays;
+- full-cell edge policy, exclusion handling and deterministic SHA-256 public IDs;
+- zoning/rule/eligibility projections and map/list synchronization;
 - stable parcel URLs and query-time availability language;
+- authenticated access, separate global steward authority and bounded query
+  limits;
+- clearly labeled synthetic demonstration data for browser verification;
 - no reservations or ownership yet.
 
 ### Exit criteria
 
 - only ACTIVE immutable zone versions produce candidates;
 - point-only/missing boundaries cannot auto-create a zone;
-- parcel IDs/geometries match Phase 2 fixtures;
+- parcel IDs/geometries are stable across independent processes and repeat
+  queries;
+- default cells measure 25 m by 25 m / 625 m² in the recorded metric frame;
+- full cells do not overlap and exclusion intersections are omitted;
 - viewport/zoom limits stop unbounded generation;
-- zone edits cannot move an existing materialized test parcel;
-- safe public projection omits internal/steward fields.
+- zone versions never mutate; activation and rollback only select a reviewed
+  immutable version;
+- ordinary workspace administrators cannot mutate zones or inspect steward
+  version history;
+- authenticated safe projections omit internal/steward fields and browsing does
+  not create parcel rows;
+- Chrome verifies the map/list experience, selection, mobile layout, keyboard
+  flow, truthful notices and WebGL fallback;
+- the real PostgreSQL/PostGIS workflow verifies native spatial constraints,
+  indexes, immutable versions and deterministic parcel SQL.
+
+All local criteria pass. The final item awaits the feature-branch GitHub Actions
+run against the isolated `postgis/postgis:17-3.6-alpine` service. Detailed
+evidence is recorded in
+[PHASE_4_LAND_SUBDIVISION.md](PHASE_4_LAND_SUBDIVISION.md).
 
 ## 7. Phase 5 - Reservation, acquisition and starter land
 
@@ -347,7 +372,7 @@ the prior reviewed revision rather than an in-place geometry rewrite.
 
 ## 14. Immediate next action
 
-Owner reviews the verified Phase 3 checkpoint and decides whether to merge the
-feature branch. Phase 4 must not begin before separate approval. Its first gate
-is the preserved parcel-algorithm proof above; acquisition and construction
-remain later phases.
+Complete the Phase 4 PostgreSQL/PostGIS workflow, record its real versions and
+results, then obtain owner review of the feature-branch checkpoint. Do not begin
+Phase 5 reservation/acquisition or Phase 6 construction work before separate
+approval.

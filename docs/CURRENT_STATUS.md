@@ -4,17 +4,16 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Active feature track:** **SIMVERSE Earth - Phase 3: Interactive 3D Earth
-  Explorer** on `feature/simverse-earth-land`. The implementation and closure
-  verification are complete in the current checkpoint. The public MapLibre
-  globe, pinned Natural Earth vector tiles, safe country projection, signed
-  authentication intent, authorized Nigeria/Lagos navigation and responsive
-  fallback behavior pass their gates. Phase 4 has not started and the feature
-  branch has not been merged.
-- **Latest completed checkpoint:** **SIMVERSE Earth Phase 3 - Interactive 3D
-  Earth Explorer** in this feature-branch checkpoint, based on the committed
-  Phase 2 handoff `11f5ab1`.
-  It passes 407 tests across 46 files and actual Chrome 155 browser verification.
+- **Active feature track:** **SIMVERSE Earth - Phase 4: Development Zones and
+  Parcel Discovery** on `feature/simverse-earth-land`. Implementation, local
+  automated gates and actual Chrome verification pass. The remaining closure
+  gate is execution of the committed native spatial schema/tests against the
+  isolated PostgreSQL/PostGIS GitHub Actions service. Phase 5 has not started
+  and the feature branch has not been merged.
+- **Latest committed checkpoint:** **SIMVERSE Earth Phase 3 - Interactive 3D
+  Earth Explorer** at `9e98bcd`. The current Phase 4 working checkpoint builds
+  from it and passes 425 tests across 48 files plus actual Chrome 155 browser
+  verification.
   Phase 2 was implemented as `c723578` and closed as `11f5ab1`, including
   successful PostgreSQL 17.11/PostGIS 3.6.4 execution in GitHub Actions run
   [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
@@ -58,7 +57,7 @@
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-25.
+- **Last updated:** 2026-10-27.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -70,6 +69,60 @@
   Runtime Protocol v1 and Battle, Race and Survival mechanics are unchanged.
   Creator / Media Foundation v1 consumes completed Battle, Race and Survival
   Runs downstream as versioned storyboards. It performs no result calculation.
+
+## SIMVERSE Earth - Phase 4 Development Zones and Parcel Discovery
+
+- Phase 4 adds explicit, reviewed virtual Development Zones. Stable zone
+  identity is separate from immutable geometry/policy versions and append-only
+  lifecycle events. Create produces version 1; meaningful edits produce the
+  next version; review, activation, retirement and rollback never rewrite prior
+  content.
+- Global Earth stewardship is separate from workspace roles. An active steward
+  grant is required for zone creation/revision, and `canActivate` is required to
+  change active inventory. Ordinary workspace owners/admins cannot mutate zones
+  or read steward version history. Viewer reads still require authentication,
+  active workspace membership and `workspace.view`.
+- A zone requires explicit valid WGS84 Polygon/MultiPolygon geometry contained
+  by a sourced polygon place revision. Point-only Lagos cannot become a zone.
+  Each version records a validated UTM projection, WGS84/metric grid origin,
+  bearing, cell size, exclusions, restrictions, provenance and content hash.
+- `earth-parcel-grid-v1` derives complete cells on demand. Defaults are 25 m by
+  25 m / 625 m². Partial cells and exclusion intersections are omitted; stable
+  SHA-256 IDs, row/column ordering and cursors are deterministic across repeat
+  queries and independent processes. Queries require zoom 16+, return at most
+  500 rows and scan at most 4,096 candidates.
+- The Prisma application schema stores steward/zone/version/lifecycle metadata
+  only. There is no parcel, reservation, claim, property or ownership table, so
+  browsing cannot materialize land. SQLite remains the active datasource and
+  the repository's `prisma db push` convention is unchanged.
+- Authenticated routes cover active zone reads, steward lifecycle/version
+  operations, bounded viewport/detail parcel derivation, rules and read-only
+  eligibility. There is no guest parcel API and no acquire/reserve/claim/buy
+  mutation.
+- `/earth/geography` now overlays active zones, exclusions, eligible cells and
+  selection, synchronizes map and keyboard-operable list selection, shows exact
+  plot/grid/rule detail, preserves the no-WebGL list and has a truthful empty
+  state. The test zone is prominently synthetic/non-cadastral, every plot is
+  virtual-only, and no acquisition control exists.
+- Actual Chrome 155/SwiftShader QA used an isolated database and disposable
+  profile. It rendered 187 bounded plots, verified list/keyboard/map-click
+  selection, camera controls, 390 px layout without overflow, helpful fallback,
+  guest API denial, truthful notices and zero console errors. Five screenshots
+  plus the machine-readable record are under `docs/earth/evidence/`.
+- Local gates pass: focused Phase 4 tests 20/3; exact full `npx vitest run`
+  425/48; TypeScript; ESLint; Prisma validation/client generation; Next
+  production build; and `git diff --check`.
+- Native PostGIS Phase 4 SQL adds MultiPolygon/Point geometry, containment and
+  metric-origin triggers, immutable version enforcement, lifecycle/composite
+  foreign keys, GiST indexes and one-active-version uniqueness. Its verification
+  covers 25 m sides, 625 m² area, stable IDs, bounded non-overlapping full cells,
+  holes/exclusions, invalid records and repeat initialization. Real workflow
+  execution is still pending and must pass before Phase 4 is called fully
+  verified.
+- No Runtime Protocol v1, SimulationRun snapshot, Battle/Race/Survival mechanic,
+  Unreal or D: work changed. Phase 5 reservation/acquisition/ownership and Phase
+  6 construction have not started. Full detail:
+  [earth/PHASE_4_LAND_SUBDIVISION.md](earth/PHASE_4_LAND_SUBDIVISION.md).
 
 ## SIMVERSE Earth - Phase 3 Interactive 3D Earth Explorer
 
@@ -102,9 +155,10 @@
   checks. Detailed architecture, measurements, evidence and limits are in
   [earth/PHASE_3_EARTH_EXPLORER.md](earth/PHASE_3_EARTH_EXPLORER.md).
 - No Prisma schema, Runtime Protocol v1, SimulationRun snapshot or simulation
-  mechanics file changed. Phase 4 parcels, ownership, acquisition, payment and
-  construction are not implemented. Unreal remains paused and D: remains off
-  limits.
+  mechanics file changed in the Phase 3 checkpoint. Phase 4 later added the
+  virtual-zone and query-only parcel foundation described above. Ownership,
+  acquisition, payment and construction remain unimplemented. Unreal remains
+  paused and D: remains off limits.
 
 ## SIMVERSE Earth - Phase 2 Global Geography Engine
 
@@ -158,10 +212,11 @@
   [earth/PHASE_2_GEOGRAPHY_ENGINE.md](earth/PHASE_2_GEOGRAPHY_ENGINE.md). The
   reversible cutover plan is
   [earth/POSTGIS_MIGRATION_PLAN.md](earth/POSTGIS_MIGRATION_PLAN.md).
-- No parcel, ownership, acquisition, payment, Development Zone or construction
-  implementation exists. Runtime Protocol v1, SimulationRun snapshots and all
-  simulation mechanics remain unchanged. Unreal remains paused and D: remains
-  off limits.
+- At the Phase 2 checkpoint no Development Zone or parcel implementation
+  existed. Phase 4 later added the reviewed zone and query-only candidate
+  foundation above. Ownership, acquisition, payment and construction remain
+  unimplemented. Runtime Protocol v1, SimulationRun snapshots and all simulation
+  mechanics remain unchanged. Unreal remains paused and D: remains off limits.
 
 ## Committed SIMVERSE Earth - Phase 1 architecture
 
@@ -1113,6 +1168,20 @@ durable bootstrap plan remains in
 
 ## Verification and QA
 
+- SIMVERSE Earth Phase 4 direct `npx vitest run` passes **425 tests in 48
+  files**, including 20 focused tests across the deterministic parcel engine,
+  zone service and PostGIS schema/workflow contract. `npx tsc --noEmit`, `npx
+  eslint .`, `npx prisma validate`, `npx prisma generate` and `npm run build`
+  pass. Prisma Client v7.10.0 regenerates successfully; the build emits all nine
+  authenticated zone/parcel route patterns, and `git diff --check` passes. The
+  real PostGIS workflow remains to be recorded at closure.
+- Phase 4 real-browser QA used Chrome 155 on Windows with SwiftShader WebGL, an
+  isolated SQLite database and disposable browser profile. It verified the
+  synthetic/non-cadastral zone, 187 eligible plots, map/list/keyboard selection,
+  exact metric plot detail, camera controls, virtual-only notices, absence of
+  acquisition controls, mobile layout, WebGL fallback, guest 401 and zero
+  console errors. Evidence is committed under `docs/earth/evidence/`; disposable
+  QA state was removed.
 - SIMVERSE Earth Phase 3 direct `npx vitest run` passes **407 tests in 46
   files**, including signed-intent validation, strict public projections,
   rate-limit bounds and deterministic overview-tile integrity. `npx tsc
@@ -1339,11 +1408,15 @@ durable bootstrap plan remains in
 
 ## Known limits
 
-- Earth Phase 3 has one reviewed catalog country (Nigeria). Its Natural Earth
-  land tiles are coarse zoom 0-2 visual context, not administrative, locality
-  or parcel authority. The public API limiter is process local, and browser
-  measurements cover one Chrome/Windows headless environment. Phase 4 must
-  separately prove deterministic parcel generation before any property work.
+- Earth has one reviewed catalog country (Nigeria). Its Natural Earth land
+  tiles are coarse zoom 0-2 visual context, not administrative, locality or
+  parcel authority. The sole Phase 4 zone is an explicitly synthetic browser
+  fixture and is not production inventory. Parcel generation is bounded,
+  query-only and UTM-based; antimeridian/UTM-zone-crossing zones are unsupported
+  in v1. The public API limiter is process local, browser measurements cover one
+  Chrome/Windows headless environment, SQLite remains the application
+  datasource, and the real Phase 4 PostGIS workflow must pass before closure.
+  No reservation, acquisition, ownership or construction capability exists.
 - Public / Unlisted Sharing v1 is SIMVERSE-hosted link sharing only. It does
   **not** provide Explore / discovery / search, Creator Profiles or public creator
   identity (the page shows only "Created in SIMVERSE"), following / likes /
@@ -1430,24 +1503,24 @@ durable bootstrap plan remains in
 ```text
 LAST COMPLETED (FEATURE BRANCH CHECKPOINT):
   SIMVERSE Earth — Phase 3: Interactive 3D Earth Explorer
-  THIS CHECKPOINT — implementation, browser evidence and closure docs
+  COMMIT: 9e98bcd — feat: add SIMVERSE Earth interactive explorer
 
-COMMITTED PREDECESSOR:
-  11f5ab1 — docs: close SIMVERSE Earth Phase 2 verification
+CURRENT WORKING CHECKPOINT:
+  SIMVERSE Earth — Phase 4: Development Zones and Parcel Discovery
 
 CHECKPOINT STATUS:
-  STATUS: EARTH PHASE 3 IMPLEMENTED AND FULLY VERIFIED IN THIS CHECKPOINT
-  PHASE 4: NOT STARTED
+  STATUS: PHASE 4 IMPLEMENTED AND LOCALLY VERIFIED
+  REMAINING: REAL POSTGRESQL/POSTGIS GITHUB ACTIONS EXECUTION
+  PHASE 5: NOT STARTED
 
 ACTIVE FEATURE TRACK:
-  SIMVERSE Earth — Phase 3: Interactive 3D Earth Explorer complete
+  SIMVERSE Earth — Phase 4: Development Zones and Parcel Discovery
   BRANCH: feature/simverse-earth-land
-  SCOPE: public MapLibre globe, pinned Natural Earth MVT overview, strict
-         country projection, signed auth intent, protected Nigeria/Lagos flow
-  LOCAL GATES: vitest 407/46, tsc, eslint, prisma validate/generate,
-               next build, diff --check and real Chrome 155 QA — all pass
-  POSTGIS GATE: GitHub Actions 40155016832 — PASS on PostgreSQL 17.11 /
-                PostGIS 3.6.4
+  SCOPE: stewarded immutable zones, deterministic on-demand 25 m plots,
+         authenticated APIs, MapLibre parcel discovery, no ownership writes
+  LOCAL GATES: vitest 425/48, tsc, eslint, prisma validate/generate,
+               next build and real Chrome 155 QA — all pass
+  POSTGIS GATE: PENDING FEATURE-BRANCH WORKFLOW EXECUTION
   MERGE: NOT PERFORMED
 
 PAUSED PARALLEL TRACK:
@@ -1455,8 +1528,8 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review and merge decision for feature/simverse-earth-land. Do not begin
-  Phase 4, create parcels, implement acquisition, or build the construction
-  editor without approval. Do not access D: or resume Unreal work until the
-  external storage is stable.
+  Commit and push the Phase 4 feature checkpoint, run the isolated PostgreSQL /
+  PostGIS gate, record its actual evidence, then stop for owner review. Do not
+  begin Phase 5 acquisition or Phase 6 construction. Do not access D: or resume
+  Unreal work until the external storage is stable.
 ```

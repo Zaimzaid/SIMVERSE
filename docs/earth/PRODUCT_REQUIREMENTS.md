@@ -2,11 +2,12 @@
 
 ## Document status
 
-- **Phase:** 1 - Project Foundation and Architecture
-- **Implementation status:** Architecture only; no Earth feature is implemented.
+- **Phase:** 4 - Development Zones and Parcel Discovery
+- **Implementation status:** Phase 4 is implemented and locally verified; the
+  isolated PostgreSQL/PostGIS execution gate remains pending.
 - **Branch:** `feature/simverse-earth-land`
-- **Baseline:** `0faaa71`
-- **Last reviewed:** 2026-10-24
+- **Baseline:** `9e98bcd` (`feat: add SIMVERSE Earth interactive explorer`)
+- **Last reviewed:** 2026-10-27
 
 The labels below are used throughout the Earth documents:
 
@@ -95,6 +96,24 @@ with a government, landowner or occupant.
 10. **LAND-10 - Proposed decision.** Freeze an acquired parcel to its development
     zone revision. Later source-boundary changes may retire future availability
     but cannot silently move a held property.
+11. **LAND-11 - Approved requirement.** Represent Development Zones as reviewed,
+    immutable versions with explicit draft, review, active and retired lifecycle
+    states, provenance, local metric grid definition and rollback history.
+12. **LAND-12 - Approved requirement.** Never treat a point-only locality as a
+    boundary. A zone requires an explicit reviewed Polygon or MultiPolygon
+    contained by a sourced polygon parent revision.
+13. **LAND-13 - Approved requirement.** Keep Earth stewardship separate from
+    workspace administration. Ordinary workspace owners and administrators do
+    not receive global zone mutation or activation authority.
+14. **LAND-14 - Approved requirement.** Phase 4 admits complete grid cells only,
+    excludes cells that touch configured exclusions and derives unclaimed plots
+    at query time without persistence.
+15. **LAND-15 - Approved requirement.** Label demonstration geometry as
+    synthetic and every plot as virtual. It must not be described as cadastral
+    data or as conveying real-world land rights.
+16. **LAND-16 - Approved requirement.** Parcel viewport queries require a
+    sufficiently detailed zoom and enforce fixed result and candidate-scan
+    bounds.
 
 ### BUILD - Construction
 

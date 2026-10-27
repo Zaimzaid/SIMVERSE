@@ -68,13 +68,25 @@ jobs:
             -v ON_ERROR_STOP=1 \
             < infrastructure/earth-postgis/verify/phase2-verification.sql \
             2>&1 | tee -a postgis-verification.log
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/002-earth-land.sql \
+            2>&1 | tee -a postgis-verification.log
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/verify/phase4-verification.sql \
+            2>&1 | tee -a postgis-verification.log
 
       - name: Verify bootstrap repeat behavior
         shell: bash
         run: |
           set -euo pipefail
           service_id="${{ job.services.postgis.id }}"
-          before_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision);")"
+          before_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision) || ':' || (SELECT count(*) FROM earth_geo.development_zone) || ':' || (SELECT count(*) FROM earth_geo.development_zone_version);")"
 
           set +e
           docker exec -i "$service_id" psql \
@@ -91,12 +103,32 @@ jobs:
             exit 1
           fi
 
-          after_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision);")"
+          after_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.dataset) || ':' || (SELECT count(*) FROM earth_geo.place) || ':' || (SELECT count(*) FROM earth_geo.place_revision) || ':' || (SELECT count(*) FROM earth_geo.development_zone) || ':' || (SELECT count(*) FROM earth_geo.development_zone_version);")"
           if [ "$before_counts" != "$after_counts" ]; then
             echo "ERROR: failed repeat application changed persisted rows ($before_counts -> $after_counts)." | tee -a postgis-verification.log
             exit 1
           fi
           echo "PASS: second application is rejected atomically; row counts remain $after_counts." | tee -a postgis-verification.log
+
+          set +e
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_verify \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/002-earth-land.sql \
+            >> postgis-verification.log 2>&1
+          land_repeat_status=$?
+          set -e
+          if [ "$land_repeat_status" -eq 0 ]; then
+            echo "ERROR: the Phase 4 one-time schema unexpectedly accepted a second application." | tee -a postgis-verification.log
+            exit 1
+          fi
+          land_after_counts="$(docker exec "$service_id" psql -U simverse_verify -d simverse_earth_verify -Atc "SELECT (SELECT count(*) FROM earth_geo.development_zone) || ':' || (SELECT count(*) FROM earth_geo.development_zone_version) || ':' || (SELECT count(*) FROM earth_geo.development_zone_exclusion);")"
+          if [ "$land_after_counts" != "1:2:1" ]; then
+            echo "ERROR: failed Phase 4 repeat changed land rows ($land_after_counts)." | tee -a postgis-verification.log
+            exit 1
+          fi
+          echo "PASS: Phase 4 second application is rejected atomically; land rows remain $land_after_counts." | tee -a postgis-verification.log
 
           docker exec "$service_id" psql \
             -U simverse_verify \
@@ -109,6 +141,12 @@ jobs:
             -d simverse_earth_fresh_repeat \
             -v ON_ERROR_STOP=1 \
             < infrastructure/earth-postgis/init/001-earth-geography.sql \
+            2>&1 | tee -a postgis-verification.log
+          docker exec -i "$service_id" psql \
+            -U simverse_verify \
+            -d simverse_earth_fresh_repeat \
+            -v ON_ERROR_STOP=1 \
+            < infrastructure/earth-postgis/init/002-earth-land.sql \
             2>&1 | tee -a postgis-verification.log
           docker exec "$service_id" psql \
             -U simverse_verify \

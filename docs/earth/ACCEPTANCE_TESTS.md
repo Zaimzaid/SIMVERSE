@@ -267,5 +267,31 @@ implementation and verification report is
 [PHASE_3_EARTH_EXPLORER.md](PHASE_3_EARTH_EXPLORER.md). The browser run used an
 isolated database and profile; all disposable QA state was removed afterward.
 Runtime Protocol v1, SimulationRun snapshots, the Prisma schema and simulation
-mechanics were unchanged. Phase 4 parcels, ownership, acquisition and
+mechanics were unchanged. At that checkpoint, Phase 4 had not started; the
+following section records its later implementation. Ownership, acquisition and
 construction remain unimplemented.
+
+## 18. Phase 4 closure evidence (2026-10-27)
+
+| Gate | Actual result |
+| --- | --- |
+| Zone authority | **Passed locally.** Only a dedicated active Earth steward can create or revise a zone; activation, retirement and rollback additionally require `canActivate`. A workspace owner without the grant is denied, and steward version history is not exposed to ordinary viewers. |
+| Geometry truth | **Passed locally.** Polygon/MultiPolygon zones are validated, contained by a sourced polygon revision and tied to a recorded local UTM projection. Point-only Lagos, invalid/self-intersecting geometry, invalid projection/hemisphere and out-of-parent inputs fail safely. |
+| Immutable lifecycle | **Passed locally.** Create emits version 1; meaningful edits create a new immutable version; duplicate content is rejected; review, activation, retirement and rollback append lifecycle records without editing old content. |
+| Parcel determinism | **Passed locally.** Independent Node processes produce the same SHA-256-derived parcel IDs and geometry. Grid order and cursors are stable; 25 m by 25 m cells measure 625 m²; adjacent full cells do not overlap. |
+| Edge and exclusion policy | **Passed locally.** Partial boundary cells, holes and cells intersecting an exclusion are omitted. Polygon and MultiPolygon fixtures are covered. |
+| Bounded discovery | **Passed locally.** Parcel reads require zoom 16 or greater, enforce a maximum 500 returned rows and scan no more than 4,096 candidates. Out-of-zone viewports return an empty bounded result. |
+| Sparse persistence | **Passed locally.** Browsing, detail, rules and eligibility reads create no parcel/claim row. The Prisma schema contains no reservation, ownership, property or acquisition model. |
+| Authenticated API | **Passed locally.** Guest access returns 401; active workspace membership plus `workspace.view` is required for inventory reads; all inputs pass Zod validation and foreign/unknown records use safe failures. |
+| Browser experience | **Passed.** Chrome 155 with SwiftShader rendered the active synthetic demonstration zone and 187 eligible plots, synchronized map/list and map-click selection, displayed exact plot detail and virtual/synthetic notices, exposed zero acquisition controls, supported keyboard selection and camera controls, fit mobile without horizontal overflow, and retained a helpful WebGL fallback. |
+| Browser diagnostics | **Passed.** The isolated run recorded no console errors. Screenshots and the machine-readable record are under `docs/earth/evidence/`. |
+| Measured development profile | **Recorded, not a release SLO.** Cold development compilation reached explorer-ready in 16,197 ms and zone/parcel-ready in 50,387 ms; a warm rerun reached those states in 10,974 ms and 2,649 ms respectively. The bounded zone API request measured 693.1 ms. |
+| Automated regression | **Passed locally.** The exact `npx vitest run` command passes 425 tests in 48 files. The focused Phase 4 suite passes 20 tests in three files. TypeScript, ESLint, Prisma validation/client generation, the Next production build and `git diff --check` pass. |
+| Real PostGIS execution | **Pending.** The reviewed workflow now applies the Phase 2 geography schema, Phase 4 land schema and both verification scripts to an isolated PostgreSQL 17/PostGIS 3.6 service. Its actual run ID, database versions and results must be recorded before Phase 4 is called fully verified. |
+
+The browser fixture is explicitly synthetic, virtual-only and non-cadastral. It
+is contained within the sourced Lagos State polygon but is not presented as an
+authentic local boundary or real land inventory. The run used an isolated
+SQLite database and disposable Chrome profile; those files were removed.
+Runtime Protocol v1, SimulationRun snapshots and all simulation mechanics remain
+unchanged. Phase 5 reservation, acquisition and ownership work has not started.

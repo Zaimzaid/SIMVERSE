@@ -4,8 +4,21 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { AlertTriangle, ChevronRight, Database, Globe2, LoaderCircle, MapPin, RotateCcw, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronRight,
+  Database,
+  Globe2,
+  Grid3X3,
+  List,
+  LoaderCircle,
+  Map as MapIcon,
+  MapPin,
+  RotateCcw,
+  Search,
+} from "lucide-react";
 import { apiFetch } from "@/lib/client/api";
+import type { EarthParcelView, EarthZoneDetail, EarthZoneSummary } from "@/lib/earth/land";
 import { EMPTY_FEATURE_COLLECTION, createEarthOverviewStyle } from "@/lib/earth/map-style";
 import { EARTH_OVERVIEW_V1 } from "@/lib/earth/public";
 import type { EarthBoundaryView, EarthPlaceDetail, EarthPlaceSummary } from "@/lib/earth/types";
@@ -36,6 +49,33 @@ interface PlaceDetailResponse {
   place: EarthPlaceDetail;
 }
 
+interface ZoneListResponse {
+  items: EarthZoneSummary[];
+  limit: number;
+}
+
+interface ZoneDetailResponse {
+  zone: EarthZoneDetail;
+}
+
+interface ParcelListResponse {
+  items: EarthParcelView[];
+  nextCursor: string | null;
+  limit: number;
+  scannedCandidates: number;
+}
+
+type LandView = "map" | "list";
+type GeoJsonData = Parameters<GeoJSONSource["setData"]>[0];
+
+function featureCollection(features: Array<Record<string, unknown>>): GeoJsonData {
+  return { type: "FeatureCollection", features } as GeoJsonData;
+}
+
+function updateMapSource(map: MapLibreMap | null, id: string, data: GeoJsonData) {
+  (map?.getSource(id) as GeoJSONSource | undefined)?.setData(data);
+}
+
 function qualityLabel(value: string) {
   return value.toLowerCase().replaceAll("_", " ");
 }
@@ -59,6 +99,24 @@ export function GeographyExplorer({
   const [searchResults, setSearchResults] = useState<EarthPlaceSummary[]>([]);
   const [busyId, setBusyId] = useState("");
   const [message, setMessage] = useState("");
+  const [zones, setZones] = useState<EarthZoneSummary[]>([]);
+  const [zoneCatalogLoaded, setZoneCatalogLoaded] = useState(false);
+  const [activeZone, setActiveZone] = useState<EarthZoneDetail | null>(null);
+  const [parcels, setParcels] = useState<EarthParcelView[]>([]);
+  const [selectedParcel, setSelectedParcel] = useState<EarthParcelView | null>(null);
+  const [landView, setLandView] = useState<LandView>("map");
+  const [landBusy, setLandBusy] = useState(false);
+  const [landMessage, setLandMessage] = useState("");
+  const [nextParcelCursor, setNextParcelCursor] = useState<string | null>(null);
+  const [mapZoom, setMapZoom] = useState(1.6);
+  const parcelQueryRef = useRef<{ bbox: string; zoom: number } | null>(null);
+  const parcelsRef = useRef<EarthParcelView[]>([]);
+  const selectParcelRef = useRef<(id: string) => void>(() => undefined);
+
+  parcelsRef.current = parcels;
+  selectParcelRef.current = (id) => {
+    setSelectedParcel(parcelsRef.current.find((item) => item.id === id) ?? null);
+  };
 
   useEffect(() => {
     if (!mapElement.current || mapRef.current) return;
@@ -125,7 +183,67 @@ export function GeographyExplorer({
               "circle-stroke-width": 2,
             },
           });
+          map.addSource("development-zone", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "development-zone-fill",
+            type: "fill",
+            source: "development-zone",
+            paint: { "fill-color": "#f59e0b", "fill-opacity": 0.16 },
+          });
+          map.addLayer({
+            id: "development-zone-outline",
+            type: "line",
+            source: "development-zone",
+            paint: { "line-color": "#fbbf24", "line-width": 3 },
+          });
+          map.addSource("development-zone-exclusions", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "development-zone-exclusions-fill",
+            type: "fill",
+            source: "development-zone-exclusions",
+            paint: { "fill-color": "#ef4444", "fill-opacity": 0.32 },
+          });
+          map.addLayer({
+            id: "development-zone-exclusions-outline",
+            type: "line",
+            source: "development-zone-exclusions",
+            paint: { "line-color": "#fca5a5", "line-width": 2, "line-dasharray": [2, 1] },
+          });
+          map.addSource("virtual-parcels", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "virtual-parcels-fill",
+            type: "fill",
+            source: "virtual-parcels",
+            paint: { "fill-color": "#22d3ee", "fill-opacity": 0.16 },
+          });
+          map.addLayer({
+            id: "virtual-parcels-outline",
+            type: "line",
+            source: "virtual-parcels",
+            paint: { "line-color": "#67e8f9", "line-width": 1.25 },
+          });
+          map.addSource("selected-virtual-parcel", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "selected-virtual-parcel-fill",
+            type: "fill",
+            source: "selected-virtual-parcel",
+            paint: { "fill-color": "#a3e635", "fill-opacity": 0.5 },
+          });
+          map.addLayer({
+            id: "selected-virtual-parcel-outline",
+            type: "line",
+            source: "selected-virtual-parcel",
+            paint: { "line-color": "#ecfccb", "line-width": 3 },
+          });
+          map.on("click", "virtual-parcels-fill", (event) => {
+            const parcelId = event.features?.[0]?.properties?.id;
+            if (typeof parcelId === "string") selectParcelRef.current(parcelId);
+          });
+          map.on("mouseenter", "virtual-parcels-fill", () => { map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseleave", "virtual-parcels-fill", () => { map.getCanvas().style.cursor = ""; });
+          map.on("moveend", () => setMapZoom(map.getZoom()));
           mapRef.current = map;
+          setMapZoom(map.getZoom());
           setMapReady(true);
         });
         map.on("error", (event) => {
@@ -161,13 +279,68 @@ export function GeographyExplorer({
     }
   }, [mapReady, selected, selectedFeature]);
 
+  useEffect(() => {
+    updateMapSource(mapRef.current, "development-zone", activeZone
+      ? featureCollection([{
+        type: "Feature",
+        id: activeZone.id,
+        properties: { id: activeZone.id, name: activeZone.name },
+        geometry: activeZone.geometry,
+      }])
+      : EMPTY_FEATURE_COLLECTION);
+    updateMapSource(mapRef.current, "development-zone-exclusions", activeZone
+      ? featureCollection(activeZone.exclusions.map((exclusion) => ({
+        type: "Feature",
+        id: exclusion.id,
+        properties: { id: exclusion.id, name: exclusion.name, reason: exclusion.reason },
+        geometry: exclusion.geometry,
+      })))
+      : EMPTY_FEATURE_COLLECTION);
+  }, [activeZone, mapReady]);
+
+  useEffect(() => {
+    updateMapSource(mapRef.current, "virtual-parcels", parcels.length
+      ? featureCollection(parcels.map((parcel) => ({
+        type: "Feature",
+        id: parcel.id,
+        properties: {
+          id: parcel.id,
+          row: parcel.grid.row,
+          column: parcel.grid.column,
+          areaSquareMeters: parcel.areaSquareMeters,
+        },
+        geometry: parcel.geometry,
+      })))
+      : EMPTY_FEATURE_COLLECTION);
+  }, [mapReady, parcels]);
+
+  useEffect(() => {
+    updateMapSource(mapRef.current, "selected-virtual-parcel", selectedParcel
+      ? featureCollection([{
+        type: "Feature",
+        id: selectedParcel.id,
+        properties: { id: selectedParcel.id },
+        geometry: selectedParcel.geometry,
+      }])
+      : EMPTY_FEATURE_COLLECTION);
+  }, [mapReady, selectedParcel]);
+
   const showPlace = useCallback(async (place: EarthPlaceSummary) => {
     setBusyId(place.id);
     setMessage("");
-    const [boundary, detail, children] = await Promise.all([
+    setZones([]);
+    setZoneCatalogLoaded(false);
+    setActiveZone(null);
+    setParcels([]);
+    setSelectedParcel(null);
+    setNextParcelCursor(null);
+    setLandMessage("");
+    parcelQueryRef.current = null;
+    const [boundary, detail, children, landZones] = await Promise.all([
       apiFetch<BoundaryResponse>(`/api/earth/geography/places/${place.id}/boundary`),
       apiFetch<PlaceDetailResponse>(`/api/earth/geography/places/${place.id}`),
       apiFetch<PlaceListResponse>(`/api/earth/geography/places?parentId=${encodeURIComponent(place.id)}&limit=100`),
+      apiFetch<ZoneListResponse>(`/api/earth/zones?placeId=${encodeURIComponent(place.id)}&includeDemonstration=true&limit=100`),
     ]);
     if (boundary.error || !boundary.data || detail.error || !detail.data) {
       setMessage(boundary.error?.message ?? detail.error?.message ?? "Location could not be loaded.");
@@ -188,6 +361,9 @@ export function GeographyExplorer({
       setLocalities([]);
     }
     if (children.error) setMessage(children.error.message);
+    setZones(landZones.data?.items ?? []);
+    setZoneCatalogLoaded(true);
+    if (landZones.error) setLandMessage(landZones.error.message);
     setBusyId("");
   }, []);
 
@@ -204,6 +380,14 @@ export function GeographyExplorer({
     setHierarchy([]);
     setSubdivisions([]);
     setLocalities([]);
+    setZones([]);
+    setZoneCatalogLoaded(false);
+    setActiveZone(null);
+    setParcels([]);
+    setSelectedParcel(null);
+    setNextParcelCursor(null);
+    setLandMessage("");
+    parcelQueryRef.current = null;
     const source = mapRef.current?.getSource("selected-geography") as GeoJSONSource | undefined;
     source?.setData(EMPTY_FEATURE_COLLECTION);
     mapRef.current?.easeTo({
@@ -212,6 +396,95 @@ export function GeographyExplorer({
       pitch: 0,
       bearing: 0,
       duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700,
+    });
+  }
+
+  async function loadParcelPage(
+    zone: EarthZoneDetail,
+    query: { bbox: string; zoom: number },
+    cursor: string | null = null,
+    append = false,
+  ) {
+    setLandBusy(true);
+    setLandMessage("");
+    const params = new URLSearchParams({
+      bbox: query.bbox,
+      zoom: String(query.zoom),
+      limit: "200",
+    });
+    if (cursor) params.set("cursor", cursor);
+    const result = await apiFetch<ParcelListResponse>(
+      `/api/earth/zones/${zone.id}/parcels?${params.toString()}`,
+    );
+    setLandBusy(false);
+    if (result.error || !result.data) {
+      setLandMessage(result.error?.message ?? "Virtual plots could not be loaded.");
+      return;
+    }
+    setParcels((current) => append ? [...current, ...result.data!.items] : result.data!.items);
+    if (!append) setSelectedParcel(null);
+    setNextParcelCursor(result.data.nextCursor);
+    parcelQueryRef.current = query;
+    if (!result.data.items.length && !append) {
+      setLandMessage("No complete eligible virtual plots intersect this view.");
+    }
+  }
+
+  async function showZone(zoneSummary: EarthZoneSummary) {
+    setLandBusy(true);
+    setLandMessage("");
+    setParcels([]);
+    setSelectedParcel(null);
+    setNextParcelCursor(null);
+    const result = await apiFetch<ZoneDetailResponse>(`/api/earth/zones/${zoneSummary.id}`);
+    if (result.error || !result.data) {
+      setLandBusy(false);
+      setLandMessage(result.error?.message ?? "Development zone could not be loaded.");
+      return;
+    }
+    const zone = result.data.zone;
+    setActiveZone(zone);
+    setLandView("map");
+    const map = mapRef.current;
+    let requestZoom = 18;
+    if (map) {
+      map.fitBounds([
+        [zone.bbox[0], zone.bbox[1]],
+        [zone.bbox[2], zone.bbox[3]],
+      ], { padding: window.innerWidth < 640 ? 30 : 90, duration: 0, maxZoom: 18 });
+      if (map.getZoom() < 16) map.setZoom(16);
+      requestZoom = Math.floor(map.getZoom());
+    }
+    await loadParcelPage(zone, { bbox: zone.bbox.join(","), zoom: requestZoom });
+  }
+
+  async function loadVisibleParcels() {
+    const map = mapRef.current;
+    if (!activeZone || !map) return;
+    const zoom = Math.floor(map.getZoom());
+    if (zoom < 16) {
+      setLandMessage("Zoom to level 16 or closer before loading virtual plots.");
+      return;
+    }
+    const bounds = map.getBounds();
+    const west = Math.max(bounds.getWest(), activeZone.bbox[0]);
+    const south = Math.max(bounds.getSouth(), activeZone.bbox[1]);
+    const east = Math.min(bounds.getEast(), activeZone.bbox[2]);
+    const north = Math.min(bounds.getNorth(), activeZone.bbox[3]);
+    if (west >= east || south >= north) {
+      setLandMessage("Move the map over the selected development zone to load plots.");
+      return;
+    }
+    await loadParcelPage(activeZone, { bbox: [west, south, east, north].join(","), zoom });
+  }
+
+  function chooseParcel(parcel: EarthParcelView) {
+    setSelectedParcel(parcel);
+    const map = mapRef.current;
+    map?.easeTo({
+      center: parcel.centroid,
+      zoom: Math.max(map.getZoom(), 18),
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 450,
     });
   }
 
@@ -265,8 +538,8 @@ export function GeographyExplorer({
             <Badge variant={mapReady ? "success" : "warning"}>{mapReady ? "Globe ready" : "Loading WebGL"}</Badge>
           </div>
         </div>
-        <div className="relative h-[34rem] min-h-[28rem] w-full bg-[#071323]">
-          <div ref={mapElement} className="h-full w-full" aria-label="Interactive protected geography globe" data-protected-earth-map={mapReady ? "ready" : mapError ? "fallback" : "loading"} />
+        <div className="relative h-[28rem] min-h-[26rem] w-full bg-[#071323] sm:h-[34rem]">
+          <div ref={mapElement} className="h-full w-full" aria-label="Interactive protected geography and virtual parcel map" data-protected-earth-map={mapReady ? "ready" : mapError ? "fallback" : "loading"} />
           <div className="absolute left-3 top-3 z-10 rounded-xl border border-white/10 bg-background/75 p-1 backdrop-blur">
             <Button type="button" variant="icon" size="sm" onClick={returnToGlobe} aria-label="Return to full Earth globe" title="Return to globe" disabled={!mapReady}>
               <RotateCcw className="size-4" />
@@ -279,7 +552,16 @@ export function GeographyExplorer({
           ) : null}
           {mapError ? (
             <div className="absolute inset-x-4 bottom-4 rounded-xl border border-warning/30 bg-background/90 p-3 text-sm text-warning">
-              {mapError} Use the place lists to inspect the same sourced hierarchy.
+              {mapError} Use the accessible place, development-zone and virtual-plot lists to inspect the same data.
+            </div>
+          ) : null}
+          {activeZone && mapReady ? (
+            <div className="absolute bottom-8 left-3 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-background/85 p-2 text-xs backdrop-blur">
+              <span className="px-1 text-secondary">Zoom {mapZoom.toFixed(1)}</span>
+              <Button type="button" size="sm" variant="secondary" onClick={() => void loadVisibleParcels()} disabled={landBusy}>
+                {landBusy ? <LoaderCircle className="size-3.5 animate-spin" /> : <Grid3X3 className="size-3.5" />}
+                Load visible plots
+              </Button>
             </div>
           ) : null}
         </div>
@@ -348,6 +630,128 @@ export function GeographyExplorer({
           <section className="rounded-2xl border border-border bg-surface p-4">
             <h2 className="mb-3 text-sm font-semibold">Supported localities</h2>
             <div className="space-y-2">{localities.map(placeButton)}</div>
+          </section>
+        ) : null}
+
+        {selected?.kind === "ADMIN1" && zoneCatalogLoaded ? (
+          <section className="rounded-2xl border border-warning/30 bg-surface p-4" data-earth-land-catalog="loaded">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-warning">Virtual land discovery</p>
+                <h2 className="mt-1 text-sm font-semibold">Approved development zones</h2>
+              </div>
+              <Grid3X3 className="size-5 text-warning" aria-hidden />
+            </div>
+            <p className="mt-2 rounded-lg bg-warning-soft p-2 text-xs text-warning">
+              SIMVERSE virtual plots grant no rights in real-world land. Zone geometry is platform policy data, not an official or cadastral boundary.
+            </p>
+            {zones.length ? (
+              <div className="mt-3 space-y-2">
+                {zones.map((zone) => (
+                  <button
+                    key={zone.id}
+                    type="button"
+                    onClick={() => void showZone(zone)}
+                    disabled={landBusy}
+                    aria-pressed={activeZone?.id === zone.id}
+                    className="flex w-full items-start justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition hover:border-warning/50 disabled:opacity-60 aria-pressed:border-warning"
+                  >
+                    <span>
+                      <span className="block text-sm font-medium text-foreground">{zone.name}</span>
+                      <span className="mt-0.5 block text-xs text-muted">{zone.zoningLabel} · {zone.cellSizeMeters[0]} m × {zone.cellSizeMeters[1]} m</span>
+                    </span>
+                    {zone.isDemonstration ? <Badge variant="warning">Synthetic demo</Badge> : <Badge variant="success">Active</Badge>}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-border p-3">
+                <p className="text-sm font-medium">No active development zones</p>
+                <p className="mt-1 text-xs text-muted">No approved virtual plot inventory is published for this region.</p>
+              </div>
+            )}
+            {landMessage && !activeZone ? (
+              <p role="status" className="mt-3 rounded-lg bg-warning-soft p-2 text-xs text-warning">{landMessage}</p>
+            ) : null}
+
+            {activeZone ? (
+              <div className="mt-4 border-t border-border pt-4" data-active-earth-zone={activeZone.id}>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold">{activeZone.name}</h3>
+                    <p className="text-xs text-muted">Version {activeZone.activeVersion} · {activeZone.grid.algorithmVersion}</p>
+                  </div>
+                  <div className="flex rounded-lg border border-border p-0.5" aria-label="Parcel view">
+                    <button
+                      type="button"
+                      aria-pressed={landView === "map"}
+                      onClick={() => setLandView("map")}
+                      className="rounded-md p-1.5 text-muted aria-pressed:bg-accent-soft aria-pressed:text-accent"
+                      aria-label="Show parcel map view"
+                    ><MapIcon className="size-4" /></button>
+                    <button
+                      type="button"
+                      aria-pressed={landView === "list"}
+                      onClick={() => setLandView("list")}
+                      className="rounded-md p-1.5 text-muted aria-pressed:bg-accent-soft aria-pressed:text-accent"
+                      aria-label="Show parcel list view"
+                    ><List className="size-4" /></button>
+                  </div>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg bg-background p-2"><dt className="text-muted">Zoning</dt><dd className="mt-0.5 font-medium">{activeZone.restrictions.zoningLabel}</dd></div>
+                  <div className="rounded-lg bg-background p-2"><dt className="text-muted">Eligible plots shown</dt><dd className="mt-0.5 font-medium" data-earth-parcel-count={parcels.length}>{parcels.length}</dd></div>
+                </dl>
+                {activeZone.isDemonstration ? (
+                  <p className="mt-2 text-xs text-warning">Synthetic test geometry positioned in sourced Lagos State context. It is not real land inventory.</p>
+                ) : null}
+
+                {landView === "map" ? (
+                  <p className="mt-3 text-xs text-secondary">Select an outlined plot on the map, or switch to the keyboard-accessible list.</p>
+                ) : (
+                  <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1" aria-label="Visible virtual plots">
+                    {parcels.map((parcel) => (
+                      <button
+                        key={parcel.id}
+                        type="button"
+                        onClick={() => chooseParcel(parcel)}
+                        aria-pressed={selectedParcel?.id === parcel.id}
+                        className="w-full rounded-lg border border-border bg-background p-2 text-left text-xs transition hover:border-accent/50 aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                      >
+                        <span className="block truncate font-mono text-foreground">{parcel.id}</span>
+                        <span className="mt-1 block text-muted">Grid {parcel.grid.column}, {parcel.grid.row} · {parcel.areaSquareMeters} m²</span>
+                      </button>
+                    ))}
+                    {!parcels.length && !landBusy ? <p className="text-xs text-muted">No eligible plots are loaded for this view.</p> : null}
+                  </div>
+                )}
+                {nextParcelCursor && parcelQueryRef.current ? (
+                  <Button
+                    type="button"
+                    className="mt-3 w-full"
+                    size="sm"
+                    variant="secondary"
+                    disabled={landBusy}
+                    onClick={() => void loadParcelPage(activeZone, parcelQueryRef.current!, nextParcelCursor, true)}
+                  >Load next 200 plots</Button>
+                ) : null}
+                {selectedParcel ? (
+                  <div className="mt-3 rounded-xl border border-accent/30 bg-accent-soft p-3" data-selected-earth-parcel={selectedParcel.id}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-accent">Selected virtual plot</p>
+                    <p className="mt-1 break-all font-mono text-xs text-foreground">{selectedParcel.id}</p>
+                    <dl className="mt-2 space-y-1 text-xs text-secondary">
+                      <div className="flex justify-between gap-3"><dt>Area</dt><dd>{selectedParcel.areaSquareMeters} m²</dd></div>
+                      <div className="flex justify-between gap-3"><dt>Dimensions</dt><dd>{selectedParcel.dimensionsMeters[0]} m × {selectedParcel.dimensionsMeters[1]} m</dd></div>
+                      <div className="flex justify-between gap-3"><dt>Approx. centre</dt><dd>{selectedParcel.centroid[1].toFixed(6)}, {selectedParcel.centroid[0].toFixed(6)}</dd></div>
+                      <div className="flex justify-between gap-3"><dt>Zoning</dt><dd>{selectedParcel.zoningLabel}</dd></div>
+                    </dl>
+                    <p className="mt-2 text-xs text-warning">Discovery only. Claiming, purchasing and ownership are unavailable.</p>
+                  </div>
+                ) : null}
+                {landBusy ? <p role="status" className="mt-3 flex items-center gap-2 text-xs text-secondary"><LoaderCircle className="size-3.5 animate-spin" />Loading bounded virtual plots…</p> : null}
+                {landMessage ? <p role="status" className="mt-3 rounded-lg bg-warning-soft p-2 text-xs text-warning">{landMessage}</p> : null}
+              </div>
+            ) : null}
           </section>
         ) : null}
 

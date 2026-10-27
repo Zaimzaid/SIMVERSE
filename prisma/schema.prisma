@@ -51,6 +51,16 @@ model User {
   createdMediaArtifacts     MediaArtifact[]             @relation("MediaArtifactCreator")
   createdMediaVersions      MediaArtifactVersion[]      @relation("MediaArtifactVersionCreator")
   createdMediaShares        MediaShare[]                @relation("MediaShareCreator")
+
+  // SIMVERSE Earth global stewardship is deliberately separate from
+  // workspace roles. A workspace administrator is not automatically allowed
+  // to activate or retire global virtual-land inventory.
+  earthStewardGrant         EarthSteward?                        @relation("EarthStewardUser")
+  earthStewardGrantsIssued  EarthSteward[]                       @relation("EarthStewardGrantor")
+  createdEarthZones         EarthDevelopmentZone[]               @relation("EarthZoneCreator")
+  createdEarthZoneVersions  EarthDevelopmentZoneVersion[]        @relation("EarthZoneVersionCreator")
+  reviewedEarthZoneVersions EarthDevelopmentZoneVersion[]        @relation("EarthZoneVersionReviewer")
+  earthZoneLifecycleEvents  EarthDevelopmentZoneLifecycleEvent[] @relation("EarthZoneLifecycleActor")
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -231,6 +241,7 @@ model EarthGeoPlace {
   parent    EarthGeoPlace?          @relation("EarthGeoHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
   children  EarthGeoPlace[]         @relation("EarthGeoHierarchy")
   revisions EarthGeoPlaceRevision[]
+  developmentZones EarthDevelopmentZone[]
 
   @@index([parentId, kind, name])
   @@index([kind, normalizedName])
@@ -263,6 +274,7 @@ model EarthGeoPlaceRevision {
 
   place          EarthGeoPlace          @relation(fields: [placeId], references: [id], onDelete: Restrict)
   datasetVersion EarthGeoDatasetVersion @relation(fields: [datasetVersionId], references: [id], onDelete: Restrict)
+  zoneVersions   EarthDevelopmentZoneVersion[]
 
   @@unique([placeId, revision])
   @@unique([placeId, datasetVersionId])
@@ -271,6 +283,126 @@ model EarthGeoPlaceRevision {
   @@index([boundaryQuality, verificationStatus])
   @@index([bboxWest, bboxEast])
   @@index([bboxSouth, bboxNorth])
+}
+
+// ============================================================================
+// SIMVERSE EARTH - DEVELOPMENT ZONES (Earth Phase 4)
+//
+// Development zones are reviewed SIMVERSE virtual-development policy areas.
+// They are not cadastral boundaries and are not inferred from locality points.
+// Complete immutable definitions live in version rows; only lifecycle state and
+// the stable zone's active-version projection may change. Unclaimed parcels are
+// derived on demand and are intentionally not stored in this schema.
+// ============================================================================
+
+model EarthSteward {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  role            String    @default("STEWARD")
+  canActivate     Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  grantedByUserId String?
+  grantedAt       DateTime  @default(now())
+  revokedAt       DateTime?
+
+  user      User  @relation("EarthStewardUser", fields: [userId], references: [id], onDelete: Restrict)
+  grantedBy User? @relation("EarthStewardGrantor", fields: [grantedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([isActive, canActivate])
+}
+
+model EarthDevelopmentZone {
+  id              String   @id @default(cuid())
+  publicId        String   @unique
+  canonicalKey    String   @unique
+  name            String
+  normalizedName  String
+  placeId         String
+  status          String   @default("DRAFT")
+  activeVersionId String?  @unique
+  isDemonstration Boolean  @default(false)
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  place         EarthGeoPlace                        @relation(fields: [placeId], references: [id], onDelete: Restrict)
+  activeVersion EarthDevelopmentZoneVersion?         @relation("EarthActiveZoneVersion", fields: [activeVersionId], references: [id], onDelete: Restrict)
+  versions      EarthDevelopmentZoneVersion[]        @relation("EarthZoneVersions")
+  lifecycle     EarthDevelopmentZoneLifecycleEvent[]
+  createdBy     User                                 @relation("EarthZoneCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([placeId, status, name])
+  @@index([status, isDemonstration])
+}
+
+model EarthDevelopmentZoneVersion {
+  id                    String    @id @default(cuid())
+  publicId              String    @unique
+  zoneId                String
+  version               Int
+  status                String    @default("DRAFT")
+  sourcePlaceRevisionId String
+  geometryGeoJson       String
+  exclusionsJson        String    @default("[]")
+  bboxWest              Float
+  bboxSouth             Float
+  bboxEast              Float
+  bboxNorth             Float
+  projectionCode        String
+  projectionDefinition  String
+  projectionSrid        Int
+  gridOriginLongitude   Float
+  gridOriginLatitude    Float
+  gridOriginEasting     Float
+  gridOriginNorthing    Float
+  gridBearingDegrees    Float     @default(0)
+  cellWidthMeters       Float     @default(25)
+  cellHeightMeters      Float     @default(25)
+  algorithmVersion      String    @default("earth-parcel-grid-v1")
+  edgePolicy            String    @default("FULL_CELL")
+  restrictionsJson      String    @default("{}")
+  provenanceJson        String
+  contentHash           String
+  reviewNote            String?
+  createdByUserId       String
+  reviewedByUserId      String?
+  submittedAt           DateTime?
+  activatedAt           DateTime?
+  retiredAt             DateTime?
+  createdAt             DateTime  @default(now())
+
+  zone                EarthDevelopmentZone                 @relation("EarthZoneVersions", fields: [zoneId], references: [id], onDelete: Restrict)
+  activeForZone       EarthDevelopmentZone?                @relation("EarthActiveZoneVersion")
+  sourcePlaceRevision EarthGeoPlaceRevision                @relation(fields: [sourcePlaceRevisionId], references: [id], onDelete: Restrict)
+  createdBy           User                                 @relation("EarthZoneVersionCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewedBy          User?                                @relation("EarthZoneVersionReviewer", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  lifecycle           EarthDevelopmentZoneLifecycleEvent[]
+
+  @@unique([zoneId, version])
+  @@unique([zoneId, contentHash])
+  @@index([zoneId, status, version])
+  @@index([sourcePlaceRevisionId])
+  @@index([bboxWest, bboxEast])
+  @@index([bboxSouth, bboxNorth])
+}
+
+model EarthDevelopmentZoneLifecycleEvent {
+  id            String   @id @default(cuid())
+  zoneId        String
+  zoneVersionId String
+  action        String
+  actorUserId   String
+  fromStatus    String?
+  toStatus      String
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  zone        EarthDevelopmentZone        @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  zoneVersion EarthDevelopmentZoneVersion @relation(fields: [zoneVersionId], references: [id], onDelete: Restrict)
+  actor       User                        @relation("EarthZoneLifecycleActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([zoneId, createdAt])
+  @@index([zoneVersionId, createdAt])
 }
 
 /// A generic object that may participate in or exist inside a simulation.
