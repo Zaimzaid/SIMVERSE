@@ -16,6 +16,9 @@ export default async function PlayerEconomicIdentityPage() {
     <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">
       ← Back to My SIMVERSE Profile
     </Link>
+    <Link href="/profile/work" className="inline-block rounded-xl border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent">
+      Open Qualifications, Approved Businesses &amp; Job Applications →
+    </Link>
     <PlayerEconomyCenter initial={economy} />
   </div>;
 }
