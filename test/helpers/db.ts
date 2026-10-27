@@ -4,6 +4,10 @@ import { prisma } from "@/server/db/client";
 export async function resetDb(): Promise<void> {
   // Player identity references country catalog records; clear its children
   // before deleting Earth geography or the User account.
+  await prisma.playerVirtualBusiness.deleteMany();
+  await prisma.playerWalletEntry.deleteMany();
+  await prisma.playerVirtualWallet.deleteMany();
+  await prisma.playerCareerProfile.deleteMany();
   await prisma.playerBilateralTravelAgreement.deleteMany();
   await prisma.playerCitizenshipPolicy.deleteMany();
   await prisma.playerCountryGovernanceGrant.deleteMany();
