@@ -77,10 +77,12 @@ export default async function DashboardPage() {
                 <Rocket className="size-4" /> Start creating <ArrowRight className="size-4" />
               </Link>
             )}
-            <Link href="/earth/geography"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/75 px-4 py-3 text-sm font-semibold text-foreground hover:bg-surface-hover">
-              <Globe2 className="size-4" /> Explore Earth
-            </Link>
+            {ctx.permissions.includes("workspace.view") && (
+              <Link href="/earth/geography"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/75 px-4 py-3 text-sm font-semibold text-foreground hover:bg-surface-hover">
+                <Globe2 className="size-4" /> Explore Earth
+              </Link>
+            )}
           </div>
         </div>
       </section>
