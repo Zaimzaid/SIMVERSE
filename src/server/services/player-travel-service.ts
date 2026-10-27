@@ -47,7 +47,7 @@ async function checkedCountry(id: string) {
 async function getTravelEvidence(identityId: string, originCountryId: string,
   destinationCountryId: string, now = new Date()) {
   const domestic = originCountryId === destinationCountryId;
-  const [originCitizenship, destinationCitizenship, residence, route, passport, visa] =
+  const [originCitizenship, destinationCitizenship, residence, route, passport, visa, bilateralAgreement] =
     await Promise.all([
       prisma.playerCitizenship.findUnique({
         where: { playerIdentityId_countryPlaceId: {
@@ -82,22 +82,43 @@ async function getTravelEvidence(identityId: string, originCountryId: string,
         } },
         select: { status: true, expiresAt: true },
       }),
+      domestic ? Promise.resolve(null) : prisma.playerBilateralTravelAgreement.findFirst({
+        where: {
+          status: "ACTIVE",
+          originApprovedByUserId: { not: null },
+          destinationApprovedByUserId: { not: null },
+          OR: [
+            { originCountryId, destinationCountryId },
+            { originCountryId: destinationCountryId, destinationCountryId: originCountryId },
+          ],
+        },
+      }),
     ]);
-  const selectedKind = route?.passportKind ?? "INTERNATIONAL_PASSPORT";
+  // A manually configured country route (including CLOSED/inactive) takes
+  // precedence over a treaty, so explicit closure cannot be bypassed.
+  const effectiveRoute = route ?? (bilateralAgreement
+    && bilateralAgreement.originApprovedByUserId !== bilateralAgreement.destinationApprovedByUserId
+    ? {
+      id: bilateralAgreement.id,
+      isActive: true, mode: "VISA_WAIVER",
+      passportKind: "INTERNATIONAL_PASSPORT",
+      description: "SIMVERSE bilateral virtual visa waiver (approved by both countries)",
+    } : null);
+  const selectedKind = effectiveRoute?.passportKind ?? "INTERNATIONAL_PASSPORT";
   const matchingPassport = passport.find((p) => p.kind === selectedKind) ?? null;
   const validVisa = visa?.status === "APPROVED" && !!visa.expiresAt && visa.expiresAt.getTime() > now.getTime();
   const evidence: TravelEvidence = {
     domestic,
-    routeEnabled: Boolean(route?.isActive),
-    mode: route?.isActive && ["CLOSED", "VISA_REQUIRED", "VISA_WAIVER"].includes(route.mode)
-      ? route.mode as TravelMode : null,
+    routeEnabled: Boolean(effectiveRoute?.isActive),
+    mode: effectiveRoute?.isActive && ["CLOSED", "VISA_REQUIRED", "VISA_WAIVER"].includes(effectiveRoute.mode)
+      ? effectiveRoute.mode as TravelMode : null,
     activeOriginCitizenship: originCitizenship?.status === "ACTIVE",
     activeDestinationCitizenship: destinationCitizenship?.status === "ACTIVE",
     activeDestinationResidence: isVirtualCredentialValid(residence, now),
     validPassport: isVirtualCredentialValid(matchingPassport, now),
     validVisa: Boolean(validVisa),
   };
-  return { evidence, route };
+  return { evidence, route: effectiveRoute };
 }
 
 /**
