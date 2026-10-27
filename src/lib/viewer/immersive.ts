@@ -1,5 +1,6 @@
-/** Only completed-run Watch routes remove the authenticated dashboard chrome. */
+/** Completed-run Watch routes and the isolated Earth 3D proof remove dashboard chrome. */
 export function isImmersiveViewerPath(pathname: string) {
-  return /^\/simulations\/[^/]+\/runs\/[^/]+\/watch\/?$/.test(pathname) ||
+  return /^\/earth\/neighborhood\/?$/.test(pathname) ||
+    /^\/simulations\/[^/]+\/runs\/[^/]+\/watch\/?$/.test(pathname) ||
     /^\/anything-wars\/events\/[^/]+\/runs\/[^/]+\/watch\/?$/.test(pathname);
 }
