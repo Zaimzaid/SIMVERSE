@@ -34,6 +34,12 @@ model User {
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
   virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
+  virtualCountryGovernanceGrants PlayerCountryGovernanceGrant[] @relation("VirtualGovernanceGrantUser")
+  virtualCountryPoliciesProposed PlayerCitizenshipPolicy[] @relation("VirtualCitizenshipPolicyProposer")
+  virtualCountryPoliciesActivated PlayerCitizenshipPolicy[] @relation("VirtualCitizenshipPolicyActivator")
+  virtualTravelTreatiesProposed PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyProposer")
+  virtualTravelTreatiesOriginApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyOriginApprover")
+  virtualTravelTreatiesDestinationApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyDestinationApprover")
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
@@ -238,6 +244,71 @@ model PlayerTravelVisaApplication {
   @@index([identityId, submittedAt])
 }
 
+// Phase 4 governance grants are never implied by workspace ownership or
+// passport reviewer status. Created offline by an independently authorized
+// SIMVERSE operator; all grants start inactive and cannot approve by default.
+model PlayerCountryGovernanceGrant {
+  id             String @id @default(cuid())
+  userId         String
+  countryPlaceId String
+  isActive       Boolean @default(false)
+  canActivate    Boolean @default(false)
+  createdAt      DateTime @default(now())
+
+  user    User @relation("VirtualGovernanceGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+  country EarthGeoPlace @relation("VirtualGovernanceGrantCountry", fields: [countryPlaceId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, countryPlaceId])
+  @@index([countryPlaceId, isActive])
+}
+
+// Policy activated by a different explicitly authorized administrator
+// than the user who proposed it. Historical versions remain immutable.
+model PlayerCitizenshipPolicy {
+  id                    String @id @default(cuid())
+  countryPlaceId        String
+  revision              Int
+  status                String @default("DRAFT") // DRAFT | ACTIVE | SUPERSEDED
+  allowsDualCitizenship Boolean @default(false)
+  minResidenceDays      Int     @default(180)
+  proposedByUserId      String
+  activatedByUserId     String?
+  proposedAt            DateTime @default(now())
+  activatedAt           DateTime?
+
+  country EarthGeoPlace @relation("VirtualCitizenshipPolicyCountry", fields: [countryPlaceId], references: [id], onDelete: Restrict)
+  proposedBy User @relation("VirtualCitizenshipPolicyProposer", fields: [proposedByUserId], references: [id], onDelete: Restrict)
+  activatedBy User? @relation("VirtualCitizenshipPolicyActivator", fields: [activatedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([countryPlaceId, revision])
+  @@index([countryPlaceId, status])
+}
+
+// Bilateral visa waivers require two country-scoped approvals from different
+// people. No regional agreement can be inferred from real-world geography.
+model PlayerBilateralTravelAgreement {
+  id                        String @id @default(cuid())
+  originCountryId           String
+  destinationCountryId      String
+  status                    String @default("DRAFT") // DRAFT | ACTIVE | SUSPENDED
+  proposedByUserId          String
+  originApprovedByUserId    String?
+  destinationApprovedByUserId String?
+  originApprovedAt          DateTime?
+  destinationApprovedAt     DateTime?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  originCountry EarthGeoPlace @relation("VirtualTravelTreatyOriginCountry", fields: [originCountryId], references: [id], onDelete: Restrict)
+  destinationCountry EarthGeoPlace @relation("VirtualTravelTreatyDestinationCountry", fields: [destinationCountryId], references: [id], onDelete: Restrict)
+  proposedBy User @relation("VirtualTravelTreatyProposer", fields: [proposedByUserId], references: [id], onDelete: Restrict)
+  originApprovedBy User? @relation("VirtualTravelTreatyOriginApprover", fields: [originApprovedByUserId], references: [id], onDelete: SetNull)
+  destinationApprovedBy User? @relation("VirtualTravelTreatyDestinationApprover", fields: [destinationApprovedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([originCountryId, destinationCountryId])
+  @@index([status, createdAt])
+}
+
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
 model Workspace {
   id        String   @id @default(cuid())
@@ -425,6 +496,10 @@ model EarthGeoPlace {
   virtualInboundTravelRules PlayerTravelRoutePolicy[] @relation("TravelRuleDestinationCountry")
   virtualOutboundVisas PlayerTravelVisaApplication[] @relation("TravelVisaOriginCountry")
   virtualInboundVisas PlayerTravelVisaApplication[] @relation("TravelVisaDestinationCountry")
+  virtualCountryGovernanceGrants PlayerCountryGovernanceGrant[] @relation("VirtualGovernanceGrantCountry")
+  virtualCitizenshipPolicies PlayerCitizenshipPolicy[] @relation("VirtualCitizenshipPolicyCountry")
+  virtualTravelTreatiesOrigin PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyOriginCountry")
+  virtualTravelTreatiesDestination PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyDestinationCountry")
 
   @@index([parentId, kind, name])
   @@index([kind, normalizedName])
