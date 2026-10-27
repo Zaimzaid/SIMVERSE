@@ -10,6 +10,7 @@ import {
 import { parseOrThrow } from "@/lib/validation";
 import { prisma } from "@/server/db/client";
 import { ensurePlayerIdentity, listPlayerHomeCountries } from "./player-identity-service";
+import { assessVirtualDualCitizenship } from "./player-governance-service";
 import { recordAudit } from "./audit-service";
 
 const notice = "SIMVERSE fictional in-world records only. Not real passports, visas, citizenship, identification or travel authorization.";
@@ -72,10 +73,14 @@ async function checklistFor(
     where: { playerIdentityId_countryPlaceId: { playerIdentityId: identity.id, countryPlaceId } },
     select: { status: true },
   });
+  const citizenshipPath = kind === "CITIZENSHIP"
+    ? await assessVirtualDualCitizenship(identity, countryPlaceId, tx)
+    : null;
   return qualificationChecklist({
     kind,
     hasUsername: Boolean(identity.username),
-    homeCountryMatches: identity.homeCountryId === countryPlaceId,
+    homeCountryMatches: citizenshipPath?.path === "FIRST_HOME" && citizenshipPath.eligible,
+    eligibleSecondCitizenship: citizenshipPath?.path === "SECOND_CITIZENSHIP" && citizenshipPath.eligible,
     hasActiveVirtualCitizenship: citizenship?.status === "ACTIVE",
   });
 }
