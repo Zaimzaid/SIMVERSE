@@ -284,6 +284,18 @@ export function GeographyExplorer({
   }, [mapReady, selected, selectedFeature]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !activeZone) return;
+    // Selecting a saved zone can finish before WebGL initialization. Refocus
+    // once the map is ready so the synthetic parcels aren't left offscreen.
+    map.fitBounds([
+      [activeZone.bbox[0], activeZone.bbox[1]],
+      [activeZone.bbox[2], activeZone.bbox[3]],
+    ], { padding: 40, duration: 0, maxZoom: 18 });
+    if (map.getZoom() < 16) map.setZoom(16);
+  }, [activeZone, mapReady]);
+
+  useEffect(() => {
     updateMapSource(mapRef.current, "development-zone", activeZone
       ? featureCollection([{
         type: "Feature",
