@@ -1,4 +1,4 @@
-import { BadgeCheck, CalendarDays, Fingerprint, IdCard, ShieldAlert, Stamp } from "lucide-react";
+import { CalendarDays, Fingerprint, IdCard, ShieldAlert, Stamp } from "lucide-react";
 import { documentDisplayStatus, type VirtualDocumentKind } from "@/lib/player-identity/documents";
 
 /**
