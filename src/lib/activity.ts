@@ -54,6 +54,10 @@ export function describeAuditAction(
       return { icon: FileText, label: "Submitted SIMVERSE virtual document application" };
     case "player.document.reviewed":
       return { icon: CheckCircle2, label: "SIMVERSE virtual document application reviewed" };
+    case "player.travel.visa_applied":
+      return { icon: FileText, label: "Submitted a SIMVERSE virtual travel visa application" };
+    case "player.travel.visa_reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual travel visa reviewed" };
     case "workspace.created":
       return {
         icon: Sparkles,
