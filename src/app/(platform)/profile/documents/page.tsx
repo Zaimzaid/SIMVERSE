@@ -25,6 +25,7 @@ export default async function MyVirtualDocumentsPage() {
     <DualCitizenshipPreview countries={docs.countries}/>
     <PlayerDocumentCenter initial={docs} username={identity.username} homeCountryId={identity.homeCountryId}
       applicant={{ displayName: identity.displayName, username: identity.username,
-        avatarUrl: identity.avatarUrl, simverseId: identity.simverseId }}/>
+        avatarUrl: identity.avatarUrl, simverseId: identity.simverseId,
+        playerIdIssuedAt: identity.createdAt }}/>
   </div>;
 }
