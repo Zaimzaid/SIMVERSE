@@ -101,6 +101,9 @@ model PlayerIdentity {
   documentApplications PlayerDocumentApplication[]
   virtualDocuments PlayerVirtualDocument[]
   travelVisaApplications PlayerTravelVisaApplication[]
+  careerProfile PlayerCareerProfile?
+  virtualWallet PlayerVirtualWallet?
+  virtualBusinesses PlayerVirtualBusiness[]
 
   @@index([profileVisibility, username])
   @@index([homeCountryId])
@@ -307,6 +310,70 @@ model PlayerBilateralTravelAgreement {
 
   @@unique([originCountryId, destinationCountryId])
   @@index([status, createdAt])
+}
+
+// --------------------------------------------------------------------------
+// PLAYER ECONOMY Phase 5 (pilot). All SVC balances are nonredeemable
+// fictional game points: never money, crypto, payments or cash equivalents.
+// --------------------------------------------------------------------------
+
+model PlayerCareerProfile {
+  id                 String   @id @default(cuid())
+  identityId         String   @unique
+  professionCode     String   // Strict server-side closed profession catalog
+  selectedAt         DateTime @default(now())
+  onboardingVersion  Int      @default(1)
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([professionCode])
+}
+
+model PlayerVirtualWallet {
+  id          String   @id @default(cuid())
+  identityId  String   @unique
+  currency    String   @default("SVC")
+  balance     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  entries PlayerWalletEntry[]
+}
+
+// Positive single-source, immutable mint history for introductory credits.
+// Wallet snapshot and entry must be created inside the same DB transaction.
+// No exposed spending, transfer, payment or mint endpoint in this phase.
+model PlayerWalletEntry {
+  id         String @id @default(cuid())
+  walletId   String
+  eventKey   String @unique // one-time onboarding idempotency key
+  kind       String // STARTER_GRANT only in Phase 5
+  amount     Int
+  balanceAfter Int
+  createdAt  DateTime @default(now())
+
+  wallet PlayerVirtualWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+}
+
+// A draft in-world company identity is not an operating license, actual
+// business registration or title. A later governed flow will approve it.
+model PlayerVirtualBusiness {
+  id             String   @id @default(cuid())
+  identityId     String
+  name           String
+  nameKey        String   @unique
+  sector         String
+  description    String   @default("")
+  status         String   @default("DRAFT") // DRAFT; no player grant endpoint
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId, createdAt])
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
