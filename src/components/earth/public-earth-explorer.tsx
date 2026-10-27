@@ -348,6 +348,13 @@ export function PublicEarthExplorer({
             <p className="mt-1 text-sm text-secondary">
               Public exploration shows safe overview data. Opening a protected place requires an account.
             </p>
+            {authenticated ? (
+              <Link href="/earth/geography?land=1" className={buttonClasses({ className: "mt-4 w-full justify-center" })}>
+                <MapPin className="size-4" /> Explore virtual land plots
+              </Link>
+            ) : (
+              <p className="mt-3 text-xs text-muted">Sign in and select a destination to explore available virtual land plots.</p>
+            )}
             <form onSubmit={submitSearch} className="mt-4">
               <label htmlFor="public-earth-search" className="sr-only">Search supported countries</label>
               <div className="flex gap-2">
