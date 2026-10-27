@@ -50,6 +50,10 @@ export function describeAuditAction(
       return { icon: Pencil, label: "Profile updated" };
     case "user.player_identity_updated":
       return { icon: Pencil, label: "SIMVERSE player identity updated" };
+    case "player.document.applied":
+      return { icon: FileText, label: "Submitted SIMVERSE virtual document application" };
+    case "player.document.reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual document application reviewed" };
     case "workspace.created":
       return {
         icon: Sparkles,
