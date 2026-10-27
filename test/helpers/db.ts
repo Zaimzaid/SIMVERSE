@@ -2,6 +2,10 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Player identity references country catalog records; clear its children
+  // before deleting Earth geography or the User account.
+  await prisma.playerCitizenship.deleteMany();
+  await prisma.playerIdentity.deleteMany();
   // Earth Phase 4 global stewardship and immutable zone history. The stable
   // zone points at its active version, so clear that projection before deleting
   // lifecycle/version records.
