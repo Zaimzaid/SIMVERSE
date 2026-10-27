@@ -25,8 +25,9 @@ const ELIGIBLE_CODES = new Set([
 export function parseGeoNamesSettlementLine(line: string): GeoNamesSettlement | null {
   const parts = line.split("\t");
   if (parts.length < 19) throw new Error("Invalid GeoNames record: 19 tab-separated fields required.");
-  const [id, name, , , latitudeText, longitudeText, featureClass, featureCode,
-    country, , admin1, , , , populationText, , , , modifiedDate] = parts;
+  const [id = "", name = "", , , latitudeText = "", longitudeText = "",
+    featureClass = "", featureCode = "", country = "", , admin1 = "",
+    , , , populationText = "", , , , modifiedDate = ""] = parts;
   if (country !== "NG" || featureClass !== "P" || !ELIGIBLE_CODES.has(featureCode)) {
     return null;
   }
