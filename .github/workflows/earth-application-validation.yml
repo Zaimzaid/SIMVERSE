@@ -1,0 +1,60 @@
+name: SIMVERSE Earth Typecheck and Test
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/earth-application-validation.yml"
+      - "src/**"
+      - "scripts/**"
+      - "docs/earth/**"
+      - "package.json"
+      - "package-lock.json"
+      - "prisma/**"
+      - "prisma.config.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: earth-application-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  earth-app-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      DATABASE_URL: "file:./dev.db"
+      SESSION_SECRET: "simverse-local-ci-test-secret-never-use-in-production-123456789"
+      NEXT_PUBLIC_APP_NAME: "SIMVERSE"
+      APP_URL: "http://localhost:3000"
+
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+
+      - name: Install Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare disposable SQLite schema
+        run: npm run db:push
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Unit and integration tests
+        run: npm run test
+
+      - name: Next production build
+        run: npm run build
