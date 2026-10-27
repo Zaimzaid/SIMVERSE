@@ -50,6 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "My Profile", href: "/profile", icon: UserRound, exact: true },
       { label: "My Documents", href: "/profile/documents", icon: FileBadge2, exact: true },
       { label: "Travel & Immigration", href: "/profile/travel", icon: Plane, exact: true },
+      { label: "My Career & Wallet", href: "/profile/career", icon: BriefcaseBusiness, exact: true },
       { label: "Create", href: "/create", icon: Sparkles, permission: "project.create" },
     ],
   },
