@@ -20,6 +20,7 @@ import {
 import { apiFetch } from "@/lib/client/api";
 import type { EarthParcelView, EarthZoneDetail, EarthZoneSummary } from "@/lib/earth/land";
 import { earthPlaceFocusMaxZoom, isEarthSettlement } from "@/lib/earth/navigation";
+import { pointInEarthRegion, type EarthRegionGeometry } from "@/lib/earth/admin-parent";
 import { EMPTY_FEATURE_COLLECTION, createEarthOverviewStyle } from "@/lib/earth/map-style";
 import { EARTH_OVERVIEW_V1 } from "@/lib/earth/public";
 import { earthZoneOverviewFeatures } from "@/lib/earth/zone-overview";
@@ -122,6 +123,14 @@ export function GeographyExplorer({
   const selectParcelRef = useRef<(id: string) => void>(() => undefined);
   const zonesRef = useRef<EarthZoneSummary[]>([]);
   const selectZoneRef = useRef<(id: string) => void>(() => undefined);
+  const localitiesRef = useRef<EarthPlaceSummary[]>([]);
+  const selectLocalityRef = useRef<(id: string) => void>(() => undefined);
+
+  localitiesRef.current = localities;
+  selectLocalityRef.current = (id) => {
+    const locality = localitiesRef.current.find((item) => item.id === id);
+    if (locality) void showPlace(locality);
+  };
 
   zonesRef.current = zones;
   selectZoneRef.current = (id) => {
@@ -216,6 +225,30 @@ export function GeographyExplorer({
               "circle-stroke-color": "#fff7d6",
               "circle-stroke-width": 2,
             },
+          });
+          map.addSource("settlement-overview", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
+          map.addLayer({
+            id: "settlement-overview-markers",
+            type: "circle",
+            source: "settlement-overview",
+            minzoom: 7,
+            maxzoom: 15,
+            paint: {
+              "circle-radius": 6,
+              "circle-color": "#38bdf8",
+              "circle-stroke-color": "#071323",
+              "circle-stroke-width": 2,
+            },
+          });
+          map.on("click", "settlement-overview-markers", (event) => {
+            const placeId = event.features?.[0]?.properties?.id;
+            if (typeof placeId === "string") selectLocalityRef.current(placeId);
+          });
+          map.on("mouseenter", "settlement-overview-markers", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "settlement-overview-markers", () => {
+            map.getCanvas().style.cursor = "";
           });
           map.addSource("development-zone-overview", { type: "geojson", data: EMPTY_FEATURE_COLLECTION });
           map.addLayer({
@@ -360,6 +393,17 @@ export function GeographyExplorer({
   }, [activeZone, mapReady]);
 
   useEffect(() => {
+    updateMapSource(mapRef.current, "settlement-overview", featureCollection(
+      localities.filter((place) => place.label).map((place) => ({
+        type: "Feature",
+        id: place.id,
+        properties: { id: place.id, name: place.name, pointOnly: place.boundaryQuality === "POINT_ONLY" },
+        geometry: { type: "Point", coordinates: place.label },
+      })),
+    ));
+  }, [localities, mapReady]);
+
+  useEffect(() => {
     updateMapSource(mapRef.current, "development-zone-overview",
       featureCollection(earthZoneOverviewFeatures(zones)));
   }, [mapReady, zones]);
@@ -421,11 +465,14 @@ export function GeographyExplorer({
     setNextParcelCursor(null);
     setLandMessage("");
     parcelQueryRef.current = null;
-    const [boundary, detail, children, landZones] = await Promise.all([
+    const [boundary, detail, children, landZones, parentChildren] = await Promise.all([
       apiFetch<BoundaryResponse>(`/api/earth/geography/places/${place.id}/boundary`),
       apiFetch<PlaceDetailResponse>(`/api/earth/geography/places/${place.id}`),
       apiFetch<PlaceListResponse>(`/api/earth/geography/places?parentId=${encodeURIComponent(place.id)}&limit=100`),
       apiFetch<ZoneListResponse>(`/api/earth/zones?placeId=${encodeURIComponent(place.id)}&includeDemonstration=true&limit=100`),
+      place.kind === "ADMIN2" && place.parentId
+        ? apiFetch<PlaceListResponse>(`/api/earth/geography/places?parentId=${encodeURIComponent(place.parentId)}&limit=100`)
+        : Promise.resolve(null),
     ]);
     if (boundary.error || !boundary.data || detail.error || !detail.data) {
       setMessage(boundary.error?.message ?? detail.error?.message ?? "Location could not be loaded.");
@@ -441,9 +488,21 @@ export function GeographyExplorer({
       ? items.filter((item) => item.kind === "ADMIN1") : []);
     setLocalGovernments(selectedPlace.kind === "ADMIN1"
       ? items.filter((item) => item.kind === "ADMIN2") : []);
-    setLocalities(["ADMIN1", "ADMIN2"].includes(selectedPlace.kind)
-      ? items.filter((item) => isEarthSettlement(item.kind)) : []);
-    if (children.error) setMessage(children.error.message);
+    if (selectedPlace.kind === "ADMIN1") {
+      setLocalities(items.filter((item) => isEarthSettlement(item.kind)));
+    } else if (selectedPlace.kind === "ADMIN2"
+      && boundary.data.feature.geometry
+      && ["Polygon", "MultiPolygon"].includes(boundary.data.feature.geometry.type)) {
+      const geometry = boundary.data.feature.geometry as EarthRegionGeometry;
+      setLocalities((parentChildren?.data?.items ?? []).filter((item) =>
+        isEarthSettlement(item.kind) && item.label
+        && pointInEarthRegion(item.label, geometry)));
+    } else {
+      setLocalities([]);
+    }
+    if (children.error || parentChildren?.error) {
+      setMessage(children.error?.message ?? parentChildren?.error?.message ?? "Place list unavailable.");
+    }
     setZones(landZones.data?.items ?? []);
     setZoneCatalogLoaded(true);
     if (landZones.error) setLandMessage(landZones.error.message);
@@ -763,8 +822,9 @@ export function GeographyExplorer({
 
         {localities.length ? (
           <section className="rounded-2xl border border-border bg-surface p-4">
-            <h2 className="mb-3 text-sm font-semibold">Cities, towns and localities</h2>
-            <div className="space-y-2">{localities.map(placeButton)}</div>
+            <h2 className="mb-2 text-sm font-semibold">Cities, towns and localities</h2>
+            <p className="mb-3 text-xs text-muted">Blue markers are source-listed settlement locations. Point-only localities have no surveyed city boundary.</p>
+            <div className="max-h-72 space-y-2 overflow-y-auto pr-1">{localities.map(placeButton)}</div>
           </section>
         ) : null}
 
