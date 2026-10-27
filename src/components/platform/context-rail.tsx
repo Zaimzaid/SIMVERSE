@@ -72,9 +72,11 @@ export function ContextRail({
                 <Plus className="size-4" /> Create something
               </Link>
             )}
-            <Link href="/earth/geography" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
-              <Compass className="size-4" /> Enter Earth Explorer
-            </Link>
+            {permissions.includes("workspace.view") && (
+              <Link href="/earth/geography" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
+                <Compass className="size-4" /> Enter Earth Explorer
+              </Link>
+            )}
             <Link href="/profile" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
               <UserRound className="size-4" /> My profile
             </Link>
