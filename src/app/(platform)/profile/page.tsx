@@ -21,6 +21,10 @@ export default async function MyProfilePage() {
       className="block rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm font-semibold text-accent hover:underline">
       Open SIMVERSE Citizenship, Passports &amp; Virtual Documents →
     </Link>
+    <Link href="/profile/career"
+      className="block rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm font-semibold text-accent hover:underline">
+      Open My Career, SIMVERSE Credits &amp; Virtual Business Drafts →
+    </Link>
     <PlayerIdentityForm initial={identity} countries={countries} />
   </div>;
 }
