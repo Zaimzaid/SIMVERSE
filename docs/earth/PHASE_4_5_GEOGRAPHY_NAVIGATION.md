@@ -3,7 +3,7 @@
 ## Status (2026-10-27)
 - Scope: restore progressive world navigation and recognisable street context *before* acquisition (Phase 5).
 - Branch: `feature/earth-4-5-navigation-streets`, based on the existing Phase 4 visibility fix.
-- This checkpoint implements a **street-map pilot, LGA-ready UI, and explicit camera controls**. It does **not** claim to import all LGAs, construct 3D buildings, or finish Phase 4.5.
+- This checkpoint implements a **street-map pilot, LGA-ready UI, explicit camera controls, and a guarded LGA importer**. It does **not** claim the 774-LGA import has successfully run, construct 3D buildings, or finish Phase 4.5.
 - Existing Phase 4 virtual plots remain synthetic, discovery-only, and separate from real-world land rights.
 
 ## Existing catalog gap
@@ -46,12 +46,19 @@ administrative boundaries or editable road geometry.
 - [OSMF ODbL FAQ](https://osmfoundation.org/wiki/Licence/Licence_and_Legal_FAQ)
 
 ## Remaining gated work — not implemented
-1. **ADM2 source ingest.** Use the current pinned geoBoundaries gbOpen Nigeria
-   revision `9469f09` ADM2 metadata (774 LGAs), its matching sourced GeoJSON and
-   CC BY 4.0 attribution. Pin checksums; verify parent-state mapping for all
-   geometries; store data versions/revisions immutably; run repeated imports on
-   disposable databases. Reject ambiguous cross-state mappings rather than
-   guessing. Test parent-child hierarchies for Lagos, Ogun and other states.
+1. **ADM2 source ingest.** A **guarded importer has been written but not
+   exercised against the complete downloaded dataset**. It targets the pinned
+   geoBoundaries gbOpen NGA ADM2 revision `9469f09` (774 LGAs), validates
+   geography and fails closed on ambiguous parent-to-state mapping. It records
+   immutable source provenance and backs up `dev.db` before modification.
+   The complete 774-feature dry-run, import, repeat-import, database comparison,
+   and Lagos/Ogun/other-state browser verification remain acceptance gates.
+   Run `npm run earth:import:adm2 -- --dry-run` to validate all LGA matches
+   **without writing**, then only if it reports 774 safe matches run
+   `npm run earth:import:adm2` against the repository-local development DB.
+   Source data is downloaded from the GitHub commit-pinned URL; its calculated
+   SHA-256 and complete parent-state counts are printed, not guessed.
+   No claim is made that all LGAs have already been imported.
 2. **City/town catalog.** Import reviewed settlements (point-only when that's
    all the source supports). Do not confuse city names with LGA boundaries or
    force each city to be fully inside one LGA.
@@ -74,6 +81,9 @@ npm run lint
 npm run test
 npm run build
 npm run earth:setup:phase4-demo -- --user-email <existing-local-account>
+npm run earth:import:adm2 -- --dry-run
+# Run the next command only after the dry run reports all 774 safe mappings:
+npm run earth:import:adm2
 npm run dev -- --port 3020
 ```
 
@@ -85,8 +95,9 @@ Select Nigeria, Lagos State, and the synthetic demo zone:
 - **Focus plots** moves to the 187 synthetic parcel example; selection still
   shows 25 × 25 m, 625 m² and the deterministic virtual parcel ID.
 - WebGL fallback and accessible parcel list must not regress.
-- LGA panel must clearly report lack of imported LGA data **until the ADM2
-  import milestone is actually complete**.
+- LGA panel reports missing LGA data until successful ADM2 import. After
+  import it must list authentic sourced LGAs as `ADMIN2` children of states,
+  allow selecting one, fit its real boundary and show its provenance.
 
 Automated CI/build/browser verification is still required; this document is
 not a claim that those gates have passed.
