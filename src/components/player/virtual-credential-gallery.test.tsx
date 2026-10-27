@@ -10,6 +10,7 @@ const applicant: VirtualCredentialApplicant = {
   username: "virtual_demo",
   simverseId: "SV-ABCDEF0123456789ABCDEF01",
   avatarUrl: null,
+  playerIdIssuedAt: "2026-02-04T12:00:00.000Z",
 };
 const country = { id: "country-1", name: "Example Virtual Country", isoAlpha2: null };
 const approved = (kind: string, serial: string, status = "ISSUED",
@@ -20,6 +21,26 @@ const approved = (kind: string, serial: string, status = "ISSUED",
   });
 
 describe("issued SIMVERSE virtual document wallet", () => {
+  it("creates a dated player card from a completed SIMVERSE profile without claiming citizenship", () => {
+    const html = renderToStaticMarkup(
+      <VirtualCredentialGallery applications={[]} applicant={applicant} />,
+    );
+    expect(html).toContain("Virtual Player ID Card");
+    expect(html).toContain("04 Feb 2026");
+    expect(html).toContain("04 Feb 2029");
+    expect(html).toContain("No citizenship implied");
+    expect(html).toContain("0 issued");
+    expect(html).not.toContain("Virtual Passport");
+  });
+
+  it("requires a completed username to show the base player ID card", () => {
+    const html = renderToStaticMarkup(
+      <VirtualCredentialGallery applications={[]} applicant={{ ...applicant, username: null }} />,
+    );
+    expect(html).not.toContain("Virtual Player ID Card");
+    expect(html).toContain("Complete your SIMVERSE username");
+  });
+
   it("shows a dated collectible ID card for approved citizenship with owner-only details", () => {
     const html = renderToStaticMarkup(
       <VirtualCredentialGallery applications={[approved("CITIZENSHIP", "SVV-TEST-CITIZEN")]}
