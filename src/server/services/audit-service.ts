@@ -11,6 +11,8 @@ export type AuditAction =
   | "user.player_identity_updated"
   | "player.document.applied"
   | "player.document.reviewed"
+  | "player.travel.visa_applied"
+  | "player.travel.visa_reviewed"
   | "workspace.created"
   | "workspace.updated"
   | "entity.created"
