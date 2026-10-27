@@ -47,9 +47,10 @@ export async function getMyEconomicIdentity(userId: string) {
       orderBy: { createdAt: "desc" }, take: 50,
     }),
   ]);
+  const selectedProfession = career ? getProfession(career.professionCode) : null;
   return {
-    profession: career ? {
-      ...career, ...getProfession(career.professionCode),
+    profession: career && selectedProfession ? {
+      ...career, ...selectedProfession,
     } : null,
     usernameSet: Boolean(identity.username),
     wallet: wallet ?? { balance: 0, currency: "SVC", entries: [] },
