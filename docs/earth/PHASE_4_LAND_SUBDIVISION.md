@@ -155,6 +155,57 @@ The authenticated `/earth/geography` page now:
 - provides a list fallback when WebGL is unavailable;
 - exposes no acquire, reserve, claim, purchase or ownership action.
 
+### Local development visibility setup
+
+The repository includes a guarded, repeatable command that publishes the
+existing synthetic Phase 4 fixture to the repository-local development
+database:
+
+```powershell
+npm run earth:setup:phase4-demo -- --user-email <your-local-account-email>
+```
+
+The email must belong to an existing local user with a workspace membership.
+When exactly one eligible local account exists, `--user-email` may be omitted.
+The command does not create accounts, grant Earth stewardship, or write any
+ownership, reservation or acquisition data.
+
+Safety behavior:
+
+- refuses `NODE_ENV=production`, non-SQLite URLs and every database except the
+  repository-root `dev.db`;
+- creates a consistent backup under the operating-system temporary directory
+  before applying a missing additive Prisma schema with the repository's
+  existing `prisma db push` convention and without `--accept-data-loss`;
+- imports the pinned Nigeria geography bundle only when the active sourced
+  Lagos State polygon is absent;
+- manages only `earth:zone:lagos-phase4-synthetic-grid` and refuses to replace
+  a non-demonstration record at that key;
+- validates containment, exclusions, UTM projection and grid origin with the
+  same pure Phase 4 geometry functions used by the application;
+- preserves immutable versions and is a no-op when the canonical active
+  definition already exists.
+
+After running `npm run dev -- --port 3020`, sign in and open:
+
+```text
+http://localhost:3020/earth/geography?place=geo_d4f56f4ce4e43d111f22eea1
+```
+
+Select **Lagos Phase 4 Synthetic Test Zone**. The explorer displays 187
+eligible synthetic plots for the fixture. Each plot is 25 m by 25 m / 625 m²;
+clicking a map cell or its accessible list row displays its deterministic ID,
+approximate center, dimensions, area and synthetic zoning. The zone is clearly
+labeled as synthetic test geometry positioned in sourced Lagos State context,
+not authentic Lagos land inventory.
+
+On 2026-10-27 this workflow was run twice against local `dev.db`; the second
+setup was a no-op. Chrome 155.0.8059.86 then selected a rendered map cell and
+displayed the complete plot detail with zero severe browser events. The Next
+development server was stopped and restarted, after which the same authenticated
+URL again rendered 187 plots and passed the same map-click/detail checks. The
+development server restart does not affect the persistent SQLite setup.
+
 ## 8. Browser verification
 
 Actual browser verification used Google Chrome `155.0.8059.86` on Windows,

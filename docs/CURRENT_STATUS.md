@@ -104,11 +104,23 @@
   plot/grid/rule detail, preserves the no-WebGL list and has a truthful empty
   state. The test zone is prominently synthetic/non-cadastral, every plot is
   virtual-only, and no acquisition control exists.
+- Local development visibility is now durable: `npm run
+  earth:setup:phase4-demo -- --user-email <local-account-email>` refuses
+  production and any database except repository-local `dev.db`, backs up the
+  database before an additive schema push when needed, validates and activates
+  only the canonical synthetic demonstration, and becomes a no-op on repeat.
+  The exact authenticated explorer URL is
+  `/earth/geography?place=geo_d4f56f4ce4e43d111f22eea1`.
 - Actual Chrome 155/SwiftShader QA used an isolated database and disposable
   profile. It rendered 187 bounded plots, verified list/keyboard/map-click
   selection, camera controls, 390 px layout without overflow, helpful fallback,
   guest API denial, truthful notices and zero console errors. Five screenshots
   plus the machine-readable record are under `docs/earth/evidence/`.
+- A second Chrome 155.0.8059.86 check on 2026-10-27 used the real local
+  `dev.db`: an actual MapLibre cell click exposed its deterministic ID,
+  coordinates, 25 m by 25 m dimensions, 625 m² area and synthetic zoning. It
+  repeated successfully after stopping and restarting Next on port 3020, with
+  187 eligible plots, zero acquisition controls and zero severe browser events.
 - Local gates pass: focused Phase 4 tests 20/3; exact full `npx vitest run`
   425/48; TypeScript; ESLint; Prisma validation/client generation; Next
   production build; and `git diff --check`.
@@ -1531,6 +1543,8 @@ ACTIVE FEATURE TRACK:
                next build and real Chrome 155 QA — all pass
   POSTGIS GATE: GitHub Actions 40460420570 — PASS on PostgreSQL 17.11 /
                 PostGIS 3.6.4 / GEOS 3.14.1 / PROJ 9.8.1
+  LOCAL VISIBILITY: PASS in Chrome 155 against persistent dev.db before and
+                    after a Next restart; 187 synthetic 25 m plots inspectable
   MERGE: NOT PERFORMED
 
 PAUSED PARALLEL TRACK:
