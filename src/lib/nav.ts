@@ -15,6 +15,7 @@ import {
   Trophy,
   UserRound,
   FileBadge2,
+  Plane,
   Users,
   type LucideIcon,
 } from "lucide-react";
