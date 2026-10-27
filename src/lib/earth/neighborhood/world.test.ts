@@ -13,6 +13,19 @@ describe("Marina Junction three-dimensional visual proof geometry", () => {
     expect(new Set(first.plots.map((plot) => plot.id)).size).toBe(32);
   });
 
+  it("keeps the V0.2 feature street focused on a safe, reachable plaza path", () => {
+    const world = createNeighborhoodWorld();
+    expect(isWalkable(world, 18, 8)).toBe(true);
+    const frontages = world.buildings.filter((building) =>
+      Math.abs(building.x) === 45 && Math.abs(building.z) === 11,
+    );
+    expect(frontages).toHaveLength(4);
+    expect(frontages.every((building) => building.height > 4)).toBe(true);
+    // The visual overlay is additive: world IDs, plots and collision footprints
+    // are not changed or rewritten by the renderer.
+    expect(world.plots.every((plot) => plot.status === "visualization-only")).toBe(true);
+  });
+
   it("has a walkable pedestrian starting position and an accessible plaza", () => {
     const world = createNeighborhoodWorld();
     expect(isWalkable(world, world.spawn.x, world.spawn.z)).toBe(true);
