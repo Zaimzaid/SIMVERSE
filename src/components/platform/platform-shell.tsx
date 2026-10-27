@@ -58,7 +58,7 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
         </div>
         {collapsed ? (
           <nav aria-label="Collapsed navigation" className="flex flex-1 flex-col items-center gap-3 p-2 pt-5">
-            <Link href="/dashboard" aria-label="Dashboard"
+            <Link href={visibleAreaItems(active, shell.permissions)[0]?.href ?? "/dashboard"} aria-label={`Open ${active.label}`}
               className="inline-flex size-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               <active.icon className="size-5" aria-hidden />
             </Link>
