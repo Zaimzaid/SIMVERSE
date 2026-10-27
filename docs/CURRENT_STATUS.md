@@ -6,14 +6,14 @@
 - **Version:** 0.1.0.
 - **Active feature track:** **SIMVERSE Earth - Phase 4: Development Zones and
   Parcel Discovery** on `feature/simverse-earth-land`. Implementation, local
-  automated gates and actual Chrome verification pass. The remaining closure
-  gate is execution of the committed native spatial schema/tests against the
-  isolated PostgreSQL/PostGIS GitHub Actions service. Phase 5 has not started
-  and the feature branch has not been merged.
-- **Latest committed checkpoint:** **SIMVERSE Earth Phase 3 - Interactive 3D
-  Earth Explorer** at `9e98bcd`. The current Phase 4 working checkpoint builds
-  from it and passes 425 tests across 48 files plus actual Chrome 155 browser
-  verification.
+  automated gates, actual Chrome verification and real PostgreSQL/PostGIS
+  execution all pass. Phase 5 has not started and the feature branch has not
+  been merged.
+- **Latest completed checkpoint:** **SIMVERSE Earth Phase 4 - Development Zones
+  and Parcel Discovery** at `2f6214d`, plus this documentation closure. It
+  passes 425 tests across 48 files, actual Chrome 155 browser verification and
+  PostgreSQL 17.11/PostGIS 3.6.4 GitHub Actions run
+  [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570).
   Phase 2 was implemented as `c723578` and closed as `11f5ab1`, including
   successful PostgreSQL 17.11/PostGIS 3.6.4 execution in GitHub Actions run
   [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
@@ -116,9 +116,10 @@
   metric-origin triggers, immutable version enforcement, lifecycle/composite
   foreign keys, GiST indexes and one-active-version uniqueness. Its verification
   covers 25 m sides, 625 m² area, stable IDs, bounded non-overlapping full cells,
-  holes/exclusions, invalid records and repeat initialization. Real workflow
-  execution is still pending and must pass before Phase 4 is called fully
-  verified.
+  holes/exclusions, invalid records and repeat initialization. GitHub Actions
+  run [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570)
+  passes on PostgreSQL 17.11/PostGIS 3.6.4, GEOS 3.14.1 and PROJ 9.8.1. Its
+  evidence artifact is `12714525681`.
 - No Runtime Protocol v1, SimulationRun snapshot, Battle/Race/Survival mechanic,
   Unreal or D: work changed. Phase 5 reservation/acquisition/ownership and Phase
   6 construction have not started. Full detail:
@@ -1173,8 +1174,16 @@ durable bootstrap plan remains in
   zone service and PostGIS schema/workflow contract. `npx tsc --noEmit`, `npx
   eslint .`, `npx prisma validate`, `npx prisma generate` and `npm run build`
   pass. Prisma Client v7.10.0 regenerates successfully; the build emits all nine
-  authenticated zone/parcel route patterns, and `git diff --check` passes. The
-  real PostGIS workflow remains to be recorded at closure.
+  authenticated zone/parcel route patterns, and `git diff --check` passes.
+- Phase 4 GitHub Actions run
+  [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570)
+  passes on PostgreSQL 17.11/PostGIS 3.6.4, GEOS 3.14.1 and PROJ 9.8.1. It
+  verifies valid/invalid geometry, projection constraints, containment,
+  immutable versions, foreign keys, expected indexes, 187 bounded
+  non-overlapping full cells, exact 25 m / 625 m² dimensions, stable IDs, atomic
+  repeat rejection and fresh-database initialization. Artifact `12714525681`
+  has ZIP SHA-256
+  `7e1f83cd297e2995660b766c6f020ea9b9c6141b81eb80a4495abd4cf04cf8b8`.
 - Phase 4 real-browser QA used Chrome 155 on Windows with SwiftShader WebGL, an
   isolated SQLite database and disposable browser profile. It verified the
   synthetic/non-cadastral zone, 187 eligible plots, map/list/keyboard selection,
@@ -1415,8 +1424,8 @@ durable bootstrap plan remains in
   query-only and UTM-based; antimeridian/UTM-zone-crossing zones are unsupported
   in v1. The public API limiter is process local, browser measurements cover one
   Chrome/Windows headless environment, SQLite remains the application
-  datasource, and the real Phase 4 PostGIS workflow must pass before closure.
-  No reservation, acquisition, ownership or construction capability exists.
+  datasource, and no production PostGIS cutover occurred. No reservation,
+  acquisition, ownership or construction capability exists.
 - Public / Unlisted Sharing v1 is SIMVERSE-hosted link sharing only. It does
   **not** provide Explore / discovery / search, Creator Profiles or public creator
   identity (the page shows only "Created in SIMVERSE"), following / likes /
@@ -1502,15 +1511,15 @@ durable bootstrap plan remains in
 
 ```text
 LAST COMPLETED (FEATURE BRANCH CHECKPOINT):
-  SIMVERSE Earth — Phase 3: Interactive 3D Earth Explorer
-  COMMIT: 9e98bcd — feat: add SIMVERSE Earth interactive explorer
-
-CURRENT WORKING CHECKPOINT:
   SIMVERSE Earth — Phase 4: Development Zones and Parcel Discovery
+  COMMIT: 2f6214d — feat: add SIMVERSE Earth development zones and parcel discovery
+
+CURRENT CLOSURE CHECKPOINT:
+  Phase 4 verification evidence and durable handoff documentation
 
 CHECKPOINT STATUS:
-  STATUS: PHASE 4 IMPLEMENTED AND LOCALLY VERIFIED
-  REMAINING: REAL POSTGRESQL/POSTGIS GITHUB ACTIONS EXECUTION
+  STATUS: PHASE 4 IMPLEMENTED AND FULLY VERIFIED
+  REMAINING: OWNER REVIEW / MERGE DIRECTION
   PHASE 5: NOT STARTED
 
 ACTIVE FEATURE TRACK:
@@ -1520,7 +1529,8 @@ ACTIVE FEATURE TRACK:
          authenticated APIs, MapLibre parcel discovery, no ownership writes
   LOCAL GATES: vitest 425/48, tsc, eslint, prisma validate/generate,
                next build and real Chrome 155 QA — all pass
-  POSTGIS GATE: PENDING FEATURE-BRANCH WORKFLOW EXECUTION
+  POSTGIS GATE: GitHub Actions 40460420570 — PASS on PostgreSQL 17.11 /
+                PostGIS 3.6.4 / GEOS 3.14.1 / PROJ 9.8.1
   MERGE: NOT PERFORMED
 
 PAUSED PARALLEL TRACK:
@@ -1528,8 +1538,7 @@ PAUSED PARALLEL TRACK:
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Commit and push the Phase 4 feature checkpoint, run the isolated PostgreSQL /
-  PostGIS gate, record its actual evidence, then stop for owner review. Do not
-  begin Phase 5 acquisition or Phase 6 construction. Do not access D: or resume
-  Unreal work until the external storage is stable.
+  Owner review and merge decision for feature/simverse-earth-land. Do not begin
+  Phase 5 acquisition or Phase 6 construction without separate approval. Do not
+  access D: or resume Unreal work until the external storage is stable.
 ```

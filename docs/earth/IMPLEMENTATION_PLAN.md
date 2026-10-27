@@ -16,9 +16,10 @@ in Phase 4, acquisition in Phase 5, construction in Phase 6, developed-property
 rights in Phase 7, and release hardening in Phase 8.
 
 Phases 1 and 2 are committed and complete. Phase 3 is committed and verified at
-`9e98bcd`. Phase 4 is implemented and locally verified in the current
-feature-branch checkpoint; its isolated PostgreSQL/PostGIS workflow is the
-remaining closure gate. Phase 5 has not started.
+`9e98bcd`. Phase 4 is implemented and verified at `2f6214d`, including isolated
+PostgreSQL/PostGIS GitHub Actions run
+[40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570).
+Phase 5 has not started.
 
 ## 2. Baseline and branch policy
 
@@ -136,7 +137,7 @@ All criteria above passed in Chrome 155 against an isolated database. Evidence
 and measured limits are recorded in
 [PHASE_3_EARTH_EXPLORER.md](PHASE_3_EARTH_EXPLORER.md).
 
-## 6. Phase 4 - Development zones and parcel discovery (implemented; closure verification in progress)
+## 6. Phase 4 - Development zones and parcel discovery (implemented and verified)
 
 ### Scope
 
@@ -174,9 +175,10 @@ and measured limits are recorded in
 - the real PostgreSQL/PostGIS workflow verifies native spatial constraints,
   indexes, immutable versions and deterministic parcel SQL.
 
-All local criteria pass. The final item awaits the feature-branch GitHub Actions
-run against the isolated `postgis/postgis:17-3.6-alpine` service. Detailed
-evidence is recorded in
+All criteria pass. The native spatial gate ran against the isolated
+`postgis/postgis:17-3.6-alpine` service in GitHub Actions run
+[40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570).
+Detailed evidence is recorded in
 [PHASE_4_LAND_SUBDIVISION.md](PHASE_4_LAND_SUBDIVISION.md).
 
 ## 7. Phase 5 - Reservation, acquisition and starter land
@@ -372,7 +374,6 @@ the prior reviewed revision rather than an in-place geometry rewrite.
 
 ## 14. Immediate next action
 
-Complete the Phase 4 PostgreSQL/PostGIS workflow, record its real versions and
-results, then obtain owner review of the feature-branch checkpoint. Do not begin
-Phase 5 reservation/acquisition or Phase 6 construction work before separate
-approval.
+Obtain owner review and merge direction for the verified Phase 4 feature-branch
+checkpoint. Do not begin Phase 5 reservation/acquisition or Phase 6
+construction work before separate approval.

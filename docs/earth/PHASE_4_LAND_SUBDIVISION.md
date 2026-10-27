@@ -5,8 +5,8 @@
 - **Branch:** `feature/simverse-earth-land`
 - **Baseline:** `9e98bcd` (`feat: add SIMVERSE Earth interactive explorer`)
 - **Local verification:** 2026-10-27
-- **Status:** implemented and locally verified; isolated PostgreSQL/PostGIS
-  execution remains the closure gate.
+- **Implementation commit:** `2f6214d`
+- **Status:** implemented and fully verified; Phase 5 has not started.
 
 Phase 4 adds reviewed virtual Development Zones and deterministic, on-demand
 plot discovery to the authenticated Earth geography explorer. It does not add
@@ -213,7 +213,7 @@ budgets.
 | `npx prisma generate` | Passed; Prisma Client 7.10.0. |
 | `npm run build` | Passed; all zone/parcel routes emitted. |
 | `git diff --check` | Passed. |
-| GitHub Actions PostGIS gate | Pending feature-branch execution. |
+| GitHub Actions PostGIS gate | Passed; run [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570). |
 
 The pure and service tests cover dimensions, deterministic cross-process IDs,
 pagination, full-cell edges, holes/exclusions, MultiPolygon handling, invalid
@@ -222,10 +222,36 @@ immutability, authorization, workspace-session boundaries, point-only rejection,
 query bounds and absence of parcel persistence. Structural tests keep the SQL
 schema and workflow wired into the repository gate.
 
-## 11. Remaining gate and limits
+## 11. Native PostGIS execution
 
-- Execute the feature-branch PostGIS workflow and record the actual PostgreSQL,
-  PostGIS and GEOS versions plus the run ID.
+GitHub Actions run
+[40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570)
+executed commit `2f6214d` in an Ubuntu 24.04 runner against
+`postgis/postgis:17-3.6-alpine`:
+
+| Component | Actual version |
+| --- | --- |
+| PostgreSQL | 17.11 |
+| PostGIS | 3.6.4 |
+| GEOS | 3.14.1 |
+| PROJ | 9.8.1 |
+
+The real database accepted valid Polygon, MultiPolygon and hole geometry and
+rejected invalid/self-intersecting, non-WGS84, point-only, out-of-parent,
+out-of-zone exclusion and unsupported projection records. It verified the
+spatial/partial indexes, composite foreign keys, immutable version trigger,
+active lifecycle record, 187 bounded full cells, exact 25 m sides and 625 m²
+area, stable SHA-256 parcel ID and non-overlap. Reapplying each one-time schema
+failed atomically without changing row counts, while the ordered schemas
+initialized an independent fresh database with ten Earth tables.
+
+Artifact
+[`12714525681`](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570/artifacts/12714525681)
+contains the verification log. Its ZIP SHA-256 is
+`7e1f83cd297e2995660b766c6f020ea9b9c6141b81eb80a4495abd4cf04cf8b8`.
+
+## 12. Known limits
+
 - SQLite remains the current application datasource; there is no production
   PostGIS cutover.
 - The only demonstration zone is synthetic. No approved production inventory

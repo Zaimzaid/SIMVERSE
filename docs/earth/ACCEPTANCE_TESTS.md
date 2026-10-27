@@ -287,7 +287,7 @@ construction remain unimplemented.
 | Browser diagnostics | **Passed.** The isolated run recorded no console errors. Screenshots and the machine-readable record are under `docs/earth/evidence/`. |
 | Measured development profile | **Recorded, not a release SLO.** Cold development compilation reached explorer-ready in 16,197 ms and zone/parcel-ready in 50,387 ms; a warm rerun reached those states in 10,974 ms and 2,649 ms respectively. The bounded zone API request measured 693.1 ms. |
 | Automated regression | **Passed locally.** The exact `npx vitest run` command passes 425 tests in 48 files. The focused Phase 4 suite passes 20 tests in three files. TypeScript, ESLint, Prisma validation/client generation, the Next production build and `git diff --check` pass. |
-| Real PostGIS execution | **Pending.** The reviewed workflow now applies the Phase 2 geography schema, Phase 4 land schema and both verification scripts to an isolated PostgreSQL 17/PostGIS 3.6 service. Its actual run ID, database versions and results must be recorded before Phase 4 is called fully verified. |
+| Real PostGIS execution | **Passed.** GitHub Actions run [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570) applied both schema stages and verification scripts on PostgreSQL 17.11/PostGIS 3.6.4 (GEOS 3.14.1, PROJ 9.8.1). It verified native geometry/projection constraints, containment, indexes, immutable versions, foreign keys, 187 bounded non-overlapping full cells, 25 m sides, 625 m² area, stable IDs, atomic repeat rejection and clean fresh-database initialization. |
 
 The browser fixture is explicitly synthetic, virtual-only and non-cadastral. It
 is contained within the sourced Lagos State polygon but is not presented as an
@@ -295,3 +295,8 @@ authentic local boundary or real land inventory. The run used an isolated
 SQLite database and disposable Chrome profile; those files were removed.
 Runtime Protocol v1, SimulationRun snapshots and all simulation mechanics remain
 unchanged. Phase 5 reservation, acquisition and ownership work has not started.
+
+The workflow uploaded artifact
+[`12714525681`](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570/artifacts/12714525681)
+with SHA-256 digest
+`7e1f83cd297e2995660b766c6f020ea9b9c6141b81eb80a4495abd4cf04cf8b8`.
