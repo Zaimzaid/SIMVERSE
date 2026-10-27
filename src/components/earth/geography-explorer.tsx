@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/client/api";
 import type { EarthParcelView, EarthZoneDetail, EarthZoneSummary } from "@/lib/earth/land";
+import { earthPlaceFocusMaxZoom, isEarthSettlement } from "@/lib/earth/navigation";
 import { EMPTY_FEATURE_COLLECTION, createEarthOverviewStyle } from "@/lib/earth/map-style";
 import { EARTH_OVERVIEW_V1 } from "@/lib/earth/public";
 import type { EarthBoundaryView, EarthPlaceDetail, EarthPlaceSummary } from "@/lib/earth/types";
@@ -305,9 +306,7 @@ export function GeographyExplorer({
       ], {
         padding: 70,
         duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700,
-        maxZoom: selected.kind === "COUNTRY" ? 5
-          : selected.kind === "ADMIN1" ? 9
-          : selected.kind === "ADMIN2" ? 12 : 15,
+        maxZoom: earthPlaceFocusMaxZoom(selected.kind),
       });
     } else if (selected.label) {
       map.easeTo({ center: selected.label, zoom: 13, duration: 0 });
@@ -404,7 +403,7 @@ export function GeographyExplorer({
     setLocalGovernments(selectedPlace.kind === "ADMIN1"
       ? items.filter((item) => item.kind === "ADMIN2") : []);
     setLocalities(["ADMIN1", "ADMIN2"].includes(selectedPlace.kind)
-      ? items.filter((item) => ["CITY", "TOWN", "LOCALITY"].includes(item.kind)) : []);
+      ? items.filter((item) => isEarthSettlement(item.kind)) : []);
     if (children.error) setMessage(children.error.message);
     setZones(landZones.data?.items ?? []);
     setZoneCatalogLoaded(true);
@@ -544,9 +543,7 @@ export function GeographyExplorer({
         [selected.bbox[2], selected.bbox[3]],
       ], {
         padding: 60,
-        maxZoom: selected.kind === "COUNTRY" ? 5
-          : selected.kind === "ADMIN1" ? 9
-          : selected.kind === "ADMIN2" ? 12 : 15,
+        maxZoom: earthPlaceFocusMaxZoom(selected.kind),
         duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500,
       });
     }
