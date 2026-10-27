@@ -48,6 +48,8 @@ export function describeAuditAction(
       return { icon: LogOut, label: "Signed out" };
     case "user.profile_updated":
       return { icon: Pencil, label: "Profile updated" };
+    case "user.player_identity_updated":
+      return { icon: Pencil, label: "SIMVERSE player identity updated" };
     case "workspace.created":
       return {
         icon: Sparkles,
