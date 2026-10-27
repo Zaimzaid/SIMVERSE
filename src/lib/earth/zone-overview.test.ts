@@ -10,11 +10,12 @@ describe("Earth development-zone overview", () => {
       isDemonstration: true,
     }]);
     expect(features).toHaveLength(1);
-    expect(features[0].geometry.type).toBe("Point");
-    expect(features[0].geometry.coordinates[0]).toBeCloseTo(3.4015);
-    expect(features[0].properties.approximate).toBe(true);
-    expect(features[0].properties.isDemonstration).toBe(true);
-    expect(features[0]).not.toHaveProperty("properties.ownerId");
+    const marker = features[0]!;
+    expect(marker.geometry.type).toBe("Point");
+    expect(marker.geometry.coordinates[0]).toBeCloseTo(3.4015);
+    expect(marker.properties.approximate).toBe(true);
+    expect(marker.properties.isDemonstration).toBe(true);
+    expect(marker).not.toHaveProperty("properties.ownerId");
   });
 
   it("does not imply zone availability where none exists", () => {
