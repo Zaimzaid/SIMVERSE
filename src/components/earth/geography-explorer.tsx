@@ -31,6 +31,8 @@ interface GeographyExplorerProps {
   initialPlaceCount: number;
   datasetLabels: string[];
   initialSelection?: EarthPlaceSummary | null;
+  initialZoneId?: string | null;
+  landUnavailable?: boolean;
 }
 
 interface PlaceListResponse {
@@ -85,6 +87,8 @@ export function GeographyExplorer({
   initialPlaceCount,
   datasetLabels,
   initialSelection = null,
+  initialZoneId = null,
+  landUnavailable = false,
 }: GeographyExplorerProps) {
   const mapElement = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -325,7 +329,7 @@ export function GeographyExplorer({
       : EMPTY_FEATURE_COLLECTION);
   }, [mapReady, selectedParcel]);
 
-  const showPlace = useCallback(async (place: EarthPlaceSummary) => {
+  const showPlace = useCallback(async (place: EarthPlaceSummary, preferredZoneId?: string | null) => {
     setBusyId(place.id);
     setMessage("");
     setZones([]);
@@ -365,14 +369,19 @@ export function GeographyExplorer({
     setZoneCatalogLoaded(true);
     if (landZones.error) setLandMessage(landZones.error.message);
     setBusyId("");
+    const preferredZone = landZones.data?.items.find((zone) => zone.id === preferredZoneId);
+    if (preferredZone) void showZone(preferredZone);
+  // showZone intentionally uses the latest map reference and is invoked only
+  // after authenticated zone discovery has completed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initialSelectionLoaded = useRef(false);
   useEffect(() => {
     if (!initialSelection || initialSelectionLoaded.current) return;
     initialSelectionLoaded.current = true;
-    void showPlace(initialSelection);
-  }, [initialSelection, showPlace]);
+    void showPlace(initialSelection, initialZoneId);
+  }, [initialSelection, initialZoneId, showPlace]);
 
   function returnToGlobe() {
     setSelected(null);
@@ -633,6 +642,12 @@ export function GeographyExplorer({
           </section>
         ) : null}
 
+        {landUnavailable ? (
+          <section className="rounded-2xl border border-warning/30 bg-surface p-4" role="status">
+            <h2 className="text-sm font-semibold">No active virtual land zones</h2>
+            <p className="mt-2 text-sm text-secondary">No approved development zone is available in this database. On a local development installation, first create an account and workspace, then run <code>npm run earth:setup:phase4-demo</code> and reload this page. This command creates synthetic test plots only, not real property.</p>
+          </section>
+        ) : null}
         {selected?.kind === "ADMIN1" && zoneCatalogLoaded ? (
           <section className="rounded-2xl border border-warning/30 bg-surface p-4" data-earth-land-catalog="loaded">
             <div className="flex items-start justify-between gap-3">
