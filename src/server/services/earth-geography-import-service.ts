@@ -248,7 +248,7 @@ async function importSource(
         },
       });
       return { created, updated, skipped };
-    });
+    }, { timeout: records.length > 100 ? 120_000 : 20_000 });
 
     await db.earthGeoImport.update({
       where: { id: importRun.id },
