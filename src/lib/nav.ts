@@ -14,6 +14,7 @@ import {
   Swords,
   Trophy,
   UserRound,
+  FileBadge2,
   Users,
   type LucideIcon,
 } from "lucide-react";
