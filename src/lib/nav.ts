@@ -44,6 +44,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
+      { label: "My Profile", href: "/profile", icon: UserRound, exact: true },
       { label: "Create", href: "/create", icon: Sparkles, permission: "project.create" },
     ],
   },
