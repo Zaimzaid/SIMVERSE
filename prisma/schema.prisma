@@ -40,6 +40,8 @@ model User {
   virtualTravelTreatiesProposed PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyProposer")
   virtualTravelTreatiesOriginApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyOriginApprover")
   virtualTravelTreatiesDestinationApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyDestinationApprover")
+  businessReviewGrant PlayerBusinessReviewer? @relation("BusinessReviewGrantUser")
+  businessReviews PlayerVirtualBusiness[] @relation("BusinessReviewActor")
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
@@ -104,6 +106,8 @@ model PlayerIdentity {
   careerProfile PlayerCareerProfile?
   virtualWallet PlayerVirtualWallet?
   virtualBusinesses PlayerVirtualBusiness[]
+  orientationCertificate PlayerOrientationCertificate?
+  workApplications PlayerWorkApplication[]
 
   @@index([profileVisibility, username])
   @@index([homeCountryId])
@@ -371,9 +375,76 @@ model PlayerVirtualBusiness {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  reviewNote String?
   identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("BusinessReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  jobs PlayerVirtualJob[]
 
   @@index([identityId, createdAt])
+}
+
+// Phase 6: introductory in-world orientation. Not verified real-world education,
+// qualification, employment or medical/professional licensure.
+model PlayerOrientationCertificate {
+  id String @id @default(cuid())
+  identityId String @unique
+  professionCode String
+  assessmentVersion Int @default(1)
+  score Int
+  earnedAt DateTime @default(now())
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+}
+
+// A SIMVERSE operator must provision an independent reviewer out-of-band.
+// No business owner or workspace role implicitly receives this grant.
+model PlayerBusinessReviewer {
+  id String @id @default(cuid())
+  userId String @unique
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation("BusinessReviewGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Employment matching is fictional and never generates payroll/money.
+// Hiring requires a previously approved virtual business.
+model PlayerVirtualJob {
+  id String @id @default(cuid())
+  businessId String
+  title String
+  description String
+  professionCode String
+  status String @default("OPEN") // OPEN | CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  business PlayerVirtualBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  applications PlayerWorkApplication[]
+  @@index([status, createdAt])
+  @@index([businessId, createdAt])
+}
+
+model PlayerWorkApplication {
+  id String @id @default(cuid())
+  jobId String
+  applicantIdentityId String
+  statement String
+  status String @default("SUBMITTED") // SUBMITTED | OFFERED | REJECTED | ACCEPTED | DECLINED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job PlayerVirtualJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  applicant PlayerIdentity @relation(fields: [applicantIdentityId], references: [id], onDelete: Cascade)
+  employment PlayerVirtualEmployment?
+  @@unique([jobId, applicantIdentityId])
+  @@index([applicantIdentityId, createdAt])
+}
+
+model PlayerVirtualEmployment {
+  id String @id @default(cuid())
+  applicationId String @unique
+  startedAt DateTime @default(now())
+  status String @default("ACTIVE")
+  application PlayerWorkApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
