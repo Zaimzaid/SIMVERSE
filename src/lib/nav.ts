@@ -13,6 +13,7 @@ import {
   Settings,
   Swords,
   Trophy,
+  UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
