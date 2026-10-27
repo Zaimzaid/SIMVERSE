@@ -8,6 +8,7 @@ export type AuditAction =
   | "user.logged_in"
   | "user.logged_out"
   | "user.profile_updated"
+  | "user.player_identity_updated"
   | "workspace.created"
   | "workspace.updated"
   | "entity.created"
