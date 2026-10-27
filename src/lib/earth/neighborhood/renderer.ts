@@ -213,7 +213,27 @@ export class NeighborhoodRenderer {
     return texture;
   }
   private readonly signTextures = new Set<Texture>();
+  private addInstancedBoxes(
+    positions: Array<{ x: number; y: number; z: number }>,
+    dimensions: [number, number, number],
+    color: number,
+  ) {
+    if (!positions.length) return;
+    const instances = new InstancedMesh(new BoxGeometry(...dimensions), this.mat(color), positions.length);
+    const object = new Object3D();
+    for (let i = 0; i < positions.length; i += 1) {
+      const placement = positions[i]!;
+      object.position.set(placement.x, placement.y, placement.z);
+      object.updateMatrix();
+      instances.setMatrixAt(i, object.matrix);
+    }
+    instances.instanceMatrix.needsUpdate = true;
+    this.scenery.add(instances);
+  }
   private addBuildings() {
+    const windows: Array<{ x: number; y: number; z: number }> = [];
+    const lintels: Array<{ x: number; y: number; z: number }> = [];
+    const mullions: Array<{ x: number; y: number; z: number }> = [];
     for (const b of this.world.buildings) {
       const base = this.box(b.width, b.height, b.depth, b.x, b.height / 2 + 0.3, b.z, b.color);
       base.castShadow = this.quality === "HIGH";
@@ -236,9 +256,9 @@ export class NeighborhoodRenderer {
             const wx = b.x + (column - (widthSlots - 1) / 2) * 2.8;
             // Dark tinted windows, inset lintels, and pale sill trim.
             for (const side of [-1, 1]) {
-              this.box(1.58, 1.78, 0.08, wx, h, b.z + side * (b.depth / 2 + 0.05), 0x284956);
-              this.box(1.7, 0.09, 0.14, wx, h + 0.94, b.z + side * (b.depth / 2 + 0.12), 0xe9ebe5);
-              this.box(0.04, 1.68, 0.14, wx, h, b.z + side * (b.depth / 2 + 0.13), 0x99c0c8);
+              windows.push({ x: wx, y: h, z: b.z + side * (b.depth / 2 + 0.05) });
+              lintels.push({ x: wx, y: h + 0.94, z: b.z + side * (b.depth / 2 + 0.12) });
+              mullions.push({ x: wx, y: h, z: b.z + side * (b.depth / 2 + 0.13) });
             }
           }
         }
@@ -265,6 +285,10 @@ export class NeighborhoodRenderer {
         this.box(1.4, 0.5, 1.8, b.x - 2.7, b.height + 0.73, b.z - 2.1, 0x728d95);
       }
     }
+    // Geometry batching keeps hundreds of facade elements to three draw calls.
+    this.addInstancedBoxes(windows, [1.58, 1.78, 0.08], 0x284956);
+    this.addInstancedBoxes(lintels, [1.7, 0.09, 0.14], 0xe9ebe5);
+    this.addInstancedBoxes(mullions, [0.04, 1.68, 0.14], 0x99c0c8);
   }
   private addPlotGuides() {
     const outlineMaterial = new LineBasicMaterial({ color: 0x46e6ee, transparent: true, opacity: 0.73 });
