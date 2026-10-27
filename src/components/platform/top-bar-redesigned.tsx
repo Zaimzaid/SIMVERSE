@@ -235,7 +235,7 @@ export function TopBar({
               </button>
             );
           }) : <p className="p-6 text-center text-sm text-muted">No available pages match “{query}”.</p>}
-        </div>
+        </nav>
         <div className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-muted">
           <Command className="size-3.5" /> Search only shows tools available to your workspace role.
         </div>
