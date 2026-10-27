@@ -60,14 +60,14 @@ export class EconomyTownRenderer extends NeighborhoodRenderer {
     const facilities = ["FARM DEPOT", "FOOD PROCESSOR", "GROCERY MARKET", "LOGISTICS", "CONSTRUCTION"];
     const buildingIndices = [0, 5, 11, 17, 26];
     for (let i = 0; i < facilities.length; i++) {
-      const b = this.world.buildings[buildingIndices[i]];
+      const b = this.world.buildings[buildingIndices[i]!];
       if (!b) continue;
       const sign = this.addLabel(facilities[i]!, b.x, b.height + 2.3, b.z + 0.4, "#135266", 10);
       this.landmarkLabels.push(sign);
     }
     // Transparent indicators for up to five permitted player-run shops.
     for (let i = 0; i < 5; i++) {
-      const b = this.world.buildings[([3, 9, 15, 22, 29] as const)[i]!];
+      const b = this.world.buildings[([3, 9, 15, 22, 29] as const)[i]!]!;
       const sign = this.addLabel("PLAYER SHOP", b.x, b.height + 2.0, b.z + 0.4, "#8e5a26", 8);
       this.playerShopSigns.push(sign);
     }
