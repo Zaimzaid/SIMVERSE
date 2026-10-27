@@ -33,6 +33,7 @@ model User {
   playerIdentity PlayerIdentity?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
+  virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
@@ -93,6 +94,7 @@ model PlayerIdentity {
   citizenships   PlayerCitizenship[]
   documentApplications PlayerDocumentApplication[]
   virtualDocuments PlayerVirtualDocument[]
+  travelVisaApplications PlayerTravelVisaApplication[]
 
   @@index([profileVisibility, username])
   @@index([homeCountryId])
@@ -183,6 +185,57 @@ model PlayerDocumentReviewer {
 
   @@unique([userId, countryPlaceId])
   @@index([countryPlaceId, isActive])
+}
+
+// SIMVERSE Phase 3 fictional world travel rules. An unconfigured/disabled
+// route is CLOSED; no implicit treaty or visa-free travel between countries.
+// Rules are operator-provisioned only; no player-facing policy mutation APIs.
+model PlayerTravelRoutePolicy {
+  id                   String   @id @default(cuid())
+  originCountryId      String
+  destinationCountryId String
+  isActive             Boolean  @default(false)
+  mode                 String   @default("CLOSED") // CLOSED | VISA_REQUIRED | VISA_WAIVER
+  passportKind         String   @default("INTERNATIONAL_PASSPORT")
+  description          String   @default("")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  originCountry EarthGeoPlace @relation("TravelRuleOriginCountry", fields: [originCountryId], references: [id], onDelete: Restrict)
+  destinationCountry EarthGeoPlace @relation("TravelRuleDestinationCountry", fields: [destinationCountryId], references: [id], onDelete: Restrict)
+  visaApplications PlayerTravelVisaApplication[]
+
+  @@unique([originCountryId, destinationCountryId])
+  @@index([destinationCountryId, isActive])
+}
+
+// A single in-world entry-visa application per player/route in the pilot.
+// It is NOT government immigration paperwork, nor a border-control action.
+model PlayerTravelVisaApplication {
+  id                    String    @id @default(cuid())
+  identityId            String
+  originCountryId       String
+  destinationCountryId  String
+  policyId              String
+  status                String    @default("PENDING_REVIEW") // PENDING_REVIEW | APPROVED | DENIED
+  purpose               String    @default("")
+  submittedAt           DateTime  @default(now())
+  reviewedAt            DateTime?
+  reviewedByUserId      String?
+  reviewNote            String?
+  issuedAt              DateTime?
+  expiresAt             DateTime?
+  serial                String?   @unique
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  originCountry EarthGeoPlace @relation("TravelVisaOriginCountry", fields: [originCountryId], references: [id], onDelete: Restrict)
+  destinationCountry EarthGeoPlace @relation("TravelVisaDestinationCountry", fields: [destinationCountryId], references: [id], onDelete: Restrict)
+  policy PlayerTravelRoutePolicy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("TravelVisaReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([identityId, originCountryId, destinationCountryId])
+  @@index([destinationCountryId, status, submittedAt])
+  @@index([identityId, submittedAt])
 }
 
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
@@ -368,6 +421,10 @@ model EarthGeoPlace {
   virtualCitizenships  PlayerCitizenship[] @relation("PlayerCitizenshipCountry")
   virtualDocumentApplications PlayerDocumentApplication[] @relation("DocumentApplicationCountry")
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerCountry")
+  virtualOutboundTravelRules PlayerTravelRoutePolicy[] @relation("TravelRuleOriginCountry")
+  virtualInboundTravelRules PlayerTravelRoutePolicy[] @relation("TravelRuleDestinationCountry")
+  virtualOutboundVisas PlayerTravelVisaApplication[] @relation("TravelVisaOriginCountry")
+  virtualInboundVisas PlayerTravelVisaApplication[] @relation("TravelVisaDestinationCountry")
 
   @@index([parentId, kind, name])
   @@index([kind, normalizedName])
