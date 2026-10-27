@@ -20,8 +20,11 @@ import { importEarthGeographyBundle } from "../src/server/services/earth-geograp
 // Pinned to exactly the same immutable geoBoundaries source revision as Phase 2.
 // This is geographic research data, NOT real-world land ownership inventory.
 const SOURCE_REVISION = "9469f09";
-const SOURCE_BOUNDARY_ID = "NGA-ADM2-59680162";
-const SOURCE_URL = `https://raw.githubusercontent.com/wmgeolab/geoBoundaries/${SOURCE_REVISION}/releaseData/gbOpen/NGA/ADM2/geoBoundaries-NGA-ADM2_simplified.geojson`;
+// The source metadata's boundary identifier needs independent verification.
+const SOURCE_BOUNDARY_ID = null;
+const SOURCE_GEOJSON_SHA256 = "daac9ba2c98f0d8984085c8a5b3a5301fca362f3ca37e6ac7dfcc7633719fc1d";
+const SOURCE_GEOJSON_BYTES = 3717494;
+const SOURCE_URL = `https://github.com/wmgeolab/geoBoundaries/raw/${SOURCE_REVISION}/releaseData/gbOpen/NGA/ADM2/geoBoundaries-NGA-ADM2_simplified.geojson`;
 const EXPECTED_LGAS = 774;
 const projectRoot = path.resolve(import.meta.dirname, "..");
 
@@ -60,8 +63,13 @@ async function downloadPinnedGeoJson() {
   if (!response.ok) fail(`Pinned LGA source unavailable: HTTP ${response.status}`);
   const size = Number(response.headers.get("content-length") ?? 0);
   if (size > 60_000_000) fail("LGA source exceeds the 60 MB safety limit.");
-  const body = await response.text();
-  if (Buffer.byteLength(body, "utf8") > 60_000_000) fail("LGA download exceeded the safety limit.");
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length > 60_000_000) fail("LGA download exceeded the safety limit.");
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  if (bytes.length !== SOURCE_GEOJSON_BYTES || digest !== SOURCE_GEOJSON_SHA256) {
+    fail("Pinned ADM2 bytes do not match the reviewed Git LFS SHA-256 and size. No data was imported.");
+  }
+  const body = bytes.toString("utf8");
   let geojson;
   try { geojson = JSON.parse(body); } catch { fail("LGA download is not valid JSON."); }
   if (geojson?.type !== "FeatureCollection" || !Array.isArray(geojson.features)) {
@@ -70,7 +78,7 @@ async function downloadPinnedGeoJson() {
   if (geojson.features.length !== EXPECTED_LGAS) {
     fail(`Expected ${EXPECTED_LGAS} sourced LGAs, received ${geojson.features.length}.`);
   }
-  return { geojson, checksum: sha256Text(body) };
+  return { geojson, checksum: SOURCE_GEOJSON_SHA256 };
 }
 
 async function getSourceStates() {
