@@ -58,6 +58,14 @@ export function describeAuditAction(
       return { icon: FileText, label: "Submitted a SIMVERSE virtual travel visa application" };
     case "player.travel.visa_reviewed":
       return { icon: CheckCircle2, label: "SIMVERSE virtual travel visa reviewed" };
+    case "player.governance.policy_proposed":
+      return { icon: FileText, label: "SIMVERSE virtual country policy proposed" };
+    case "player.governance.policy_activated":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual country policy activated" };
+    case "player.governance.treaty_proposed":
+      return { icon: FileText, label: "SIMVERSE virtual travel agreement proposed" };
+    case "player.governance.treaty_approved":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual travel agreement approved" };
     case "workspace.created":
       return {
         icon: Sparkles,
