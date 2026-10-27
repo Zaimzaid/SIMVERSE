@@ -756,6 +756,7 @@ export function GeographyExplorer({
               data-earth-details-toggle>
               {detailsOpen ? "Focus map" : "Show details"}
             </Button>
+            <Link href="/earth/neighborhood" className={buttonClasses({ variant: "secondary", size: "sm" })}>Explore 3D proof</Link>
             <Link href="/earth" className={buttonClasses({ variant: "ghost", size: "sm" })}>Public globe</Link>
             <Badge variant={mapReady ? "success" : "warning"}>{mapReady ? "Map ready" : "Loading"}</Badge>
           </div>
