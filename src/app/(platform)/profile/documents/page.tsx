@@ -17,7 +17,10 @@ export default async function MyVirtualDocumentsPage() {
   return <div className="mx-auto max-w-5xl space-y-6">
     <PageHeader icon={FileBadge2} title="Citizenship & Virtual Documents"
       description="Manage fictional SIMVERSE citizenship, domestic and international travel-document applications." />
-    <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">← Back to my player identity</Link>
+    <div className="flex flex-wrap gap-3">
+      <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">← Back to my player identity</Link>
+      <Link href="/profile/travel" className="inline-block text-sm font-semibold text-accent hover:underline">Virtual travel & immigration →</Link>
+    </div>
     <PlayerDocumentCenter initial={docs} username={identity.username} homeCountryId={identity.homeCountryId}/>
   </div>;
 }
