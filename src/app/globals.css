@@ -294,7 +294,7 @@
 }
 .simverse-scene-backdrop {
   position: fixed;
-  z-index: -1;
+  z-index: 0;
   inset: 0;
   pointer-events: none;
   background-image:
