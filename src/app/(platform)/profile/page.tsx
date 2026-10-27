@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { IdCard } from "lucide-react";
 import { requireUser } from "@/server/context";
 import { getMyPlayerIdentity, listPlayerHomeCountries } from "@/server/services/player-identity-service";
