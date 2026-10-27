@@ -16,6 +16,7 @@ import {
   UserRound,
   FileBadge2,
   Plane,
+  BriefcaseBusiness,
   Users,
   type LucideIcon,
 } from "lucide-react";
