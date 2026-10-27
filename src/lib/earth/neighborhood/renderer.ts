@@ -152,21 +152,29 @@ export class NeighborhoodRenderer {
     return mesh;
   }
   private addStreets() {
+    const roadDashesEastWest: Array<{ x: number; y: number; z: number }> = [];
+    const roadDashesNorthSouth: Array<{ x: number; y: number; z: number }> = [];
+    const crossingsEastWest: Array<{ x: number; y: number; z: number }> = [];
+    const crossingsNorthSouth: Array<{ x: number; y: number; z: number }> = [];
     for (const axis of this.world.roadAxes) {
       this.box(242, 0.09, 12, 0, 0.02, axis, ROAD);
       this.box(12, 0.09, 242, axis, 0.02, 0, ROAD);
       for (let pos = -107; pos <= 107; pos += 10) {
         if (this.world.roadAxes.some((other) => Math.abs(pos - other) < 8)) continue;
-        this.box(3.8, 0.012, 0.13, pos, 0.08, axis, 0xf1dfae);
-        this.box(0.13, 0.012, 3.8, axis, 0.08, pos, 0xf1dfae);
+        roadDashesEastWest.push({ x: pos, y: 0.08, z: axis });
+        roadDashesNorthSouth.push({ x: axis, y: 0.08, z: pos });
       }
       for (const crossing of this.world.roadAxes) {
         for (let k = -4; k <= 4; k += 1) {
-          this.box(0.9, 0.014, 2.6, crossing + k * 1.6, 0.085, axis - 8, 0xebeee8);
-          this.box(2.6, 0.014, 0.9, axis - 8, 0.085, crossing + k * 1.6, 0xebeee8);
+          crossingsEastWest.push({ x: crossing + k * 1.6, y: 0.085, z: axis - 8 });
+          crossingsNorthSouth.push({ x: axis - 8, y: 0.085, z: crossing + k * 1.6 });
         }
       }
     }
+    this.addInstancedBoxes(roadDashesEastWest, [3.8, 0.012, 0.13], 0xf1dfae);
+    this.addInstancedBoxes(roadDashesNorthSouth, [0.13, 0.012, 3.8], 0xf1dfae);
+    this.addInstancedBoxes(crossingsEastWest, [0.9, 0.014, 2.6], 0xebeee8);
+    this.addInstancedBoxes(crossingsNorthSouth, [2.6, 0.014, 0.9], 0xebeee8);
   }
   private addNeighborhoodBlocks() {
     for (const x of [-56, 0, 56]) for (const z of [-56, 0, 56]) {
