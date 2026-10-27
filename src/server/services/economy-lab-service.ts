@@ -52,7 +52,9 @@ export async function createEconomyLab(userId: string, workspaceId: string, raw:
     });
     await tx.economyLabTransfer.createMany({
       data: opening.map((item, index) => ({
-        labId: row.id, sequence: index + 1, ...item,
+        labId: row.id, sequence: index + 1,
+        day: item.day, fromAccount: item.from, toAccount: item.to,
+        amount: item.amount, kind: item.kind,
       })),
     });
     return row;
@@ -110,7 +112,9 @@ export async function mutateEconomyLab(
       const count = await tx.economyLabTransfer.count({ where: { labId } });
       await tx.economyLabTransfer.createMany({
         data: transfers.map((item, index) => ({
-          labId, sequence: count + index + 1, ...item,
+          labId, sequence: count + index + 1,
+          day: item.day, fromAccount: item.from, toAccount: item.to,
+          amount: item.amount, kind: item.kind,
         })),
       });
     }

@@ -37,7 +37,7 @@ describe("SIMVERSE closed-currency Economy Lab", () => {
     expect(zero.state.summary?.taxes).toBe(0);
     expect(high.state.summary?.taxes).toBeGreaterThan(0);
     expect(totalMoney(zero.state)).toBe(totalMoney(high.state));
-    expect(high.state.balances.treasury).toBeGreaterThan(zero.state.balances.treasury);
+    expect(high.state.balances.treasury ?? 0).toBeGreaterThan(zero.state.balances.treasury ?? 0);
     expect(() => setTownTax(start, 2501)).toThrow();
     expect(() => setTownTax(start, -1)).toThrow();
   });
