@@ -18,6 +18,8 @@
     "earth:import:nigeria": "node --experimental-strip-types scripts/import-earth-geography.mjs",
     "earth:generate:overview": "node scripts/generate-earth-overview-tiles.mjs",
     "earth:setup:phase4-demo": "node --experimental-strip-types scripts/setup-earth-phase4-demo.mjs",
+    "earth:import:adm2": "node --experimental-strip-types scripts/import-earth-adm2.mjs",
+    "earth:import:settlements": "node --experimental-strip-types scripts/import-earth-settlements.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

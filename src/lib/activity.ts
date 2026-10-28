@@ -48,6 +48,42 @@ export function describeAuditAction(
       return { icon: LogOut, label: "Signed out" };
     case "user.profile_updated":
       return { icon: Pencil, label: "Profile updated" };
+    case "user.player_identity_updated":
+      return { icon: Pencil, label: "SIMVERSE player identity updated" };
+    case "player.document.applied":
+      return { icon: FileText, label: "Submitted SIMVERSE virtual document application" };
+    case "player.document.reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual document application reviewed" };
+    case "player.travel.visa_applied":
+      return { icon: FileText, label: "Submitted a SIMVERSE virtual travel visa application" };
+    case "player.travel.visa_reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual travel visa reviewed" };
+    case "player.governance.policy_proposed":
+      return { icon: FileText, label: "SIMVERSE virtual country policy proposed" };
+    case "player.governance.policy_activated":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual country policy activated" };
+    case "player.governance.treaty_proposed":
+      return { icon: FileText, label: "SIMVERSE virtual travel agreement proposed" };
+    case "player.governance.treaty_approved":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual travel agreement approved" };
+    case "player.economy.profession_selected":
+      return { icon: CheckCircle2, label: "SIMVERSE profession and starter credits activated" };
+    case "player.economy.business_draft_created":
+      return { icon: FileText, label: "SIMVERSE virtual business draft created" };
+    case "player.work.orientation_completed":
+      return { icon: CheckCircle2, label: "SIMVERSE introductory orientation completed" };
+    case "player.work.business_submitted":
+      return { icon: FileText, label: "SIMVERSE virtual business submitted for review" };
+    case "player.work.business_reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual business reviewed" };
+    case "player.work.job_posted":
+      return { icon: FileText, label: "SIMVERSE fictional vacancy posted" };
+    case "player.work.job_applied":
+      return { icon: FileText, label: "SIMVERSE job application submitted" };
+    case "player.work.employer_decision":
+      return { icon: CheckCircle2, label: "SIMVERSE job application considered" };
+    case "player.work.offer_answered":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual job offer answered" };
     case "workspace.created":
       return {
         icon: Sparkles,
