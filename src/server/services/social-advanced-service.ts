@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/server/db/client";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
-import { friendshipKey } from "./social-service";
+const friendshipKey=(a:string,b:string)=>[a,b].sort().join(":");
 
 export const mediaUrlSchema = z.string().url().max(2048).refine(url => {
   try { const u = new URL(url); return u.protocol === "https:" && !u.username && !u.password &&
