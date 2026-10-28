@@ -50,7 +50,7 @@ export async function listSocialGroups(userId:string) {
     where:{userId},include:{group:{select:{id:true,title:true,ownerId:true,updatedAt:true,_count:{select:{members:true}}}}},
     orderBy:{createdAt:"desc"},take:100,
   });
-  return memberships.map(m=>({id:m.groupId,role:m.role,status:m.status,...m.group}));
+  return memberships.map(m=>({...m.group,role:m.role,status:m.status}));
 }
 export async function respondGroupInvite(userId:string,groupId:string,action:"ACCEPT"|"LEAVE") {
   const membership=await prisma.socialGroupMember.findUnique({where:{groupId_userId:{groupId,userId}}});
