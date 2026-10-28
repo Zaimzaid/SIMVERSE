@@ -37,6 +37,13 @@ model User {
   socialMessagesSent SocialMessage[] @relation("SocialMessageSender")
   socialMessagesReceived SocialMessage[] @relation("SocialMessageRecipient")
   animationProjects AnimationProject[] @relation("AnimationOwner")
+  socialGroupsCreated SocialGroup[] @relation("SocialGroupOwner")
+  socialGroupMemberships SocialGroupMember[]
+  socialGroupMessages SocialGroupMessage[]
+  socialReactions SocialReaction[]
+  socialNotifications SocialNotification[]
+  callSignalsCreated SocialCallSignal[] @relation("CallSignalSender")
+  callSignalsReceived SocialCallSignal[] @relation("CallSignalReceiver")
 
   economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
@@ -1904,6 +1911,7 @@ model SocialMessage {
   readAt DateTime?
   sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User @relation("SocialMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  reactions SocialReaction[]
   @@index([senderId, recipientId, createdAt])
   @@index([recipientId, senderId, createdAt])
   @@index([recipientId, readAt, createdAt])
@@ -1923,4 +1931,84 @@ model AnimationProject {
   owner User @relation("AnimationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   @@index([ownerId, workspaceId, updatedAt])
+}
+
+// COMMUNITY V2: consent-based private groups. Only accepted friends can be
+// invited by a group member; invited accounts must accept before reading chat.
+model SocialGroup {
+  id String @id @default(cuid())
+  title String
+  ownerId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner User @relation("SocialGroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members SocialGroupMember[]
+  messages SocialGroupMessage[]
+}
+model SocialGroupMember {
+  id String @id @default(cuid())
+  groupId String
+  userId String
+  role String @default("MEMBER") // OWNER | MEMBER
+  status String @default("INVITED") // INVITED | ACTIVE
+  joinedAt DateTime?
+  createdAt DateTime @default(now())
+  group SocialGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([groupId, userId])
+  @@index([userId, status])
+}
+model SocialGroupMessage {
+  id String @id @default(cuid())
+  groupId String
+  senderId String
+  body String
+  mediaUrl String?
+  createdAt DateTime @default(now())
+  group SocialGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  reactions SocialReaction[]
+  @@index([groupId, createdAt])
+}
+model SocialReaction {
+  id String @id @default(cuid())
+  actorId String
+  directMessageId String?
+  groupMessageId String?
+  emoji String
+  createdAt DateTime @default(now())
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  directMessage SocialMessage? @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  groupMessage SocialGroupMessage? @relation(fields: [groupMessageId], references: [id], onDelete: Cascade)
+  @@unique([actorId,directMessageId,emoji])
+  @@unique([actorId,groupMessageId,emoji])
+  @@index([directMessageId])
+  @@index([groupMessageId])
+}
+model SocialNotification {
+  id String @id @default(cuid())
+  userId String
+  kind String // FRIEND_INVITE | FRIEND_ACCEPTED | MESSAGE | GROUP_INVITE | GROUP_MESSAGE | CALL
+  title String
+  detail String
+  href String
+  createdAt DateTime @default(now())
+  readAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId,readAt,createdAt])
+}
+// Expiring WebRTC signaling messages; intentionally no saved camera/microphone
+// content. Calls need secure context + ICE, external TURN for reliable NAT.
+model SocialCallSignal {
+  id String @id @default(cuid())
+  senderId String
+  receiverId String
+  callId String
+  kind String // OFFER | ANSWER | ICE | HANGUP
+  payload String
+  createdAt DateTime @default(now())
+  sender User @relation("CallSignalSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("CallSignalReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  @@index([receiverId, createdAt])
+  @@index([callId,createdAt])
 }
