@@ -86,12 +86,12 @@ export const CREATE_DESTINATIONS: readonly CreateDestination[] = [
     id: "animation",
     title: "Animation Studio",
     eyebrow: "Standalone creator",
-    description: "Direct scenes, characters, cameras, dialogue, and animation without needing to run a simulation.",
+    description: "Make independent 2D animated scenes with actors, keyframes and a live preview. 3D and dialogue follow later.",
     examples: ["Scenes", "Keyframes", "Cameras", "Dialogue"],
-    href: null,
-    requiredPermissions: [],
-    status: "COMING_LATER",
-    note: "Animation Studio is a future standalone creator. It is separate from runtime animation playback.",
+    href: "/animation",
+    requiredPermissions: ["media.create"],
+    status: "LIVE",
+    note: "2D keyframe editor V1 is live; 3D rigs, voice and rendering are future milestones.",
   },
 ] as const;
 
