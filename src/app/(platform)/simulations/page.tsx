@@ -120,12 +120,14 @@ export default async function SimulationsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        icon={Swords}
-        title="Simulations"
-        description="A simulation is a reusable blueprint: a mode, the entities that take part, and the settings around them. Execution availability depends on the mode module."
-        actions={createAction}
-      />
+      <div className="simverse-page-scene simverse-page-scene--simulation">
+        <PageHeader
+          icon={Swords}
+          title="Simulations"
+          description="A simulation is a reusable blueprint: a mode, the entities that take part, and the settings around them. Execution availability depends on the mode module."
+          actions={createAction}
+        />
+      </div>
 
       {/* First-run empty state: nothing configured yet and no active filters. */}
       {result.total === 0 && !hasAnyFilter ? (
