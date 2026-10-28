@@ -2,8 +2,15 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  await prisma.economyLabTransfer.deleteMany();
+  await prisma.economyLab.deleteMany();
   // Player identity references country catalog records; clear its children
   // before deleting Earth geography or the User account.
+  await prisma.playerVirtualEmployment.deleteMany();
+  await prisma.playerWorkApplication.deleteMany();
+  await prisma.playerVirtualJob.deleteMany();
+  await prisma.playerBusinessReviewer.deleteMany();
+  await prisma.playerOrientationCertificate.deleteMany();
   await prisma.playerVirtualBusiness.deleteMany();
   await prisma.playerWalletEntry.deleteMany();
   await prisma.playerVirtualWallet.deleteMany();

@@ -124,6 +124,16 @@ export function PlayerIdentityForm({ initial, countries }: Props) {
             });
           }}><Copy className="size-3.5" /> {copied ? "Copied" : "Copy"}</Button>
         </div>
+        {identity.username ? (
+          <Link href="/profile/documents#credential-wallet-heading"
+            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline">
+            <ShieldCheck className="size-4" aria-hidden /> View my virtual ID card and passports →
+          </Link>
+        ) : (
+          <p className="mt-3 text-xs text-muted">
+            Once you save a SIMVERSE username, your player number will also appear on a virtual ID card in My Documents.
+          </p>
+        )}
       </section>
 
       <form onSubmit={save} className="space-y-5">
