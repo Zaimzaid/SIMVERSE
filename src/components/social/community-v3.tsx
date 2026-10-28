@@ -31,7 +31,10 @@ type CallRequest = { peerId: string; mode: "VOICE" | "VIDEO"; nonce: number } | 
 
 function avatar(name: string, src: string | null, size = "size-11") {
   return <span className={`${size} relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-600 to-slate-800 text-sm font-bold text-white`}>
-    {src ? (\n      // eslint-disable-next-line @next/next/no-img-element\n      <img src={src} alt="" className="size-full object-cover" />\n    ) : name.slice(0, 1).toUpperCase()}
+    {src ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" className="size-full object-cover" />
+    ) : name.slice(0, 1).toUpperCase()}
   </span>;
 }
 function timestamp(iso?: string) {
