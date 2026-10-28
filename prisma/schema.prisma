@@ -1907,6 +1907,7 @@ model SocialMessage {
   senderId String
   recipientId String
   body String
+  mediaUrl String?
   createdAt DateTime @default(now())
   readAt DateTime?
   sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
