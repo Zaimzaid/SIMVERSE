@@ -2,6 +2,45 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  await prisma.economyLabTransfer.deleteMany();
+  await prisma.economyLab.deleteMany();
+  // Player identity references country catalog records; clear its children
+  // before deleting Earth geography or the User account.
+  await prisma.playerVirtualEmployment.deleteMany();
+  await prisma.playerWorkApplication.deleteMany();
+  await prisma.playerVirtualJob.deleteMany();
+  await prisma.playerBusinessReviewer.deleteMany();
+  await prisma.playerOrientationCertificate.deleteMany();
+  await prisma.playerVirtualBusiness.deleteMany();
+  await prisma.playerWalletEntry.deleteMany();
+  await prisma.playerVirtualWallet.deleteMany();
+  await prisma.playerCareerProfile.deleteMany();
+  await prisma.playerBilateralTravelAgreement.deleteMany();
+  await prisma.playerCitizenshipPolicy.deleteMany();
+  await prisma.playerCountryGovernanceGrant.deleteMany();
+  await prisma.playerTravelVisaApplication.deleteMany();
+  await prisma.playerTravelRoutePolicy.deleteMany();
+  await prisma.playerVirtualDocument.deleteMany();
+  await prisma.playerDocumentApplication.deleteMany();
+  await prisma.playerDocumentReviewer.deleteMany();
+  await prisma.playerCitizenship.deleteMany();
+  await prisma.playerIdentity.deleteMany();
+  // Earth Phase 4 global stewardship and immutable zone history. The stable
+  // zone points at its active version, so clear that projection before deleting
+  // lifecycle/version records.
+  await prisma.earthDevelopmentZoneLifecycleEvent.deleteMany();
+  await prisma.earthDevelopmentZone.updateMany({ data: { activeVersionId: null } });
+  await prisma.earthDevelopmentZoneVersion.deleteMany();
+  await prisma.earthDevelopmentZone.deleteMany();
+  await prisma.earthSteward.deleteMany();
+  // SIMVERSE Earth global geography catalog (children and immutable source
+  // history first, then the self-referencing place hierarchy and datasets).
+  await prisma.earthGeoPlaceRevision.deleteMany();
+  await prisma.earthGeoImport.deleteMany();
+  await prisma.earthGeoPlace.updateMany({ data: { parentId: null } });
+  await prisma.earthGeoPlace.deleteMany();
+  await prisma.earthGeoDatasetVersion.deleteMany();
+  await prisma.earthGeoDataset.deleteMany();
   // Creator/Media artifacts reference completed Runs with Restrict semantics.
   await prisma.mediaArtifactVersion.deleteMany();
   await prisma.mediaArtifact.deleteMany();

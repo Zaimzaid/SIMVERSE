@@ -20,7 +20,7 @@ const initial = {
   confirmPassword: "",
 };
 
-export function RegisterForm() {
+export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,7 +56,11 @@ export function RegisterForm() {
       return;
     }
 
-    router.replace("/dashboard");
+    router.replace(
+      earthIntent
+        ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
+        : "/dashboard",
+    );
     router.refresh();
   }
 
@@ -67,7 +71,10 @@ export function RegisterForm() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-accent hover:underline">
+          <Link
+            href={earthIntent ? `/login?earthIntent=${encodeURIComponent(earthIntent)}` : "/login"}
+            className="font-medium text-accent hover:underline"
+          >
             Log in
           </Link>
         </>

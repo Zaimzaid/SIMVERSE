@@ -4,8 +4,23 @@
 > vision: [vision/VISION.md](vision/VISION.md). Local rules: [../AGENTS.md](../AGENTS.md).
 
 - **Version:** 0.1.0.
-- **Latest completed checkpoint:** **Public / Unlisted Sharing v1**, committed at
-  current `HEAD` (`feat: add SIMVERSE public sharing v1`). It adds the **Share**
+- **Active feature track:** **SIMVERSE Earth - Phase 4: Development Zones and
+  Parcel Discovery** on `feature/simverse-earth-land`. Implementation, local
+  automated gates, actual Chrome verification and real PostgreSQL/PostGIS
+  execution all pass. Phase 5 has not started and the feature branch has not
+  been merged.
+- **Latest completed checkpoint:** **SIMVERSE Earth Phase 4 - Development Zones
+  and Parcel Discovery** at `2f6214d`, plus this documentation closure. It
+  passes 425 tests across 48 files, actual Chrome 155 browser verification and
+  PostgreSQL 17.11/PostGIS 3.6.4 GitHub Actions run
+  [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570).
+  Phase 2 was implemented as `c723578` and closed as `11f5ab1`, including
+  successful PostgreSQL 17.11/PostGIS 3.6.4 execution in GitHub Actions run
+  [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
+  Phase 1 was committed as `fe9dbf7` and closed the guest-access,
+  destination-preservation, 25 m x 25 m base-parcel and virtual-only ownership
+  decisions. The previous product checkpoint was **Public / Unlisted Sharing
+  v1**, committed at baseline `0faaa71`. It adds the **Share**
   layer and completes the first full creator loop (Create → Simulate → Experience
   → Create Content → Export → Share). It builds on **Image / Post Export v1**
   `b7a1693`, which builds on **Creator / Media Foundation v1** `5012b33`, after
@@ -42,7 +57,7 @@
   `c97887d`, Tournament System v1 `49eff48`, Experience Profiles v1 `775a01b`, World Blueprint Creator
   v1 `f4c253c`, Asset Library v1 `99e0b6f`, Phase 7A-A `5687430`, Phase 6.5
   `a432b7b`, Phase 6 `b08df45`, Phase 5 `22a7560`, and Phase 4 `d9be027`.
-- **Last updated:** 2026-10-15.
+- **Last updated:** 2026-10-27.
 - **Boundary:** Battle v1, Race v1 and Survival v1 are production mechanics
   modules. Core and Modules remain authoritative. Three.js is the Web Preview
   Viewer; Race and Survival use truthful lightweight status/results views. Platform
@@ -54,6 +69,209 @@
   Runtime Protocol v1 and Battle, Race and Survival mechanics are unchanged.
   Creator / Media Foundation v1 consumes completed Battle, Race and Survival
   Runs downstream as versioned storyboards. It performs no result calculation.
+
+## SIMVERSE Earth - Phase 4 Development Zones and Parcel Discovery
+
+- Phase 4 adds explicit, reviewed virtual Development Zones. Stable zone
+  identity is separate from immutable geometry/policy versions and append-only
+  lifecycle events. Create produces version 1; meaningful edits produce the
+  next version; review, activation, retirement and rollback never rewrite prior
+  content.
+- Global Earth stewardship is separate from workspace roles. An active steward
+  grant is required for zone creation/revision, and `canActivate` is required to
+  change active inventory. Ordinary workspace owners/admins cannot mutate zones
+  or read steward version history. Viewer reads still require authentication,
+  active workspace membership and `workspace.view`.
+- A zone requires explicit valid WGS84 Polygon/MultiPolygon geometry contained
+  by a sourced polygon place revision. Point-only Lagos cannot become a zone.
+  Each version records a validated UTM projection, WGS84/metric grid origin,
+  bearing, cell size, exclusions, restrictions, provenance and content hash.
+- `earth-parcel-grid-v1` derives complete cells on demand. Defaults are 25 m by
+  25 m / 625 m². Partial cells and exclusion intersections are omitted; stable
+  SHA-256 IDs, row/column ordering and cursors are deterministic across repeat
+  queries and independent processes. Queries require zoom 16+, return at most
+  500 rows and scan at most 4,096 candidates.
+- The Prisma application schema stores steward/zone/version/lifecycle metadata
+  only. There is no parcel, reservation, claim, property or ownership table, so
+  browsing cannot materialize land. SQLite remains the active datasource and
+  the repository's `prisma db push` convention is unchanged.
+- Authenticated routes cover active zone reads, steward lifecycle/version
+  operations, bounded viewport/detail parcel derivation, rules and read-only
+  eligibility. There is no guest parcel API and no acquire/reserve/claim/buy
+  mutation.
+- `/earth/geography` now overlays active zones, exclusions, eligible cells and
+  selection, synchronizes map and keyboard-operable list selection, shows exact
+  plot/grid/rule detail, preserves the no-WebGL list and has a truthful empty
+  state. The test zone is prominently synthetic/non-cadastral, every plot is
+  virtual-only, and no acquisition control exists.
+- Local development visibility is now durable: `npm run
+  earth:setup:phase4-demo -- --user-email <local-account-email>` refuses
+  production and any database except repository-local `dev.db`, backs up the
+  database before an additive schema push when needed, validates and activates
+  only the canonical synthetic demonstration, and becomes a no-op on repeat.
+  The exact authenticated explorer URL is
+  `/earth/geography?place=geo_d4f56f4ce4e43d111f22eea1`.
+- Actual Chrome 155/SwiftShader QA used an isolated database and disposable
+  profile. It rendered 187 bounded plots, verified list/keyboard/map-click
+  selection, camera controls, 390 px layout without overflow, helpful fallback,
+  guest API denial, truthful notices and zero console errors. Five screenshots
+  plus the machine-readable record are under `docs/earth/evidence/`.
+- A second Chrome 155.0.8059.86 check on 2026-10-27 used the real local
+  `dev.db`: an actual MapLibre cell click exposed its deterministic ID,
+  coordinates, 25 m by 25 m dimensions, 625 m² area and synthetic zoning. It
+  repeated successfully after stopping and restarting Next on port 3020, with
+  187 eligible plots, zero acquisition controls and zero severe browser events.
+- Local gates pass: focused Phase 4 tests 20/3; exact full `npx vitest run`
+  425/48; TypeScript; ESLint; Prisma validation/client generation; Next
+  production build; and `git diff --check`.
+- Native PostGIS Phase 4 SQL adds MultiPolygon/Point geometry, containment and
+  metric-origin triggers, immutable version enforcement, lifecycle/composite
+  foreign keys, GiST indexes and one-active-version uniqueness. Its verification
+  covers 25 m sides, 625 m² area, stable IDs, bounded non-overlapping full cells,
+  holes/exclusions, invalid records and repeat initialization. GitHub Actions
+  run [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570)
+  passes on PostgreSQL 17.11/PostGIS 3.6.4, GEOS 3.14.1 and PROJ 9.8.1. Its
+  evidence artifact is `12714525681`.
+- No Runtime Protocol v1, SimulationRun snapshot, Battle/Race/Survival mechanic,
+  Unreal or D: work changed. Phase 5 reservation/acquisition/ownership and Phase
+  6 construction have not started. Full detail:
+  [earth/PHASE_4_LAND_SUBDIVISION.md](earth/PHASE_4_LAND_SUBDIVISION.md).
+
+## SIMVERSE Earth - Phase 3 Interactive 3D Earth Explorer
+
+- `/earth` is now a public route with a real MapLibre globe, accessible country
+  list/search, rotation, zoom, reset, responsive presentation and a useful
+  no-WebGL fallback. It requires neither a Platform workspace nor protected
+  geography access to render the globe.
+- The overview uses a pinned Natural Earth 5.1.2 1:110m public-domain land
+  snapshot. The deterministic generator emits 21 property-stripped MVT files
+  for zooms 0-2 totaling 35,184 bytes. Source revision, checksum, license and
+  per-tile hashes are committed; raw GeoJSON is not served at runtime.
+- Public overview/search services return a strict country-only projection. The
+  current reviewed catalog exposes Nigeria; subdivision, locality, geometry,
+  workspace and internal revision details remain on existing protected paths.
+- A guest selection creates an HMAC-SHA-256 signed, fixed-purpose, ten-minute
+  place intent. Login and registration preserve it, while `/earth/restore`
+  verifies it and performs a fresh authenticated workspace/place lookup before
+  entering `/earth/geography`. No arbitrary redirect URL is accepted.
+- Public endpoints have validated bounds and process-local fixed-window limits.
+  The in-memory limiter is intentionally bounded; horizontally scaled
+  production requires shared rate-limit infrastructure.
+- Actual Chrome 155 verification covered public globe rendering, worker tile
+  delivery, country search, guest gating, login and registration restoration,
+  post-logout 401 behavior, Nigeria's 37 subdivisions, Lagos State and Lagos
+  `CITY` as real `Point` / `POINT_ONLY` data, focus/Escape, reduced motion,
+  WebGL fallback and 390/768/1024/1440 px layouts. No console error, page
+  exception, HTTP 500 or genuine request failure occurred.
+- Phase 3 passes 407 tests across 46 files, TypeScript, ESLint, Prisma
+  validation/client generation, the Next production build and whitespace
+  checks. Detailed architecture, measurements, evidence and limits are in
+  [earth/PHASE_3_EARTH_EXPLORER.md](earth/PHASE_3_EARTH_EXPLORER.md).
+- No Prisma schema, Runtime Protocol v1, SimulationRun snapshot or simulation
+  mechanics file changed in the Phase 3 checkpoint. Phase 4 later added the
+  virtual-zone and query-only parcel foundation described above. Ownership,
+  acquisition, payment and construction remain unimplemented. Unreal remains
+  paused and D: remains off limits.
+
+## SIMVERSE Earth - Phase 2 Global Geography Engine
+
+- Dedicated global reference models now track datasets, immutable dataset
+  versions, import runs, stable places, parent hierarchy and immutable place
+  revisions. Geography remains separate from workspace-authored World
+  Blueprints.
+- The committed source manifest pins geoBoundaries gbOpen revision `9469f09`
+  for Nigeria ADM0/ADM1 and GeoNames Nigeria data retrieved 2026-10-24 for the
+  Lagos locality point. It records source URLs, attribution, CC BY 4.0 licenses,
+  expected counts and SHA-256 checksums.
+- The verified proof contains 39 records: Nigeria, all 37 first-level
+  subdivisions including Lagos State, and one Lagos locality point. Boundaries
+  are real sourced generalized geometry. The locality is explicitly
+  `POINT_ONLY`; no city polygon was fabricated.
+- `npm run earth:import:nigeria` validates WGS84 coordinates, rings, checksums,
+  counts and duplicate identities; derives deterministic IDs/bounds/hashes;
+  records import history; and safely verifies/skips existing immutable
+  revisions. The first development import created 39 records and the second
+  skipped the same 39 without duplication.
+- Authenticated APIs and services provide country/subdivision listing, supported
+  locations, normalized name search, bounded boundary responses, hierarchy,
+  boundary-quality issues and dataset/import status. They reuse the existing
+  API context, `workspace.view` membership guard, Zod validation and safe errors.
+- `/earth/geography` is an internal authenticated MapLibre globe proof. Chrome
+  155 verifies sourced Nigeria/Lagos rendering, search, selection, zoom/drag,
+  camera controls, keyboard focus, 390 px layout and the list-based no-WebGL
+  fallback. Four screenshots and a JSON run record are under `docs/earth/evidence`.
+  Phase 3 now builds the public entry and authentication transition on this
+  protected explorer without weakening its access boundary.
+- Phase 2 verification passes 399 tests across 42 files, TypeScript, ESLint,
+  Prisma validation/client generation, the Next.js production build and
+  whitespace checks. The focused Phase 2 suite passes 15 tests across three
+  files.
+- The manifest importer is country-neutral. A clearly synthetic second-country
+  `CA` / `CAN` fixture proves ISO identity, hierarchy, provenance, quality,
+  revision and repeat-import behavior without presenting synthetic geometry as
+  authentic data.
+- SQLite remains the application datasource and uses the repository's existing
+  `prisma db push` convention. The isolated PostGIS workflow passed on
+  PostgreSQL 17.11/PostGIS 3.6.4 in GitHub Actions run
+  [40155016832](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40155016832).
+  It verified extension/schema initialization, WGS84 validity/type/SRID
+  constraints, foreign keys, required indexes, one-current-revision uniqueness,
+  atomic same-database repeat rejection and clean fresh-database initialization.
+  No application datasource cutover occurred.
+- Phase 3 adds a public allowlisted globe shell, while protected locations
+  remain behind a bounded signed intent, authentication and fresh server-side
+  place/workspace authorization. Existing Phase 2 APIs stay private.
+- Full implementation, source, API, explorer, quality and limitation details:
+  [earth/PHASE_2_GEOGRAPHY_ENGINE.md](earth/PHASE_2_GEOGRAPHY_ENGINE.md). The
+  reversible cutover plan is
+  [earth/POSTGIS_MIGRATION_PLAN.md](earth/POSTGIS_MIGRATION_PLAN.md).
+- At the Phase 2 checkpoint no Development Zone or parcel implementation
+  existed. Phase 4 later added the reviewed zone and query-only candidate
+  foundation above. Ownership, acquisition, payment and construction remain
+  unimplemented. Runtime Protocol v1, SimulationRun snapshots and all simulation
+  mechanics remain unchanged. Unreal remains paused and D: remains off limits.
+
+## Committed SIMVERSE Earth - Phase 1 architecture
+
+- Earth is designed as an integrated SIMVERSE Product backed by reusable
+  Platform and Core services. Existing accounts, server-side authorization,
+  audit conventions, immutable Asset/World versions and selected Three.js
+  loader/cleanup patterns are reusable.
+- Dedicated geography, parcel, ownership and construction records are proposed.
+  Global sourced geography must not be stored as a large World Blueprint JSON
+  document, and Earth is not a Simulation Module.
+- Phase 1 proposed MapLibre GL JS for globe/map exploration, a separate Three.js
+  renderer for the construction editor, and PostgreSQL/PostGIS for production
+  spatial data and claim concurrency. Phase 2 now evaluates MapLibre in the
+  internal explorer and verifies an isolated PostGIS schema while retaining the
+  current SQLite datasource.
+- Geography preserves source/version/license/checksum and explicitly represents
+  point-only, missing, approximate and disputed boundaries. DevelopmentZones,
+  rather than administrative boundaries, define virtual eligibility.
+- Parcel candidates are deterministic and generated on demand. The initial
+  default base size is approved at 25 m by 25 m (625 m²), configurable only by
+  approved immutable development-zone rules. Only reserved/acquired/developed
+  or explicitly blocked parcels become rows.
+- Guests may see and visually manipulate Earth. Opening a protected location,
+  browsing parcel availability or acquiring property requires authentication.
+  Protected destination intent is preserved through the existing login/register
+  flow and reauthorized after authentication.
+- The planned acquisition path uses database locks, uniqueness and idempotency;
+  ownership history and published building versions are append-only. Every
+  acquisition surface must state that SIMVERSE property is virtual and grants
+  no real-world rights.
+- Phase 1 closure approves geoBoundaries gbOpen with Nigeria/Lagos as the Phase
+  2 data proof. Remaining gates include license verification, disputed-territory
+  policy, PostgreSQL migration approach, acquisition/starter/transfer rules,
+  owner privacy, Asset publication and moderation.
+- Phase 1 documentation verification passed TypeScript, ESLint, Prisma schema
+  validation, the Next.js production build and documentation whitespace checks.
+  The full Vitest run passed 382 tests in 38 files, then reported a worker-start
+  timeout for `custom-attribute-dialog.test.tsx`; its focused rerun passed both
+  tests. All 384 existing assertions therefore passed across the two runs, but
+  the single full-suite command did not exit cleanly and must not be reported as
+  a clean gate.
+- Unreal remains paused and D: remains off limits.
 
 ## Official architecture and visual direction
 
@@ -963,6 +1181,41 @@ durable bootstrap plan remains in
 
 ## Verification and QA
 
+- SIMVERSE Earth Phase 4 direct `npx vitest run` passes **425 tests in 48
+  files**, including 20 focused tests across the deterministic parcel engine,
+  zone service and PostGIS schema/workflow contract. `npx tsc --noEmit`, `npx
+  eslint .`, `npx prisma validate`, `npx prisma generate` and `npm run build`
+  pass. Prisma Client v7.10.0 regenerates successfully; the build emits all nine
+  authenticated zone/parcel route patterns, and `git diff --check` passes.
+- Phase 4 GitHub Actions run
+  [40460420570](https://github.com/Zaimzaid/SIMVERSE/actions/runs/40460420570)
+  passes on PostgreSQL 17.11/PostGIS 3.6.4, GEOS 3.14.1 and PROJ 9.8.1. It
+  verifies valid/invalid geometry, projection constraints, containment,
+  immutable versions, foreign keys, expected indexes, 187 bounded
+  non-overlapping full cells, exact 25 m / 625 m² dimensions, stable IDs, atomic
+  repeat rejection and fresh-database initialization. Artifact `12714525681`
+  has ZIP SHA-256
+  `7e1f83cd297e2995660b766c6f020ea9b9c6141b81eb80a4495abd4cf04cf8b8`.
+- Phase 4 real-browser QA used Chrome 155 on Windows with SwiftShader WebGL, an
+  isolated SQLite database and disposable browser profile. It verified the
+  synthetic/non-cadastral zone, 187 eligible plots, map/list/keyboard selection,
+  exact metric plot detail, camera controls, virtual-only notices, absence of
+  acquisition controls, mobile layout, WebGL fallback, guest 401 and zero
+  console errors. Evidence is committed under `docs/earth/evidence/`; disposable
+  QA state was removed.
+- SIMVERSE Earth Phase 3 direct `npx vitest run` passes **407 tests in 46
+  files**, including signed-intent validation, strict public projections,
+  rate-limit bounds and deterministic overview-tile integrity. `npx tsc
+  --noEmit`, `npx eslint .`, `npx prisma validate`, `npx prisma generate`,
+  `npm run build` and `git diff --check` pass. The tile generator reproduces 21
+  MVT files totaling 35,184 bytes from the pinned Natural Earth source.
+- Phase 3 real-browser QA used Chrome 155 on Windows with SwiftShader WebGL, an
+  isolated database and a disposable browser profile. It verified the public
+  globe and controls, country-only guest search, signed login/register restore,
+  protected Nigeria/Lagos hierarchy, point-only locality truth, logout denial,
+  keyboard focus, reduced motion, no-WebGL fallback and no overflow at 390,
+  768, 1024 or 1440 px. Evidence is committed under `docs/earth/evidence/`; all
+  disposable QA state was removed.
 - Before Phase 6 edits, direct `npx vitest run` passed **193 tests in 16 files**.
 - Phase 6 automated coverage includes VisualProfile validation and suggestions,
   service authorization/isolation/lifecycle, immutable Run snapshots, old-run
@@ -1176,6 +1429,15 @@ durable bootstrap plan remains in
 
 ## Known limits
 
+- Earth has one reviewed catalog country (Nigeria). Its Natural Earth land
+  tiles are coarse zoom 0-2 visual context, not administrative, locality or
+  parcel authority. The sole Phase 4 zone is an explicitly synthetic browser
+  fixture and is not production inventory. Parcel generation is bounded,
+  query-only and UTM-based; antimeridian/UTM-zone-crossing zones are unsupported
+  in v1. The public API limiter is process local, browser measurements cover one
+  Chrome/Windows headless environment, SQLite remains the application
+  datasource, and no production PostGIS cutover occurred. No reservation,
+  acquisition, ownership or construction capability exists.
 - Public / Unlisted Sharing v1 is SIMVERSE-hosted link sharing only. It does
   **not** provide Explore / discovery / search, Creator Profiles or public creator
   identity (the page shows only "Created in SIMVERSE"), following / likes /
@@ -1260,38 +1522,37 @@ durable bootstrap plan remains in
   model, World, Unreal, networking, streaming, or runtime-repository changes.
 
 ```text
-LAST COMPLETED (COMMITTED):
-  Public / Unlisted Sharing v1
-  current HEAD — feat: add SIMVERSE public sharing v1
-  (builds on Image / Post Export v1 b7a1693 and Creator / Media Foundation v1 5012b33)
+LAST COMPLETED (FEATURE BRANCH CHECKPOINT):
+  SIMVERSE Earth — Phase 4: Development Zones and Parcel Discovery
+  COMMIT: 2f6214d — feat: add SIMVERSE Earth development zones and parcel discovery
 
-COMMITTED HANDOFF CHECKPOINT:
-  current HEAD — feat: add SIMVERSE public sharing v1
+CURRENT CLOSURE CHECKPOINT:
+  Phase 4 verification evidence and durable handoff documentation
 
 CHECKPOINT STATUS:
-  STATUS: PUBLIC / UNLISTED SHARING v1 COMPLETE AND CHECKPOINTED
-  GATES: vitest 384/39, tsc, eslint, prisma validate/generate, next build, diff --check — all pass
-  QA: isolated-server HTTP (anon resolve, 404 cases, no-leak, pinning, repoint,
-      revoke→404) + headless-Chrome ANONYMOUS public page at 390/768/1024/1440;
-      screenshots visually reviewed
-  SCOPE: version-pinned PRIVATE/UNLISTED/PUBLIC sharing of immutable artifact
-         versions; safe public projection + public viewer; no new dependency
-  FIRST PUBLIC SURFACE: /s/[publicId] is SIMVERSE's first unauthenticated content
-         surface; rate-limiting + moderation are documented pre-launch prerequisites
+  STATUS: PHASE 4 IMPLEMENTED AND FULLY VERIFIED
+  REMAINING: OWNER REVIEW / MERGE DIRECTION
+  PHASE 5: NOT STARTED
+
+ACTIVE FEATURE TRACK:
+  SIMVERSE Earth — Phase 4: Development Zones and Parcel Discovery
+  BRANCH: feature/simverse-earth-land
+  SCOPE: stewarded immutable zones, deterministic on-demand 25 m plots,
+         authenticated APIs, MapLibre parcel discovery, no ownership writes
+  LOCAL GATES: vitest 425/48, tsc, eslint, prisma validate/generate,
+               next build and real Chrome 155 QA — all pass
+  POSTGIS GATE: GitHub Actions 40460420570 — PASS on PostgreSQL 17.11 /
+                PostGIS 3.6.4 / GEOS 3.14.1 / PROJ 9.8.1
+  LOCAL VISIBILITY: PASS in Chrome 155 against persistent dev.db before and
+                    after a Next restart; 187 synthetic 25 m plots inspectable
+  MERGE: NOT PERFORMED
 
 PAUSED PARALLEL TRACK:
   Phase 7A-B — Unreal Runtime Bootstrap
   STATUS: PAUSED DUE TO EXTERNAL D: STORAGE INSTABILITY / DISK EVENT 51
 
 NEXT ACTION:
-  Owner review. The first full creator loop (Create → Simulate → Experience →
-  Create Content → Export → Share) now exists end-to-end. SIMVERSE is still NOT
-  ready for broad public release (needs asset pipeline, templates, account
-  lifecycle hardening, production infra, moderation foundations, richer worlds/3D).
-  Likely next social-layer checkpoints — each separately approved, do NOT start
-  automatically — are Creator Profiles and Explore, which must build on this
-  version-pinned public-safe projection. Small follow-ups: share-link rotation,
-  safe participant-image embedding, a previous-version viewer. Two untracked
-  docs/*.png vision images remain owner-controlled. Do not access D: or resume
-  Unreal work until the external storage is stable.
+  Owner review and merge decision for feature/simverse-earth-land. Do not begin
+  Phase 5 acquisition or Phase 6 construction without separate approval. Do not
+  access D: or resume Unreal work until the external storage is stable.
 ```
