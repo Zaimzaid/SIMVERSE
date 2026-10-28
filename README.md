@@ -60,7 +60,7 @@ Current work is intentionally isolated in draft or unmerged PRs:
 4. **One genuinely playable vertical slice:** player enters the street, walks into a shop, interacts with a character, performs a meaningful authorized business action, and sees the result persist after reload.
 5. **Then expand deliberately:** geo/land ownership rules, construction, multiplayer, richer AI, advanced professions, creator systems and production operations.
 
-For the owner-approved **10-milestone delivery sequence**, status matrix, acceptance criteria, open decisions and non-goals, read **[PROJECT_STATUS_AND_ROADMAP.md](docs/PROJECT_STATUS_AND_ROADMAP.md)**. Earth has its **own** official eight-phase plan; milestone numbers here do not replace it.
+For the **proposed M0 audit plus ten M1–M10 release milestones**, status matrix, acceptance criteria, open decisions and non-goals, read **[PROJECT_STATUS_AND_ROADMAP.md](docs/PROJECT_STATUS_AND_ROADMAP.md)**. Earth has its **own** official eight-phase plan; milestone numbers here do not replace it.
 
 ## Local development (Windows / VS Code)
 
