@@ -189,16 +189,35 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
         </button>
       </header>
       {/* Equal-size compact tabs: always show all six, no sideways scrolling. */}
-      <nav aria-label="Community sections" className="grid w-full grid-cols-3 gap-1.5 p-2 sm:gap-2 sm:p-3 lg:grid-cols-6">
+      {/* Mobile: one small native selector; no six-button dashboard or horizontal scrolling. */}
+      <div className="border-b border-border px-3 py-3 lg:hidden">
+        <label htmlFor="community-section" className="mb-1.5 block text-xs font-medium text-secondary">
+          Browse Community
+        </label>
+        <div className="relative">
+          <select id="community-section" value={section}
+            onChange={(event) => {
+              setSection(event.target.value as Section);
+              setSelected(null);
+              setError("");
+              setNotice("");
+            }}
+            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+            {tabs.map(tab => <option key={tab.key} value={tab.key}>
+              {tab.name}{tab.count > 0 ? ` (${tab.count})` : ""}
+            </option>)}
+          </select>
+        </div>
+      </div>
+      {/* Desktop: compact flat tabs with badges, not six oversized cards. */}
+      <nav aria-label="Community sections" className="hidden flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-4 lg:flex">
         {tabs.map(tab => <button key={tab.key} type="button"
           onClick={() => { setSection(tab.key); setSelected(null); setError(""); setNotice(""); }}
           aria-current={section === tab.key ? "page" : undefined}
-          aria-label={`${tab.name}${tab.count ? ` (${tab.count})` : ""}`}
-          className={`relative flex h-[66px] flex-col min-w-0 items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center text-[10px] font-semibold leading-tight transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:h-[62px] sm:text-xs lg:h-[52px] lg:flex-row lg:gap-2 lg:px-2 ${section === tab.key ? "border-accent/60 bg-accent-soft text-accent" : "border-border bg-surface text-secondary hover:border-accent/40 hover:bg-surface-hover hover:text-foreground"}`}
-          >
+          className={`inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap border-b-2 px-1 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${section === tab.key ? "border-accent text-accent" : "border-transparent text-secondary hover:border-border hover:text-foreground"}`}>
           <tab.icon className="size-4 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 whitespace-normal break-words">{tab.name}</span>
-          {tab.count > 0 && <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white" aria-label={`${tab.count} unread`}>
+          <span>{tab.name}</span>
+          {tab.count > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent" aria-label={`${tab.count} unread`}>
             {tab.count > 99 ? "99+" : tab.count}
           </span>}
         </button>)}
