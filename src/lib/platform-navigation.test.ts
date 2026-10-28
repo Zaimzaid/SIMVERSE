@@ -18,7 +18,7 @@ describe("SIMVERSE workspace navigation redesign", () => {
     for (const item of NAV_ITEMS) {
       expect(unique.has(item.href)).toBe(true);
     }
-    expect(visibleAreas(full).length).toBe(6);
+    expect(visibleAreas(full).length).toBe(7);
   });
 
   it("shows only permitted links, never by itself changes server authorization", () => {
@@ -34,6 +34,8 @@ describe("SIMVERSE workspace navigation redesign", () => {
   it("resolves nested player and economy pages correctly rather than dumping them into Home", () => {
     expect(areaForPath("/dashboard").id).toBe("home");
     expect(areaForPath("/profile").id).toBe("identity");
+    expect(areaForPath("/social").id).toBe("community");
+    expect(areaForPath("/animation").id).toBe("build");
     expect(areaForPath("/profile/documents/review").id).toBe("identity");
     expect(areaForPath("/profile/work").id).toBe("economy");
     expect(areaForPath("/profile/work/review").id).toBe("economy");
