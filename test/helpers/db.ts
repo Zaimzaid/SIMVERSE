@@ -2,6 +2,12 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  await prisma.socialReaction.deleteMany();
+  await prisma.socialGroupMessage.deleteMany();
+  await prisma.socialGroupMember.deleteMany();
+  await prisma.socialGroup.deleteMany();
+  await prisma.socialNotification.deleteMany();
+  await prisma.socialCallSignal.deleteMany();
   await prisma.socialMessage.deleteMany();
   await prisma.socialFriendship.deleteMany();
   await prisma.socialBlock.deleteMany();
