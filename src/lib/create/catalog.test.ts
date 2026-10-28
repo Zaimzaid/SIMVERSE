@@ -15,8 +15,9 @@ describe("beginner Create destination catalog", () => {
     expect(CREATE_DESTINATIONS.filter((destination) => destination.status === "LIVE").every((destination) => destination.href)).toBe(true);
   });
 
-  it("keeps future creators visibly non-interactive", () => {
-    expect(createDestinationById("animation")).toMatchObject({ status: "COMING_LATER", href: null });
+  it("opens the standalone keyframe creator as a real destination", () => {
+    expect(createDestinationById("animation")).toMatchObject({ status: "LIVE", href: "/animation" });
+    expect(canOpenCreateDestination(createDestinationById("animation"), ["media.create"])).toBe(true);
   });
 
   it("requires the real server-side permission set before exposing a live link", () => {
