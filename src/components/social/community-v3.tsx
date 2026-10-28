@@ -195,7 +195,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
           aria-current={section === tab.key ? "page" : undefined}
           aria-label={`${tab.name}${tab.count ? ` (${tab.count})` : ""}`}
           className={`relative flex h-[66px] flex-col min-w-0 items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center text-[10px] font-semibold leading-tight transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:h-[62px] sm:text-xs lg:h-[52px] lg:flex-row lg:gap-2 lg:px-2 ${section === tab.key ? "border-accent/60 bg-accent-soft text-accent" : "border-border bg-surface text-secondary hover:border-accent/40 hover:bg-surface-hover hover:text-foreground"}`}
-          style={{flexDirection: undefined}}>
+          >
           <tab.icon className="size-4 shrink-0" aria-hidden="true" />
           <span className="min-w-0 whitespace-normal break-words">{tab.name}</span>
           {tab.count > 0 && <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white" aria-label={`${tab.count} unread`}>
