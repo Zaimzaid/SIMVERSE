@@ -132,7 +132,7 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
       <div aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {selected && messages.length === 0 && <p className="text-sm text-muted">No messages yet. Say hello!</p>}
         {!selected && <div className="grid flex-1 place-items-center text-center text-sm text-muted"><div><MessageCircle className="mx-auto mb-3 size-10 text-accent"/><p>Messages stay between accepted SIMVERSE friends.</p><p className="mt-1 text-xs">Refresh to retrieve new messages; real-time delivery comes later.</p></div></div>}
-        {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-${msg.senderId === userId ? "end" : "start"} rounded-2xl px-4 py-3 text-sm ${msg.senderId === userId ? "bg-accent text-accent-foreground" : "border border-border bg-background text-foreground"}`}>
+        {messages.map(msg => <div key={msg.id} className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm ${msg.senderId === userId ? "self-end bg-accent text-accent-foreground" : "self-start border border-border bg-background text-foreground"}`}>
           <p className="whitespace-pre-wrap break-words">{msg.body}</p><p className="mt-2 text-right text-[10px] opacity-70">{new Date(msg.createdAt).toLocaleString()}</p>
         </div>)}
       </div>
