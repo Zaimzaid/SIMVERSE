@@ -31,7 +31,7 @@ type CallRequest = { peerId: string; mode: "VOICE" | "VIDEO"; nonce: number } | 
 
 function avatar(name: string, src: string | null, size = "size-11") {
   return <span className={`${size} relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-600 to-slate-800 text-sm font-bold text-white`}>
-    {src ? <img src={src} alt="" className="size-full object-cover" /> : name.slice(0, 1).toUpperCase()}
+    {src ? (\n      // eslint-disable-next-line @next/next/no-img-element\n      <img src={src} alt="" className="size-full object-cover" />\n    ) : name.slice(0, 1).toUpperCase()}
   </span>;
 }
 function timestamp(iso?: string) {
@@ -195,7 +195,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
         </button>)}
       </nav>
 
-      <main className="min-w-0">
+      <div className="min-w-0">
         {section === "chats" && <div className="grid min-h-[66vh] min-w-0 md:grid-cols-[minmax(220px,0.37fr)_minmax(0,1fr)]">
           <aside className={`min-w-0 border-r border-border ${selected ? "hidden md:block" : ""}`}>
             <div className="border-b border-border p-4">
@@ -321,7 +321,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
           <div className="mb-4 flex items-center gap-2"><Mail className="size-5 text-accent" /><h2 className="text-lg font-semibold">Notifications</h2><Counter value={alertUnread} /></div>
           <CommunityExtras view="notifications" userId={userId} friends={social.friends} onUnreadChange={setAlertUnread} />
         </div>}
-      </main>
+      </div>
     </div>
     <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest} />
     <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" /> Messages refresh every few seconds while this page is open. Live sockets and push notifications are later milestones.</p>
