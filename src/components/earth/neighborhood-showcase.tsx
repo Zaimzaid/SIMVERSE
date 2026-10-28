@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Camera, Compass, Footprints,
+  ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Camera, Compass, Footprints, MapPin,
   Grid3X3, Info, Leaf, Move, RotateCw, Settings2, ShieldAlert,
 } from "lucide-react";
 import type {
@@ -23,6 +23,7 @@ export function NeighborhoodShowcase() {
   const [showPlots, setShowPlots] = useState(false);
   const [selection, setSelection] = useState<NeighborhoodSelection>(null);
   const [position, setPosition] = useState({ x: 0, z: 7 });
+  const [metrics, setMetrics] = useState<{ fps: number; drawCalls: number } | null>(null);
   const [failed, setFailed] = useState("");
   const [ready, setReady] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -43,6 +44,7 @@ export function NeighborhoodShowcase() {
         const engine = new Engine(canvas, effectiveQuality,
           (value) => { if (!cancelled) setSelection(value); },
           (x, z) => { if (!cancelled) setPosition({ x, z }); },
+          (fps, drawCalls) => { if (!cancelled) setMetrics({ fps, drawCalls }); },
         );
         engineRef.current = engine;
         engine.setCameraMode(cameraMode);
@@ -83,7 +85,7 @@ export function NeighborhoodShowcase() {
   }
 
   return (
-    <main className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-[#091826] text-[#f3f8f6]" data-earth-neighborhood="v1">
+    <main className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-[#091826] text-[#f3f8f6]" data-earth-neighborhood="v02">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-36 bg-gradient-to-b from-[#071622]/90 via-[#071622]/45 to-transparent" />
       <canvas ref={canvasRef}
         aria-label="Interactive Marina Junction 3D neighborhood scene"
@@ -99,13 +101,22 @@ export function NeighborhoodShowcase() {
           </Link>
           <div className="rounded-xl border border-white/15 bg-[#0a1d2c]/85 px-4 py-2 backdrop-blur-lg">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">
-              <Compass className="size-3.5" /> SIMVERSE EARTH — VISUAL PROOF 01
+              <Compass className="size-3.5" /> SIMVERSE EARTH — VISUAL PROOF 02
             </div>
             <h1 className="mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl">Marina Junction</h1>
-            <p className="text-xs text-slate-300">Fictional Lagos-inspired neighborhood · walkable 3D prototype</p>
+            <p className="text-xs text-slate-300">Fictional Lagos-inspired neighborhood · curated plaza & showcase street</p>
           </div>
         </div>
         <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+          <div className="rounded-xl border border-white/20 bg-[#0a1d2c]/90 px-3 py-2 text-xs font-mono text-cyan-200" aria-live="off">
+            {metrics ? `${metrics.fps} FPS · ${metrics.drawCalls} draws` : "Measuring FPS…"}
+          </div>
+          <button type="button" onClick={() => {
+            engineRef.current?.focusShowcase();
+            setCameraMode("WALK");
+          }} className="flex items-center gap-2 rounded-xl border border-cyan-300/45 bg-[#103a4d]/95 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-[#155369]">
+            <MapPin className="size-4" /> Showcase street
+          </button>
           <button type="button" onClick={() => setCameraMode(cameraMode === "WALK" ? "OVERVIEW" : "WALK")}
             className="flex items-center gap-2 rounded-xl border border-white/20 bg-[#0a1d2c]/90 px-3 py-2 text-xs font-semibold hover:bg-[#13354a]"
             aria-pressed={cameraMode === "OVERVIEW"}>
@@ -150,7 +161,7 @@ export function NeighborhoodShowcase() {
             <p className="flex items-center gap-2 font-semibold text-emerald-200">
               <Leaf className="size-3.5" /> Built with existing Three.js · No paid assets
             </p>
-            <p className="mt-1">Tap a building to inspect it. Cyan plot guides are demonstration geometry.</p>
+            <p className="mt-1">Walk the curated plaza or click Showcase street. Buildings and plot guides are fictional.</p>
             <p className="mt-1 font-mono text-[10px]">Local position {Math.round(position.x)}m E · {Math.round(-position.z)}m N</p>
           </div>
           {showHelp ? (
@@ -158,7 +169,7 @@ export function NeighborhoodShowcase() {
               <p className="mb-1 flex items-center gap-2 font-bold"><Move className="size-4" /> Controls</p>
               <p><strong>W A S D</strong> / arrows: walk · <strong>Shift</strong>: sprint</p>
               <p>Drag map: rotate camera · Tap: inspect building</p>
-              <p>Overview: inspect the full street layout</p>
+              <p>Overview: drag to rotate the city · Showcase street: focus detailed facades</p>
               <button type="button" className="mt-2 text-cyan-300 hover:underline" onClick={() => setShowHelp(false)}>Hide guide</button>
             </section>
           ) : (
@@ -222,7 +233,7 @@ export function NeighborhoodShowcase() {
 
       <footer className="pointer-events-none relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#061520]/90 px-4 py-2 text-[10px] text-slate-300 sm:px-6">
         <span className="flex items-center gap-1.5"><Info className="size-3.5 text-amber-300" /> Fictional scene — not a surveyed Lagos district, cadastral map, or available real-world property.</span>
-        <span className="font-mono text-cyan-200">SIMVERSE · Visual-first proof · Version 0.1</span>
+        <span className="font-mono text-cyan-200">SIMVERSE · Visual-first proof · Version 0.2 · FPS approximate</span>
       </footer>
     </main>
   );

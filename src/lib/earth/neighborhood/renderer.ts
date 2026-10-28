@@ -3,13 +3,14 @@ import {
   Color, CylinderGeometry, DirectionalLight, DoubleSide, EdgesGeometry, FogExp2,
   Group, InstancedMesh, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
   MeshStandardMaterial, Object3D, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry,
-  Raycaster, Scene, SphereGeometry, SRGBColorSpace, Vector2, WebGLRenderer,
+  Raycaster, Scene, SphereGeometry, SRGBColorSpace, Vector2, Vector3, WebGLRenderer,
   type BufferGeometry, type Material, type Texture,
 } from "three";
 import {
-  createNeighborhoodWorld, moveWalker,
+  createNeighborhoodWorld, isWalkable, moveWalker,
   type NeighborhoodBuilding, type NeighborhoodWorld,
 } from "./world";
+import { animateMarinaResidents, createMarinaV02Scene } from "./showcase-v02";
 
 export type NeighborhoodQuality = "LOW" | "MEDIUM" | "HIGH";
 export type NeighborhoodCameraMode = "WALK" | "OVERVIEW";
@@ -35,7 +36,7 @@ export class NeighborhoodRenderer {
   private readonly scenery = new Group();
   private readonly highlight = new Group();
   private readonly plotGuides = new Group();
-  private readonly keyLight = new DirectionalLight(0xfff1cf, 2.15);
+  private readonly keyLight = new DirectionalLight(0xffedce, 1.85);
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test((event.target as HTMLElement | null)?.tagName ?? "")) return;
     const key = event.key.toLowerCase();
@@ -77,7 +78,7 @@ export class NeighborhoodRenderer {
   private mode: NeighborhoodCameraMode = "WALK";
   private joystick = { forward: 0, strafe: 0 };
   private yaw = 0.55;
-  private pitch = 0.38;
+  private pitch = 0.33;
   private lastDraw = 0;
   private frame = 0;
   private running = false;
@@ -85,27 +86,35 @@ export class NeighborhoodRenderer {
   private readonly resizeObserver: ResizeObserver;
   private onMove: (x: number, z: number) => void;
   private readonly groundPlane: Mesh;
+  private showWalkers: ReturnType<typeof createMarinaV02Scene>["walkers"] = [];
+  private showTextures: Texture[] = [];
+  private elapsed = 0;
+  private perfWindowStart = 0;
+  private perfFrames = 0;
+  private onMetrics: (fps: number, drawCalls: number) => void;
 
   constructor(
     canvas: HTMLCanvasElement,
     quality: NeighborhoodQuality,
     onSelect: (selection: NeighborhoodSelection) => void,
     onMove: (x: number, z: number) => void,
+    onMetrics: (fps: number, drawCalls: number) => void = () => {},
   ) {
     this.canvas = canvas;
     this.onSelect = onSelect;
     this.onMove = onMove;
+    this.onMetrics = onMetrics;
     this.quality = quality;
     this.renderer = new WebGLRenderer({ canvas, antialias: quality !== "LOW", powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "HIGH" ? 1.7 : quality === "MEDIUM" ? 1.25 : 1));
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.36;
+    this.renderer.toneMappingExposure = 1.14;
     this.renderer.shadowMap.enabled = quality === "HIGH";
     this.renderer.shadowMap.type = PCFSoftShadowMap;
-    this.scene.background = new Color(0x9fc7da);
-    this.scene.fog = new FogExp2(0x9fc7da, 0.0035);
-    this.scene.add(new AmbientLight(0xcce9f7, 1.65));
+    this.scene.background = new Color(0xb7cfce);
+    this.scene.fog = new FogExp2(0xb7cfce, 0.0022);
+    this.scene.add(new AmbientLight(0xe4ecdf, 1.25));
     this.keyLight.position.set(-45, 94, 52);
     this.keyLight.castShadow = quality === "HIGH";
     this.keyLight.shadow.mapSize.set(1024, 1024);
@@ -120,7 +129,7 @@ export class NeighborhoodRenderer {
     this.scene.add(this.highlight);
     this.plotGuides.visible = false;
     this.scene.add(this.plotGuides);
-    this.groundPlane = this.box(260, 0.18, 260, 0, -0.17, 0, 0x809e78);
+    this.groundPlane = this.box(480, 0.18, 480, 0, -0.17, 0, 0x7b9581);
     this.groundPlane.receiveShadow = quality === "HIGH";
     this.addStreets();
     this.addNeighborhoodBlocks();
@@ -128,6 +137,9 @@ export class NeighborhoodRenderer {
     this.addPlotGuides();
     this.addTrees();
     this.addStreetFurniture();
+    const showcase = createMarinaV02Scene(this.scenery, this.world.buildings);
+    this.showWalkers = showcase.walkers;
+    this.showTextures = showcase.textures;
     this.addVehicles();
     this.attachEvents();
     this.resizeObserver = new ResizeObserver(this.onResize);
@@ -348,19 +360,39 @@ export class NeighborhoodRenderer {
     }
   }
   private addVehicles() {
+    // Decorative, low-cost traffic: slightly more credible silhouettes,
+    // layered bonnets/glazing, lamp housings and rubber wheels.
     for (let i = 0; i < 9; i += 1) {
       const root = new Group();
-      const colors = [0xc44c39, 0xecede8, 0x1a7f90, 0xdbb45a, 0x354759];
-      this.box(2.6, 0.75, 1.52, 0, 0.54, 0, colors[i % colors.length]!, root);
-      this.box(1.32, 0.72, 1.42, -0.17, 1.2, 0, 0x304b59, root);
-      for (const x of [-0.78, 0.78]) for (const z of [-0.67, 0.67]) {
-        const wheel = new Mesh(new CylinderGeometry(0.31, 0.31, 0.14, 12), this.mat(0x171f28));
-        wheel.rotation.x = Math.PI / 2; wheel.position.set(x, 0.31, z); root.add(wheel);
+      const colors = [0xbd5138, 0xf0e8db, 0x246e81, 0xc6a35b, 0x3f5262];
+      const color = colors[i % colors.length]!;
+      const van = i % 4 === 0;
+      this.box(van ? 3.2 : 2.9, 0.62, 1.65, 0, 0.57, 0, color, root);
+      this.box(van ? 1.90 : 1.54, van ? 1.12 : 0.73, 1.48, -0.18,
+        van ? 1.42 : 1.23, 0, 0x274758, root);
+      this.box(0.42, 0.09, 1.66, 1.35, 0.82, 0, 0xd1c6af, root);
+      this.box(0.34, 0.17, 1.7, -1.36, 0.43, 0, 0x28343c, root);
+      for (const z of [-0.64, 0.64]) {
+        this.box(0.13, 0.15, 0.28, 1.48, 0.66, z, 0xffe8b7, root);
+        this.box(0.12, 0.13, 0.27, -1.49, 0.63, z, 0xaf3c36, root);
+      }
+      for (const x of [-0.89, 0.93]) for (const z of [-0.77, 0.77]) {
+        const wheel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.18, 12), this.mat(0x19242c));
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(x, 0.32, z);
+        root.add(wheel);
+        const hub = new Mesh(new CylinderGeometry(0.14, 0.14, 0.186, 10), this.mat(0xb4bec0));
+        hub.rotation.x = Math.PI / 2;
+        hub.position.set(x, 0.32, z);
+        root.add(hub);
       }
       const vertical = i % 2 === 0;
       if (vertical) root.rotation.y = Math.PI / 2;
       this.scenery.add(root);
-      this.cars.push({ root, axis: vertical ? -28 : 28, direction: vertical ? 1 : -1, offset: (i * 23) % 230 - 115 });
+      this.cars.push({
+        root, axis: vertical ? -28 : 28,
+        direction: vertical ? 1 : -1, offset: (i * 23) % 230 - 115,
+      });
     }
   }
   setQuality(quality: NeighborhoodQuality) {
@@ -370,7 +402,19 @@ export class NeighborhoodRenderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality === "HIGH" ? 1.7 : quality === "MEDIUM" ? 1.25 : 1));
     this.renderer.shadowMap.enabled = quality === "HIGH";
     this.keyLight.castShadow = quality === "HIGH";
+    this.renderer.toneMappingExposure = quality === "HIGH" ? 1.12 : 1.17;
     this.resize();
+  }
+  focusShowcase() {
+    // Walkable south-east plaza path looking toward the more detailed
+    // boulevard shopfronts. Does not teleport outside world bounds.
+    const x = 18, z = 8;
+    if (!isWalkable(this.world, x, z)) return;
+    this.walker.x = x; this.walker.z = z;
+    this.yaw = -1.12;
+    this.pitch = 0.28;
+    this.mode = "WALK";
+    this.onMove(x, z);
   }
   setCameraMode(mode: NeighborhoodCameraMode) { this.mode = mode; }
   setJoystick(forward: number, strafe: number) { this.joystick = { forward, strafe }; }
@@ -389,6 +433,7 @@ export class NeighborhoodRenderer {
       ((event.clientX - box.left) / Math.max(1, box.width)) * 2 - 1,
       -((event.clientY - box.top) / Math.max(1, box.height)) * 2 + 1,
     );
+    this.raycaster.far = Infinity;
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hit = this.raycaster.intersectObjects(this.clickable, false)[0];
     const id = hit?.object.userData.buildingId as string | undefined;
@@ -418,6 +463,16 @@ export class NeighborhoodRenderer {
       this.lastDraw = timestamp;
       this.update(delta);
       this.renderer.render(this.scene, this.camera);
+      // Report actual rendered-frame cadence, not an invented FPS target.
+      this.perfFrames += 1;
+      if (!this.perfWindowStart) this.perfWindowStart = timestamp;
+      const elapsed = timestamp - this.perfWindowStart;
+      if (elapsed >= 1000) {
+        this.onMetrics(Math.round(this.perfFrames * 1000 / elapsed),
+          this.renderer.info.render.calls);
+        this.perfFrames = 0;
+        this.perfWindowStart = timestamp;
+      }
     }
     this.raf = requestAnimationFrame(this.tick);
   };
@@ -438,17 +493,35 @@ export class NeighborhoodRenderer {
         this.walker.x = next.x; this.walker.z = next.z;
         if (++this.frame % 8 === 0) this.onMove(next.x, next.z);
       }
-      const distance = 12;
-      this.camera.position.set(
+      // Collision-aware orbit camera: do not bury the viewpoint inside a
+      // building when the player walks near its wall.
+      const distance = 9.8;
+      const focus = new Vector3(this.walker.x, 2.1, this.walker.z);
+      const desired = new Vector3(
         this.walker.x + Math.sin(this.yaw) * distance * Math.cos(this.pitch),
         2.1 + distance * Math.sin(this.pitch),
         this.walker.z + Math.cos(this.yaw) * distance * Math.cos(this.pitch),
       );
-      this.camera.lookAt(this.walker.x, 2.1, this.walker.z);
+      const ray = desired.clone().sub(focus);
+      const length = ray.length();
+      this.raycaster.set(focus, ray.clone().normalize());
+      this.raycaster.far = length;
+      const occlusion = this.raycaster.intersectObjects(this.clickable, false)[0];
+      if (occlusion) desired.copy(focus).addScaledVector(ray.normalize(), Math.max(1.7, occlusion.distance - 0.75));
+      this.camera.position.copy(desired);
+      this.camera.lookAt(focus);
     } else {
-      this.camera.position.set(135, 155, 145);
+      // Pointer drag now rotates the aerial view instead of doing nothing.
+      const radius = 151;
+      this.camera.position.set(Math.sin(this.yaw) * radius, 70 + this.pitch * 115,
+        Math.cos(this.yaw) * radius);
       this.camera.lookAt(0, 0, 0);
     }
+    this.elapsed += delta;
+    animateMarinaResidents(
+      this.quality === "LOW" ? this.showWalkers.slice(0, 4) : this.showWalkers,
+      this.elapsed,
+    );
     for (const car of this.cars) {
       car.offset += car.direction * delta * 4.5;
       if (car.offset > 118) car.offset = -118;
@@ -493,6 +566,7 @@ export class NeighborhoodRenderer {
       }
     });
     for (const texture of this.signTextures) texture.dispose();
+    for (const texture of this.showTextures) texture.dispose();
     for (const geo of geometries) geo.dispose();
     for (const material of mats) material.dispose();
     this.renderer.dispose();
