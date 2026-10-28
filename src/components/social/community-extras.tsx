@@ -9,7 +9,7 @@ type Msg={id:string;senderId:string;body:string;mediaUrl:string|null;createdAt:s
   sender:{displayName:string};reactions:{emoji:string;actorId:string}[]};
 type Friend={id:string;other:{id:string;displayName:string}};
 type Notice={id:string;title:string;detail:string;readAt:string|null;createdAt:string};
-export function CommunityExtras({userId,friends}: {userId:string;friends:Friend[]}) {
+export function CommunityExtras({userId,friends,view,onUnreadChange}: {userId:string;friends:Friend[];view?:"groups"|"notifications";onUnreadChange?:(count:number)=>void}) {
   const [groups,setGroups]=useState<Group[]>([]);
   const [selected,setSelected]=useState<string|null>(null);
   const [messages,setMessages]=useState<Msg[]>([]);
@@ -24,7 +24,7 @@ export function CommunityExtras({userId,friends}: {userId:string;friends:Friend[
     const [a,b]=await Promise.all([apiFetch<{groups:Group[]}>("/api/social/groups"),
       apiFetch<{items:Notice[];unread:number}>("/api/social/notifications")]);
     if(a.data)setGroups(a.data.groups);
-    if(b.data){setNotices(b.data.items);setUnread(b.data.unread);}
+    if(b.data){setNotices(b.data.items);setUnread(b.data.unread);onUnreadChange?.(b.data.unread);}
     if(a.error||b.error)setError(a.error?.message??b.error?.message??"Unable to refresh.");
   }
   useEffect(()=>{void load();const timer=setInterval(()=>void load(),12000);return ()=>clearInterval(timer);},[]);
@@ -49,8 +49,8 @@ export function CommunityExtras({userId,friends}: {userId:string;friends:Friend[
   async function react(id:string,emoji:string) {
     if(await run("/api/social/reactions","POST",{kind:"GROUP",messageId:id,emoji})&&selected) await open(selected);
   }
-  return <div className="grid gap-5 xl:grid-cols-2">
-    <section className="min-w-0 space-y-4 rounded-2xl border border-border bg-surface p-5">
+  return <div className={view ? "space-y-4" : "grid gap-5 xl:grid-cols-2"}>
+    {view !== "notifications" && <section className="min-w-0 space-y-4 rounded-2xl border border-border bg-surface p-5">
       <h2 className="flex items-center gap-2 text-lg font-semibold"><Users className="size-5 text-accent"/> Group messaging</h2>
       <p className="text-xs text-secondary">Invite accepted friends. Only players who accept invitations can open a group.</p>
       <label className="block text-xs text-secondary">New group name
@@ -86,8 +86,8 @@ export function CommunityExtras({userId,friends}: {userId:string;friends:Friend[
           <Button size="sm" disabled={busy||!(body.trim()||mediaUrl.trim())}><Send className="size-4"/> Send to group</Button>
         </form>
       </div>}
-    </section>
-    <section className="min-w-0 rounded-2xl border border-border bg-surface p-5">
+    </section>}
+    {view !== "groups" && <section className="min-w-0 rounded-2xl border border-border bg-surface p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><Bell className="size-5 text-accent"/> Notifications {unread>0?<span className="rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">{unread}</span>:null}</h2>
         <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={()=>void load()}><RefreshCw className="size-4"/>Refresh</Button>
@@ -99,6 +99,6 @@ export function CommunityExtras({userId,friends}: {userId:string;friends:Friend[
       </div>)}{!notices.length&&<p className="text-sm text-muted">No notifications yet.</p>}</div>
       {error&&<p role="alert" className="mt-3 text-sm text-red-500">{error}</p>}
       {message&&<p className="text-xs text-accent">{message}</p>}
-    </section>
+    </section>}
   </div>;
 }
