@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 type Player = { id: string; displayName: string; avatarUrl: string | null; playerIdentity: { username: string | null } | null };
 type Request = { id: string; other: Player };
-type SocialState = { friends: Request[]; incoming: Request[]; outgoing: Request[]; blockedIds: string[] };
+type SocialState = { friends: Request[]; incoming: Request[]; outgoing: Request[]; blockedIds: string[]; blocked: {id:string;displayName:string}[] };
 type Result = { userId: string; username: string | null; user: { displayName: string; avatarUrl: string | null } };
 type Message = { id: string; senderId: string; recipientId: string; body: string; createdAt: string; readAt: string | null };
 
@@ -103,6 +103,15 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
           <Button size="sm" variant="ghost" disabled={busy} onClick={() => void action("/api/social/friends", "PATCH", {id:item.id,action:"REMOVE"}, "Invitation cancelled.")}>Cancel</Button>
         </div>)}
       </section>
+      {social.blocked.length > 0 && <section className="rounded-2xl border border-border bg-surface p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold"><Ban className="size-4 text-accent"/> Blocked players</h2>
+        <p className="mt-1 text-xs text-muted">Blocking removes friendship. Unblocking does not reconnect automatically.</p>
+        {social.blocked.map(p=><div key={p.id} className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm">
+          <span className="min-w-0 truncate">{p.displayName}</span>
+          <Button size="sm" variant="secondary" disabled={busy} onClick={()=>void action("/api/social/blocks","DELETE",{userId:p.id},"Player unblocked. Reconnect with a new friend invitation.")}>Unblock</Button>
+        </div>)}
+      </section>}
+
       <section className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-lg font-semibold"><Users className="size-5 text-accent"/> Friends ({social.friends.length})</h2>
