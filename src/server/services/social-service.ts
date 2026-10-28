@@ -44,7 +44,9 @@ export async function listSocial(userId: string) {
         receiver: { select: { id: true, displayName: true, avatarUrl: true, playerIdentity: { select: { username: true } } } },
       }, orderBy: { updatedAt: "desc" }, take: 250,
     }),
-    prisma.socialBlock.findMany({ where: { blockerId: userId }, select: { blockedId: true } }),
+    prisma.socialBlock.findMany({ where: { blockerId: userId }, select: {
+      blockedId: true, blocked: { select: { id: true, displayName: true } },
+    } }),
   ]);
   return {
     friends: friendships.filter(f => f.status === "ACCEPTED").map(f => ({
@@ -53,6 +55,7 @@ export async function listSocial(userId: string) {
     incoming: friendships.filter(f => f.status === "PENDING" && f.receiverId === userId).map(f => ({ id: f.id, other: f.sender })),
     outgoing: friendships.filter(f => f.status === "PENDING" && f.senderId === userId).map(f => ({ id: f.id, other: f.receiver })),
     blockedIds: blocks.map(b => b.blockedId),
+    blocked: blocks.map(b => b.blocked),
   };
 }
 export async function requestFriend(userId: string, payload: unknown) {
