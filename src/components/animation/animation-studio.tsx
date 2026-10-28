@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Clapperboard, Film, Layers3, Pause, Play, Plus, Save, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/client/api";
@@ -127,6 +128,9 @@ export function AnimationStudio({ projects: source, canCreate, canEdit }: {
     </aside>
 
     <div className="min-w-0 space-y-5">
+      <Link href="/animation/3d" className="block rounded-2xl border border-accent/40 bg-accent-soft p-4 text-sm font-semibold text-accent hover:bg-surface-hover">
+        Open 3D Avatar & Camera Lab — customize a rig prototype, create camera moves, preview dialogue and export silent WebM video
+      </Link>
       <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">2D keyframe preview</p>
