@@ -47,12 +47,14 @@ export default async function CreatePage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow="Create in SIMVERSE"
-        title="Build your SIMVERSE"
-        description="Choose what to create. Launch a simulation, design an entity, assemble a world or organize a project. Your tools are grouped by what you want to make."
-        icon={Sparkles}
-      />
+      <div className="simverse-page-scene simverse-page-scene--create">
+        <PageHeader
+          eyebrow="Create in SIMVERSE"
+          title="Build your SIMVERSE"
+          description="Choose what to create. Launch a simulation, design an entity, assemble a world or organize a project. Your tools are grouped by what you want to make."
+          icon={Sparkles}
+        />
+      </div>
 
       <section aria-labelledby="quick-start-heading">
         <div className="mb-4 flex items-center gap-2">

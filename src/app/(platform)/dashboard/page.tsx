@@ -56,17 +56,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-9">
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-surface">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_20%,var(--accent-soft),transparent_55%)]" aria-hidden />
-        <div className="relative flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+      <section className="simverse-home-hero relative isolate overflow-hidden rounded-3xl border border-border shadow-xl">
+         <div className="relative z-10 flex min-h-[350px] flex-col justify-center gap-6 p-6 sm:p-8 lg:min-h-[390px] lg:pr-[30%]">
           <div className="max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-soft px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.17em] text-accent">
+            <span className="inline-flex items-center gap-2 hero-eyebrow rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.17em]">
               <Rocket className="size-3.5" aria-hidden /> SIMVERSE Control Center
             </span>
             <h1 className="mt-5 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Welcome back, {firstName}.
             </h1>
-            <p className="mt-2 max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
+            <p className="hero-description mt-2 max-w-lg text-sm leading-relaxed sm:text-base">
               Your worlds, creations and simulations—all within reach. Choose a destination to continue.
             </p>
           </div>

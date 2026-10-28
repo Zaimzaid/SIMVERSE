@@ -39,7 +39,9 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="simverse-scene-root min-h-screen bg-background"
+      data-simverse-area={active.id} data-simverse-focus={isFocus ? "true" : "false"}>
+      <div className="simverse-scene-backdrop" aria-hidden="true" />
       <aside aria-label="Desktop section navigation"
         className={`fixed inset-y-0 left-0 z-30 hidden border-r border-border bg-surface/95 backdrop-blur lg:flex lg:flex-col ${collapsed ? "w-14" : "w-56"}`}>
         <div className={`flex h-16 shrink-0 items-center border-b border-border ${collapsed ? "justify-center px-2" : "justify-between px-3"}`}>
@@ -71,7 +73,7 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
           onNavigate={() => setMobileNavOpen(false)} />
       </Drawer>
 
-      <div className={`flex min-h-screen min-w-0 flex-col transition-[padding-left] duration-200 ${collapsed ? "lg:pl-14" : "lg:pl-56"}`}>
+      <div className={`relative z-10 flex min-h-screen min-w-0 flex-col transition-[padding-left] duration-200 ${collapsed ? "lg:pl-14" : "lg:pl-56"}`}>
         <TopBar {...shell} onMenuClick={() => setMobileNavOpen(true)} />
 
         <div className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-7">

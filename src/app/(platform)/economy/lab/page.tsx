@@ -12,8 +12,10 @@ export default async function EconomyLabPage() {
   const first = labs[0];
   const detail = first ? await getEconomyLab(ctx.user.id, ctx.workspace.id, first.id) : null;
   return <div className="mx-auto max-w-6xl space-y-6">
-    <PageHeader icon={Landmark} title="Economy Lab"
-      description="Join a living town, invest in an approved business and watch AI customers, wages, shops and government interact."/>
+    <div className="simverse-page-scene simverse-page-scene--economy">
+      <PageHeader icon={Landmark} title="Economy Lab"
+        description="Join a living town, invest in an approved business and watch AI customers, wages, shops and government interact."/>
+    </div>
     <EconomyLabPanel initialLabs={labs} initialDetail={detail}
       canCreate={ctx.permissions.includes("world.manage")}/>
   </div>;
