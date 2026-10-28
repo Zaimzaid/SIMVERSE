@@ -48,6 +48,7 @@ export async function getMyPlayerIdentity(userId: string) {
   if (!record) throw new NotFoundError("Your player identity could not be loaded.");
   return {
     simverseId: record.simverseId,
+    createdAt: record.createdAt,
     username: record.username,
     displayName: record.user.displayName,
     email: record.user.email,

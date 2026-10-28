@@ -30,6 +30,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
@@ -473,6 +474,7 @@ model Workspace {
   tournaments          Tournament[]
   mediaArtifacts       MediaArtifact[]
   mediaShares          MediaShare[]
+  economyLabs          EconomyLab[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -1812,4 +1814,39 @@ model MediaShare {
   createdBy User?         @relation("MediaShareCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, visibility, updatedAt])
+}
+
+
+// SIMVERSE ECONOMY LAB v1 — owner-scoped fictional closed-currency demonstration.
+// This is intentionally independent from PlayerVirtualWallet / platform SVC.
+// No purchase or currency exchange endpoints exist.
+model EconomyLab {
+  id          String @id @default(cuid())
+  workspaceId String
+  creatorId   String
+  name        String
+  stateJson   String
+  access      String @default("PRIVATE") // PRIVATE or WORKSPACE (explicit creator opt-in)
+  revision    Int @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator     User @relation("EconomyLabCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  transfers   EconomyLabTransfer[]
+  @@index([workspaceId, creatorId])
+}
+
+model EconomyLabTransfer {
+  id          String @id @default(cuid())
+  labId       String
+  sequence    Int
+  day         Int
+  fromAccount String
+  toAccount   String
+  amount      Int
+  kind        String
+  createdAt   DateTime @default(now())
+  lab         EconomyLab @relation(fields: [labId], references: [id], onDelete: Cascade)
+  @@unique([labId, sequence])
+  @@index([labId, day])
 }

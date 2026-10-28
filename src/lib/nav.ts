@@ -6,6 +6,7 @@ import {
   FolderKanban,
   Globe2,
   LayoutDashboard,
+  Landmark,
   LayoutTemplate,
   Map,
   Package,
@@ -61,6 +62,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Anything Wars", href: "/anything-wars", icon: Swords, permission: "simulation.view" },
       { label: "Earth Explorer", href: "/earth/geography", icon: Map, permission: "workspace.view" },
+      { label: "Economy Lab", href: "/economy/lab", icon: Landmark, permission: "world.view" },
       { label: "Projects", href: "/projects", icon: FolderKanban, permission: "project.view" },
       { label: "Simulations", href: "/simulations", icon: Swords, permission: "simulation.view" },
       { label: "Entities", href: "/entities", icon: Boxes, permission: "entity.view" },
