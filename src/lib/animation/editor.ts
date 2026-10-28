@@ -14,10 +14,32 @@ export const actorSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   frames: z.array(frameSchema).min(2).max(32),
 }).strict();
+export const avatarSchema = z.object({
+  skin: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  outfit: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  hair: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  height: z.number().min(0.7).max(1.3),
+  hairstyle: z.enum(["SHORT","CURLY","NONE"]),
+}).strict();
+export const cameraKeyframeSchema = z.object({
+  t:z.number().int().min(0).max(60000),
+  yaw:z.number().min(-360).max(360),
+  pitch:z.number().min(-45).max(75),
+  distance:z.number().min(2).max(14),
+}).strict();
+export const dialogueSchema = z.object({
+  text:z.string().trim().max(480),
+  startMs:z.number().int().min(0).max(60000),
+  endMs:z.number().int().min(0).max(60000),
+}).strict();
 export const animationSceneSchema = z.object({
   version: z.literal(1),
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   actors: z.array(actorSchema).min(1).max(6),
+  mode:z.enum(["2D","3D"]).optional(),
+  avatar:avatarSchema.optional(),
+  cameraFrames:z.array(cameraKeyframeSchema).min(2).max(12).optional(),
+  dialogue:dialogueSchema.optional(),
 }).strict();
 export const saveAnimationSchema = z.object({
   title: z.string().trim().min(2).max(100),
@@ -25,6 +47,13 @@ export const saveAnimationSchema = z.object({
   scene: animationSceneSchema,
 }).strict().superRefine(({ durationMs, scene }, context) => {
   const ids = new Set<string>();
+  if(scene.dialogue&&(scene.dialogue.endMs>durationMs||scene.dialogue.startMs>=scene.dialogue.endMs))
+    context.addIssue({code:"custom",path:["scene","dialogue"],message:"Dialogue must be inside the scene duration."});
+  if(scene.cameraFrames)for(let i=0;i<scene.cameraFrames.length;i++){
+    const f=scene.cameraFrames[i]!;
+    if(f.t>durationMs || (i>0&&f.t<=scene.cameraFrames[i-1]!.t))
+      context.addIssue({code:"custom",path:["scene","cameraFrames",i],message:"Camera keyframes must increase and fit the duration."});
+  }
   scene.actors.forEach((actor, i) => {
     if (ids.has(actor.id)) context.addIssue({ code: "custom", path: ["scene","actors",i,"id"], message:"Actor identifiers must be unique." });
     ids.add(actor.id);
