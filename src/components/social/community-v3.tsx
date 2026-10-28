@@ -112,12 +112,12 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
 
   const friend = social.friends.find(item => item.other.id === selected)?.other;
   const tabs = [
-    { key: "chats" as const, name: "Messages", icon: MessageCircle, count: unread },
+    { key: "chats" as const, name: "Chats", icon: MessageCircle, count: unread },
     { key: "friends" as const, name: "Friends", icon: Users, count: 0 },
-    { key: "find" as const, name: "Find a player", icon: Search, count: 0 },
+    { key: "find" as const, name: "Find Player", icon: Search, count: 0 },
     { key: "requests" as const, name: "Requests", icon: UserPlus, count: social.incoming.length },
     { key: "groups" as const, name: "Groups", icon: UsersRound, count: groupInvites },
-    { key: "alerts" as const, name: "Notifications", icon: Bell, count: alertUnread },
+    { key: "alerts" as const, name: "Alerts", icon: Bell, count: alertUnread },
   ];
 
   function openChat(peerId: string) {
@@ -173,91 +173,114 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const unreadMap = new Map(inbox.map(item => [item.friendId, item.unread]));
 
   return <div className="min-w-0 space-y-4">
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.19em] text-accent">SIMVERSE / Community</p>
-        <h1 className="mt-1 text-2xl font-bold text-foreground">Friends & Messages</h1>
-        <p className="mt-1 text-sm text-secondary">Your conversations, calls and community in one place.</p>
-      </div>
-      <Button size="sm" variant="secondary" onClick={() => void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()])}>
-        <RefreshCw className="size-4" /> Refresh
-      </Button>
-    </div>
-
     {error && <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>}
     {notice && <div role="status" className="rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm">{notice}</div>}
 
-    <div className="grid min-h-[68vh] min-w-0 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-xl lg:grid-cols-[218px_minmax(0,1fr)]">
-      <nav aria-label="Friends and Messages sections" className="flex gap-1 overflow-x-auto border-b border-border bg-background/40 p-2 lg:flex-col lg:gap-2 lg:overflow-visible lg:border-b-0 lg:border-r lg:p-3">
-        {tabs.map(tab => <button key={tab.key} type="button" onClick={() => { setSection(tab.key); setError(""); setNotice(""); }}
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-xl">
+      <header className="flex items-center justify-between border-b border-border px-4 py-4 sm:px-6">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">Community</h1>
+          <p className="mt-1 text-xs text-secondary">Friends, messages and calls</p>
+        </div>
+        <button type="button" aria-label="Refresh community" title="Refresh community"
+          onClick={() => void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()])}
+          className="grid size-10 place-items-center rounded-lg text-secondary hover:bg-surface-hover hover:text-accent">
+          <RefreshCw className="size-4" />
+        </button>
+      </header>
+      <nav aria-label="Community sections" className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 sm:gap-3 sm:p-4">
+        {tabs.map(tab => <button key={tab.key} type="button"
+          onClick={() => { setSection(tab.key); setSelected(null); setError(""); setNotice(""); }}
           aria-current={section === tab.key ? "page" : undefined}
-          className={`flex min-w-fit items-center gap-2 rounded-xl px-3 py-3 text-left text-sm font-semibold transition hover:bg-surface-hover lg:w-full ${section === tab.key ? "bg-accent-soft text-accent" : "text-secondary"}`}>
-          <tab.icon className="size-4 shrink-0" />
-          <span className="whitespace-nowrap">{tab.name}</span>
-          <Counter value={tab.count} />
+          aria-label={`${tab.name}${tab.count ? ` (${tab.count})` : ""}`}
+          className={`relative flex min-h-[90px] min-w-0 flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[98px] ${section === tab.key ? "border-accent/60 bg-background text-accent shadow-sm" : "border-border bg-surface-hover text-foreground hover:border-accent/40 hover:bg-accent-soft"}`}>
+          <span className="relative flex items-center justify-center">
+            <tab.icon className="size-5" />
+            {tab.count > 0 && <span className="absolute -right-7 -top-2 grid min-w-5 place-items-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] leading-tight text-white" aria-label={`${tab.count} notifications`}>{tab.count > 99 ? "99+" : tab.count}</span>}
+          </span>
+          <span className="truncate">{tab.name}</span>
         </button>)}
       </nav>
-
-      <div className="min-w-0">
-        {section === "chats" && <div className="grid min-h-[66vh] min-w-0 md:grid-cols-[minmax(220px,0.37fr)_minmax(0,1fr)]">
-          <aside className={`min-w-0 border-r border-border ${selected ? "hidden md:block" : ""}`}>
-            <div className="border-b border-border p-4">
-              <h2 className="font-semibold">Conversations <span className="text-xs text-muted">({inbox.length})</span></h2>
-              <p className="mt-1 text-xs text-secondary">Select a friend to open a chat.</p>
-            </div>
-            <div className="max-h-[66vh] overflow-y-auto p-2">
-              {inbox.map(c => <button key={c.friendId} type="button" onClick={() => openChat(c.friendId)}
-                className={`flex w-full items-center gap-3 rounded-xl p-3 text-left hover:bg-surface-hover ${selected === c.friendId ? "bg-accent-soft" : ""}`}>
-                {avatar(c.name, c.avatarUrl)}
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2"><span className="truncate text-sm font-bold">{c.name}</span><span className="ml-auto shrink-0 text-[10px] text-muted">{timestamp(c.latest?.createdAt)}</span></span>
-                  <span className="mt-1 block truncate text-xs text-secondary">{c.latest ? (c.latest.senderId === userId ? "You: " : "") + c.latest.body : "Start a conversation"}</span>
-                </span>
-                <Counter value={c.unread} />
-              </button>)}
-              {!inbox.length && <p className="p-5 text-sm text-secondary">No friends yet. Use Find a player to send an invitation.</p>}
-            </div>
-          </aside>
-          <section aria-label="Conversation" className={`min-w-0 ${selected ? "" : "hidden md:block"}`}>
-            {friend ? <div className="flex h-full min-h-[66vh] min-w-0 flex-col">
-              <header className="flex items-center gap-3 border-b border-border p-3">
-                <button type="button" aria-label="Back to conversations" onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover md:hidden"><ChevronLeft className="size-5" /></button>
-                {avatar(friend.displayName, friend.avatarUrl, "size-10")}
-                <div className="min-w-0 flex-1"><h2 className="truncate font-semibold">{friend.displayName}</h2><p className="truncate text-xs text-secondary">@{friend.playerIdentity?.username ?? "simverse"}</p></div>
-                <button type="button" aria-label={`Voice call ${friend.displayName}`} title="Voice call" onClick={() => setCallRequest({peerId: friend.id, mode: "VOICE", nonce: Date.now()})}
-                  className="rounded-full p-3 text-accent hover:bg-accent-soft"><Phone className="size-5" /></button>
-                <button type="button" aria-label={`Video call ${friend.displayName}`} title="Video call" onClick={() => setCallRequest({peerId: friend.id, mode: "VIDEO", nonce: Date.now()})}
-                  className="rounded-full p-3 text-accent hover:bg-accent-soft"><Video className="size-5" /></button>
-                <button type="button" aria-label="Block friend" title="Block friend" onClick={() => void friendAction("POST", "/api/social/blocks", {userId: friend.id}, "Friend blocked.")}
-                  className="rounded-full p-2 text-secondary hover:bg-surface-hover"><Ban className="size-4" /></button>
-              </header>
-              <div aria-live="polite" className="flex min-h-[320px] max-h-[58vh] flex-1 flex-col gap-3 overflow-y-auto bg-background/30 p-4">
-                {!messages.length && <p className="m-auto text-center text-sm text-secondary">Start your conversation with {friend.displayName}.</p>}
-                {messages.map(msg => <div key={msg.id} className={`max-w-[87%] self-start rounded-2xl p-3 text-sm shadow-sm ${msg.senderId === userId ? "self-end rounded-br-sm bg-accent text-accent-foreground" : "rounded-bl-sm border border-border bg-surface"}`}>
-                  {msg.body && <p className="whitespace-pre-wrap break-words">{msg.body}</p>}
-                  {msg.mediaUrl && <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs underline">Open shared media</a>}
-                  <div className="mt-1 flex flex-wrap items-center gap-1">
-                    {(["👍", "❤️", "😂"] as const).map(emoji => <button key={emoji} type="button" aria-label={`React ${emoji}`} onClick={() => void react(msg.id, emoji)}
-                      className="rounded-md border border-current/20 px-1.5 py-0.5 text-[11px]">{emoji} {msg.reactions?.filter(r => r.emoji === emoji).length ?? 0}</button>)}
-                    <time className="ml-auto text-[10px] opacity-70">{timestamp(msg.createdAt)}</time>
-                  </div>
-                </div>)}
+      <div className="min-w-0 border-t border-border">
+        {section === "chats" && (friend ? <section aria-label="Conversation" className="min-w-0">
+          <div className="flex min-h-[62vh] min-w-0 flex-col">
+            <header className="flex items-center gap-2 border-b border-border p-3 sm:gap-3 sm:p-4">
+              <button type="button" aria-label="Back to recent conversations" title="Back to recent conversations"
+                onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover">
+                <ChevronLeft className="size-5" />
+              </button>
+              {avatar(friend.displayName, friend.avatarUrl, "size-10")}
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-semibold">{friend.displayName}</h2>
+                <p className="truncate text-xs text-secondary">@{friend.playerIdentity?.username ?? "simverse"}</p>
               </div>
-              <form onSubmit={event => void send(event)} className="sticky bottom-0 space-y-2 border-t border-border bg-surface p-3">
-                <input type="url" aria-label="Optional media link" placeholder="Optional public HTTPS photo/video link"
-                  maxLength={2048} value={mediaUrl} onChange={e => setMediaUrl(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs" />
-                <div className="flex items-center gap-2">
-                  <input aria-label="Write a message" value={body} onChange={e => setBody(e.target.value)}
-                    maxLength={1500} placeholder="Write a message…" className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent" />
-                  <Button disabled={busy || !(body.trim() || mediaUrl.trim())} type="submit"><Send className="size-4" /> Send</Button>
+              <button type="button" aria-label={`Voice call ${friend.displayName}`} title="Voice call"
+                onClick={() => setCallRequest({peerId: friend.id, mode: "VOICE", nonce: Date.now()})}
+                className="grid size-10 shrink-0 place-items-center rounded-full text-accent hover:bg-accent-soft">
+                <Phone className="size-5" />
+              </button>
+              <button type="button" aria-label={`Video call ${friend.displayName}`} title="Video call"
+                onClick={() => setCallRequest({peerId: friend.id, mode: "VIDEO", nonce: Date.now()})}
+                className="grid size-10 shrink-0 place-items-center rounded-full text-accent hover:bg-accent-soft">
+                <Video className="size-5" />
+              </button>
+              <button type="button" aria-label="Block friend" title="Block friend"
+                onClick={() => void friendAction("POST", "/api/social/blocks", {userId: friend.id}, "Friend blocked.")}
+                className="grid size-9 shrink-0 place-items-center rounded-full text-secondary hover:bg-surface-hover">
+                <Ban className="size-4" />
+              </button>
+            </header>
+            <div aria-live="polite" className="flex min-h-[340px] max-h-[62vh] flex-1 flex-col gap-3 overflow-y-auto bg-background/30 p-4 sm:p-6">
+              {!messages.length && <p className="m-auto text-center text-sm text-secondary">Start your conversation with {friend.displayName}.</p>}
+              {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-start rounded-2xl p-3 text-sm shadow-sm ${msg.senderId === userId ? "self-end rounded-br-sm bg-accent text-accent-foreground" : "rounded-bl-sm border border-border bg-surface"}`}>
+                {msg.body && <p className="whitespace-pre-wrap break-words">{msg.body}</p>}
+                {msg.mediaUrl && <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs underline">Open shared media</a>}
+                <div className="mt-2 flex flex-wrap items-center gap-1">
+                  {(["👍", "❤️", "😂"] as const).map(emoji => <button key={emoji} type="button" aria-label={`React ${emoji}`} onClick={() => void react(msg.id, emoji)}
+                    className="rounded-md border border-current/20 px-1.5 py-0.5 text-[11px]">{emoji} {msg.reactions?.filter(r => r.emoji === emoji).length ?? 0}</button>)}
+                  <time className="ml-auto text-[10px] opacity-70">{timestamp(msg.createdAt)}</time>
                 </div>
-              </form>
-            </div> : <div className="grid min-h-[66vh] place-items-center p-8 text-center text-secondary">
-              <div><MessageCircle className="mx-auto mb-3 size-12 text-accent" /><p className="font-semibold text-foreground">Your conversations</p><p className="mt-1 text-sm">Choose a friend to message or call.</p></div>
+              </div>)}
+            </div>
+            <form onSubmit={event => void send(event)} className="sticky bottom-0 space-y-2 border-t border-border bg-surface p-3 sm:p-4">
+              <input type="url" aria-label="Optional media link" placeholder="Optional public HTTPS photo/video link"
+                maxLength={2048} value={mediaUrl} onChange={e => setMediaUrl(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs" />
+              <div className="flex min-w-0 items-center gap-2">
+                <input aria-label="Write a message" value={body} onChange={e => setBody(e.target.value)}
+                  maxLength={1500} placeholder="Write a message…"
+                  className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent" />
+                <Button disabled={busy || !(body.trim() || mediaUrl.trim())} type="submit"><Send className="size-4" /> Send</Button>
+              </div>
+            </form>
+          </div>
+        </section> : <section aria-label="Recent conversations" className="min-w-0 p-4 sm:p-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold">Recent conversations</h2>
+            <span className="text-xs text-secondary">{inbox.length} {inbox.length === 1 ? "friend" : "friends"}</span>
+          </div>
+          <div className="divide-y divide-border">
+            {inbox.map(c => <button key={c.friendId} type="button" onClick={() => openChat(c.friendId)}
+              className="flex w-full min-w-0 items-center gap-3 rounded-lg px-1 py-4 text-left transition-colors hover:bg-surface-hover sm:px-3">
+              {avatar(c.name, c.avatarUrl)}
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="truncate text-sm font-semibold">{c.name}</span>
+                  {c.latest && <time className="ml-auto shrink-0 text-[11px] text-secondary">{timestamp(c.latest.createdAt)}</time>}
+                </span>
+                <span className="mt-1 block truncate text-xs text-secondary">{c.latest
+                  ? (c.latest.senderId === userId ? "You: " : "") + c.latest.body
+                  : `@${c.username ?? "simverse"} · Say hello`}</span>
+              </span>
+              <Counter value={c.unread} />
+            </button>)}
+            {!inbox.length && <div className="space-y-3 py-10 text-center">
+              <MessageCircle className="mx-auto size-9 text-accent" />
+              <p className="text-sm text-secondary">No conversations yet. Find a player and send a friend request to get started.</p>
+              <Button size="sm" onClick={() => setSection("find")}><Search className="size-4" /> Find Player</Button>
             </div>}
-          </section>
-        </div>}
+          </div>
+        </section>)}
 
         {section === "friends" && <div className="space-y-3 p-5">
           <h2 className="text-lg font-semibold">Friends ({social.friends.length})</h2>
