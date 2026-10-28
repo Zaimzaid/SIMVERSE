@@ -2,7 +2,7 @@
 
 **A simulation, creation, and virtual-world platform — under active development.**
 
-> **Status (28 October 2026):** The repository contains a working web-platform foundation, tested feature implementations, and several browser-based 3D prototypes. It is **not** a production-ready persistent multiplayer virtual world. Major changes live in **unmerged pull requests**; do not confuse a successful GitHub build with a shipped feature.
+> **Status (28 October 2026):** The Earth, Player, Economy Lab, UI, virtual-document, illustrated-background and Marina Junction V0.2 code has been **merged into `master`** via [integration PR #22](https://github.com/Zaimzaid/SIMVERSE/pull/22), commit `5c11d401`. The combined build **passed disposable-database CI** (TypeScript, ESLint, tests, Next.js production build). It is **not** a released or production-ready persistent multiplayer world: device QA, database migration planning and deployment remain separate gates.
 
 ## Vision: what we are building
 
@@ -19,42 +19,42 @@ See [full product vision](docs/vision/VISION.md) and [detailed status, roadmap, 
 
 ## Current progress
 
-The table distinguishes code from end-to-end product readiness. “Implemented on branch” means source and tests exist, **not** merged/deployed or approved by the owner.
+The table distinguishes **code merged into `master`** from features validated in the real browser and features ready for production. The consolidated source passed CI, but owner device QA, operational testing and release signoff are still outstanding.
 
 | Area | What exists | Current assessment |
 | --- | --- | --- |
 | Web platform | Next.js account/auth flows, workspaces, roles, teams, projects, entities, assets, worlds, simulations, creator pages, baseline replay and analytics | **Foundation implemented** on `master`; not a finished commercial product |
-| Earth Explorer | Country-first MapLibre geography, Nigeria catalog, navigation, city/town discovery, steward-based development zones and synthetic parcel browsing | **Implemented in Earth branches**; acquisition, construction, and developed-property rights **not delivered** |
-| Player identity (Phases 1–4) | Permanent fictional SIMVERSE ID, profiles, home-country preference, independent virtual citizenship/passport review, visa/travel-policy pilots, dual-citizenship policy checks | **Implemented in draft branch stack**; permissioned review is **not automatically provisioned** |
-| Careers & work (Phases 5–6) | Career selection, one-time SVC starter credits, virtual company drafts, orientation quiz, reviewer-controlled company approval, jobs/applications/offers/employment records | **Implemented in draft branch stack**; no general payroll or professional licensing |
-| Economy Lab (V1–V3) | Private closed GFC economy lab, 50 simulated citizens, 5 businesses, treasury, production, wages, shopping, taxes, ledger; player-owned shops and a **separate** 3D town visual | **Implemented in draft branch stack**; restricted sandbox, not an autonomous shared-world economy |
-| Marina Junction 3D (V0.1/V0.2) | Walkable procedural city, roads, buildings, decorative cars/pedestrians, plaza, camera modes, graphics settings and measured browser HUD | **Playable technical visual proof**; fails desired architectural/character realism; V0.2 on a **separate branch** |
-| UI reorganization | Top area tabs, contextual left navigation, right shortcuts, role-aware search, reorganized Dashboard/Create/Profile and mobile drawer | **Implemented and CI-tested in PR #17**, awaiting visual acceptance |
-| Virtual cards/passports | Plastic-style player/citizenship/residency cards, fictional passport booklets, issue/expiry and validity display tied to authorized records | **Implemented and CI-tested in PR #18**; not real identification |
-| Illustrated backgrounds | Original day/night city illustration, world/creator/identity artwork; public and dashboard heroes, other section headers, light/dark treatments | **Implemented and CI-tested in PR #19**; SVG art is **not 3D gameplay footage** |
+| Earth Explorer | Country-first MapLibre geography, Nigeria catalog, navigation, city/town discovery, steward-based development zones and synthetic parcel browsing | **Merged in `master`**; acquisition, construction, and developed-property rights **not delivered** |
+| Player identity (Phases 1–4) | Permanent fictional SIMVERSE ID, profiles, home-country preference, independent virtual citizenship/passport review, visa/travel-policy pilots, dual-citizenship policy checks | **Merged in `master`**; permissioned review is **not automatically provisioned** |
+| Careers & work (Phases 5–6) | Career selection, one-time SVC starter credits, virtual company drafts, orientation quiz, reviewer-controlled company approval, jobs/applications/offers/employment records | **Merged in `master`**; no general payroll or professional licensing |
+| Economy Lab (V1–V3) | Private closed GFC economy lab, 50 simulated citizens, 5 businesses, treasury, production, wages, shopping, taxes, ledger; player-owned shops and a **separate** 3D town visual | **Merged in `master`**; restricted sandbox, not an autonomous shared-world economy |
+| Marina Junction 3D (V0.1/V0.2) | Walkable procedural city, roads, buildings, decorative cars/pedestrians, plaza, camera modes, graphics settings and measured browser HUD | **Merged in `master`**; playable technical proof only, still below visual realism target |
+| UI reorganization | Top area tabs, contextual left navigation, right shortcuts, role-aware search, reorganized Dashboard/Create/Profile and mobile drawer | **Merged in `master` via #22**; awaiting owner visual acceptance |
+| Virtual cards/passports | Plastic-style player/citizenship/residency cards, fictional passport booklets, issue/expiry and validity display tied to authorized records | **Merged in `master` via #22**; not real identification |
+| Illustrated backgrounds | Original day/night city illustration, world/creator/identity artwork; public and dashboard heroes, other section headers, light/dark treatments | **Merged in `master` via #22**; SVG art is **not 3D gameplay footage** |
 | Integrated high-quality world | Optimized Blender/GLB assets, credible avatars, working interiors, persistent in-world activities, connected city areas, player-to-player interaction | **Not delivered** |
 | Release and operations | Consolidated branch, migration rehearsal, staging, moderation, security review, real load/performance measurements, deployment | **Not released** |
 
-**Reality check:** Screens seen in one branch may disappear when you switch to another. `master` does **not** contain the newer Earth/player/economy/UI features until they are reviewed and integrated. The user-tested Marina Junction V0.2 showed roughly **28–30 FPS in sampled High-quality moments**, not a guaranteed target or benchmark for future scenes.
+**Reality check:** The reviewed features now share the same `master` source tree, but that is **not** proof of real end-to-end gameplay or production data migration. The earlier Marina Junction V0.2 recording showed roughly **28–30 FPS in sampled High-quality moments**, not a guaranteed performance target for the integrated build.
 
 ## Where the development is saved
 
-Current work is intentionally isolated in draft or unmerged PRs:
+The original feature PRs were merged through their stacked branches, and the **unified code was merged to `master` on 28 October 2026**. These links remain as development history:
 
 | Track | PR(s) | Description |
 | --- | --- | --- |
 | Earth navigation / visibility | [#1](https://github.com/Zaimzaid/SIMVERSE/pull/1), [#3–#5](https://github.com/Zaimzaid/SIMVERSE/pulls) | Land visibility and regional explorer navigation |
-| Marina Junction | [#6](https://github.com/Zaimzaid/SIMVERSE/pull/6) → [#16](https://github.com/Zaimzaid/SIMVERSE/pull/16) | Independent browser-based city V0.1 → V0.2 |
+| Marina Junction | [#6](https://github.com/Zaimzaid/SIMVERSE/pull/6), [#16](https://github.com/Zaimzaid/SIMVERSE/pull/16), [#21](https://github.com/Zaimzaid/SIMVERSE/pull/21) | #6 was superseded/closed; Marina V0.2 was merged by resolved integration #21 |
 | Player systems | [#7–#12](https://github.com/Zaimzaid/SIMVERSE/pulls) | Identity, documents, immigration, governance, careers, business and work |
 | Economy Lab | [#13](https://github.com/Zaimzaid/SIMVERSE/pull/13) → [#15](https://github.com/Zaimzaid/SIMVERSE/pull/15) | Persistent GFC pilot, player commerce, economic 3D visualization |
 | UI and documentation | [#17](https://github.com/Zaimzaid/SIMVERSE/pull/17) → [#19](https://github.com/Zaimzaid/SIMVERSE/pull/19) | Navigation redesign, document wallet, illustrated backgrounds |
-| This documentation | Documentation-only PR (see branch `docs/project-readme-status-roadmap-20261028`) | One accessible project overview and actionable backlog |
+| This documentation | [#20](https://github.com/Zaimzaid/SIMVERSE/pull/20) | Root project overview and actionable backlog, now on `master` |
 
-**Important branch relationship:** PR #19 is stacked on #18 → #17 → #15 → #14 → #13 → #12 and the earlier player branches. **Marina Junction V0.2 (#16) is not part of that stack**. Integration must be planned explicitly. None of these PRs should be described as merged solely because CI passed.
+**Integration record:** [PR #21](https://github.com/Zaimzaid/SIMVERSE/pull/21) resolved Marina V0.2's overlapping renderer files against the Economy Lab baseline. [PR #22](https://github.com/Zaimzaid/SIMVERSE/pull/22) merged **both development tracks** to `master` after combined CI passed. The source is consolidated; data migration, actual browser QA and release remain pending.
 
 ## Immediate priorities
 
-1. **Consolidation and regression protection:** audit branch history, identify incompatible changes, prepare an integration branch with a *disposable* database, and test authentication, geography, player work, economy and UI together. Do not overwrite the owner's existing SQLite database.
+1. **Post-merge regression protection:** check out current `master`, use a *disposable* database, and manually test authentication, geography, player work, economy and both 3D scenes together. **Do not overwrite your existing SQLite database.** The combined automated CI already passed.
 2. **Visual quality sign-off:** inspect the new UI and backgrounds in both light/dark modes; fix contrast, overflow, broken controls, and misleading placeholder information.
 3. **Blender + Three.js asset workflow:** build **one excellent-looking street**, not another grid of boxes. Create/obtain legally reusable Blender assets, preserve `.blend` sources, export optimized `.glb`, review licenses, use LOD/compression and record FPS.
 4. **One genuinely playable vertical slice:** player enters the street, walks into a shop, interacts with a character, performs a meaningful authorized business action, and sees the result persist after reload.
@@ -70,8 +70,9 @@ For the **proposed M0 audit plus ten M1–M10 release milestones**, status matri
 git clone https://github.com/Zaimzaid/SIMVERSE.git
 cd SIMVERSE
 git fetch origin
-# For the newest UI + documents + backgrounds features (NOT Marina Junction V0.2):
-git switch --track origin/feature/platform-illustrated-backgrounds-v1
+# All implemented tracks, including Marina V0.2, are now together:
+git switch master
+git pull --ff-only origin master
 npm ci
 
 # Only create .env if you do not already have one:
@@ -89,7 +90,7 @@ npm run dev -- --port 3020
 
 Open `http://localhost:3020`, register/sign in to a **test account**, and inspect `/dashboard`, `/create`, `/profile`, `/profile/documents`, `/economy/lab` and `/earth/geography`. Country/business reviewer privileges are independently operator-provisioned and cannot be self-granted through the public UI.
 
-Check the **separate** city branch for Marina Junction V0.2: `feature/marina-junction-visual-v02`. Switch only with a clean Git tree, and don't assume its database schema matches another branch. See [Marina visual QA](docs/economy/ECONOMY_LAB_PHASE3_VISUAL.md) for economic-town caveats.
+Marina Junction V0.2 is now included in `master` at `/earth/neighborhood`. The separate Economy Lab 3D view remains at `/economy/lab/[labId]/world`; these are distinct prototypes. See [Marina/economy visual QA](docs/economy/ECONOMY_LAB_PHASE3_VISUAL.md).
 
 For a production-like local run, build first: `npm run build` followed by `npm start`. Never use `npm start` without an existing production build.
 
