@@ -5,9 +5,9 @@
 **Release gate:** draft pilot; no production deployment or merge before CI, laptop QA, and owner review.
 
 ## Implemented on this branch
-- Replaces the crowded Community landing page with dedicated **Messages, Friends, Find a player, Requests, Groups and Notifications** views.
+- Replaces the crowded Community landing page with a **six-tile, screenshot-inspired responsive grid**: Chats, Friends, Find Player, Requests, Groups and Alerts. Each tile switches the section displayed below it.
 - Shows **real database-backed pending friend request counts, inbox unread counts, group invitations and unread notifications**. The inbox list provides recent message previews and timestamps, with a server-side authorized friend list; no cross-account read access.
-- Clicking **Friends** opens a contact directory; clicking a friend opens the conversation. The conversation contains persistent text history, emoji reactions, the V2 media URL composer, and a sticky send composer.
+- **Recent conversations** now spans the full content width underneath the tiles, with real player names, previews and unread badges. Clicking **Friends** opens a separate directory; selecting a friend opens a full-width conversation with a Back button, text history, emoji reactions, the V2 media URL composer, and a sticky send composer.
 - Call actions appear **in the conversation header (top right)**. Existing authenticated friend-only WebRTC signaling is retained.
 - Incoming or outgoing call opens a full-screen modal. **Only the remote participant's camera is displayed**, never a self-preview. Mute/unmute, camera toggle, answer, decline and end-call buttons work with the local media tracks.
 - `/social` now gets a focused, wider workspace area instead of a cramped right context rail.
@@ -36,8 +36,8 @@ npm run dev -- --port 3020
 Open `http://localhost:3020/social` with **two accounts in separate browsers**. Set both usernames and profiles to PUBLIC under `/profile`.
 
 ### Manual QA scenarios
-1. Search an exact public username, request friendship, verify the incoming Requests badge, accept, verify badge clears and Friends directory updates.
-2. Click Friends → choose friend → direct conversation. Send both directions, verify Message badge and per-thread unread count, wait 4–5 seconds for new message while Community is open, and verify reopening marks read.
+1. At 375px and desktop widths, verify two-column and three-column tile layouts. Change tabs and confirm the lower content switches without navigation away; test the selected tile state. Search an exact public username, request friendship, verify the Requests badge, accept, verify badge clears and Friends directory updates.
+2. Open Chats to see the real recent-conversation list; confirm nothing is hardcoded from the design mock. Click Friends → choose friend → full-width conversation; use Back to return to recents. Send both directions, verify Chats badge and per-thread unread count, wait 4–5 seconds for new message while Community is open, and verify reopening marks read.
 3. Send emojis and media links; verify group invitations and notifications stay in their own tabs and badge values reflect database state.
 4. Click top-right phone icon and answer on the other browser; test mute and hangup. Repeat with the video icon; confirm only the **remote camera** is visible in the caller's view (local camera is not previewed).
 5. Permission denial, blocked account, offline recipient, WebGL-disabled settings and narrow (375px) viewport: ensure errors and layout are understandable.
