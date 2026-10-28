@@ -101,3 +101,67 @@ Select Nigeria, Lagos State, and the synthetic demo zone:
 
 Automated CI/build/browser verification is still required; this document is
 not a claim that those gates have passed.
+
+## Second vertical slice — settlement discovery and zone overview (unverified)
+
+This branch adds two additional capabilities without changing the synthetic
+parcel or ownership model:
+
+- At state scale, authenticated development-zone summaries yield **amber
+  approximate markers** made from the zone bounding-box midpoint. Selecting one
+  fetches its reviewed geometry and eligible cells through existing authorized
+  endpoints. Markers vanish at parcel zoom so they do not obscure cell clicks.
+  No parcel grid is generated during zoomed-out browsing.
+- State selections render **blue point markers** for sourced settlement records.
+  Clicking a marker uses the existing protected place detail and camera flow.
+- LGA selection can list those state-sourced settlement points that fall inside
+  the LGA's sourced polygon. This is a **point-in-polygon location test**, not a
+  claim that the city/town itself is legally contained by one LGA or has that
+  shape. The current protected place-list endpoint limits results to 100, so
+  this first pilot is not an exhaustive national discovery service.
+- A local, checksum-approved importer for **up to 80 Lagos State GeoNames
+  populated-place point records** is included. These are classified into
+  CITY/TOWN/LOCALITY for display, explicitly as an internal heuristic. It
+  never fabricates a polygon, road or building.
+
+### Settlement importer prerequisite and dry run (when the local PC is available)
+
+Download the official `NG.zip` Nigeria dump from
+`https://download.geonames.org/export/dump/NG.zip` and extract `NG.txt`
+under the project directory, for example
+`data/earth/sources/geonames/NG.txt`. The raw text is intentionally not
+committed (source file can change and may be large); its exact SHA-256 forms an
+immutable dataset version. **Do not import an unreviewed dump into production.**
+
+```powershell
+# From the SIMVERSE repository root:
+npm run earth:import:settlements -- --file data/earth/sources/geonames/NG.txt --dry-run
+# Review count, source metadata and checksum printed above. A write requires
+# the exact checksum returned by that dry run:
+npm run earth:import:settlements -- --file data/earth/sources/geonames/NG.txt --expected-sha256 <printed-64-hex-sha256>
+```
+
+The script refuses production, non-local SQLite or any DB other than the
+repository's `dev.db`, rejects mismatched digests, and backs up the database
+before any write. The source points are filtered against Lagos State's
+reviewed boundary. Existing GeoNames place identities remain stable, including
+the earlier Lagos city point. Re-importing identical content must be tested for
+idempotency before deployment. Independent ADM2 data import is **not**
+implicitly executed by the settlement importer.
+
+### Pending local acceptance gates
+
+- Run TypeScript, ESLint, Vitest and production build; no clean gate is asserted
+  for this branch yet.
+- Confirm the official `NG.txt` dry run returns sourced Lagos settlements, the
+  write creates a small city/town list, and an identical rerun is idempotent.
+- Confirm state-scale amber markers can open zones with correctly zoomed plots;
+  blue source-point markers and textual lists open their correct place.
+- Check display at 390px and desktop; ensure fallback list still works with
+  WebGL disabled; check map attribution and tile provider limits.
+- Verify that the parent Phase 4.5 ADM2 importer passes its separate 774-feature
+  dry run before concluding that LGA navigation is ready.
+- Later: source broad nationwide city/town coverage, scalable paged place
+  discovery, licensed vector roads/buildings and one visually judged 3D block.
+
+**No 3D city, real-property acquisition, reservations or ownership is implemented.**
