@@ -8,5 +8,8 @@ describe("immersive Watch routing", () => {
     expect(isImmersiveViewerPath("/anything-wars/events/s1/runs/r1/watch")).toBe(true);
     expect(isImmersiveViewerPath("/simulations/s1/runs/r1")).toBe(false);
     expect(isImmersiveViewerPath("/simulations/s1")).toBe(false);
+    expect(isImmersiveViewerPath("/earth/neighborhood")).toBe(true);
+    expect(isImmersiveViewerPath("/earth/neighborhood/")).toBe(true);
+    expect(isImmersiveViewerPath("/earth/geography")).toBe(false);
   });
 });
