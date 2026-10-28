@@ -177,24 +177,14 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     {notice && <div role="status" className="rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm">{notice}</div>}
 
     <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-xl">
-      <header className="flex items-center justify-between border-b border-border px-4 py-4 sm:px-6">
-        <div>
-          <h1 className="text-lg font-semibold text-foreground">Community</h1>
-          <p className="mt-1 text-xs text-secondary">Friends, messages and calls</p>
+      {/* One compact section selector, no visible six-button navigation or oversized active indicator. */}
+      <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-5">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg font-semibold text-foreground">Friends &amp; Messages</h1>
+          <p className="text-xs text-secondary">Conversations, friends, calls and notifications</p>
         </div>
-        <button type="button" aria-label="Refresh community" title="Refresh community"
-          onClick={() => void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()])}
-          className="grid size-10 place-items-center rounded-lg text-secondary hover:bg-surface-hover hover:text-accent">
-          <RefreshCw className="size-4" />
-        </button>
-      </header>
-      {/* Equal-size compact tabs: always show all six, no sideways scrolling. */}
-      {/* Mobile: one small native selector; no six-button dashboard or horizontal scrolling. */}
-      <div className="border-b border-border px-3 py-3 lg:hidden">
-        <label htmlFor="community-section" className="mb-1.5 block text-xs font-medium text-secondary">
-          Browse Community
-        </label>
-        <div className="relative">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
+          <label htmlFor="community-section" className="sr-only">Choose Community section</label>
           <select id="community-section" value={section}
             onChange={(event) => {
               setSection(event.target.value as Section);
@@ -202,26 +192,35 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
               setError("");
               setNotice("");
             }}
-            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+            className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent sm:w-40 sm:flex-none"
+          >
             {tabs.map(tab => <option key={tab.key} value={tab.key}>
               {tab.name}{tab.count > 0 ? ` (${tab.count})` : ""}
             </option>)}
           </select>
+          {social.incoming.length > 0 && <button type="button"
+            aria-label={`${social.incoming.length} pending friend requests`}
+            title="Friend requests"
+            onClick={() => { setSection("requests"); setSelected(null); }}
+            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
+            <UserPlus className="size-4" />
+            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{social.incoming.length > 99 ? "99+" : social.incoming.length}</span>
+          </button>}
+          {alertUnread > 0 && <button type="button"
+            aria-label={`${alertUnread} unread notifications`}
+            title="Notifications"
+            onClick={() => { setSection("alerts"); setSelected(null); }}
+            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
+            <Bell className="size-4" />
+            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{alertUnread > 99 ? "99+" : alertUnread}</span>
+          </button>}
+          <button type="button" aria-label="Refresh community" title="Refresh community"
+            onClick={() => void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()])}
+            className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:bg-surface-hover hover:text-accent">
+            <RefreshCw className="size-4" />
+          </button>
         </div>
-      </div>
-      {/* Desktop: compact flat tabs with badges, not six oversized cards. */}
-      <nav aria-label="Community sections" className="hidden flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-4 lg:flex">
-        {tabs.map(tab => <button key={tab.key} type="button"
-          onClick={() => { setSection(tab.key); setSelected(null); setError(""); setNotice(""); }}
-          aria-current={section === tab.key ? "page" : undefined}
-          className={`inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap border-b-2 px-1 py-2 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${section === tab.key ? "border-accent text-accent" : "border-transparent text-secondary hover:border-border hover:text-foreground"}`}>
-          <tab.icon className="size-4 shrink-0" aria-hidden="true" />
-          <span>{tab.name}</span>
-          {tab.count > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent" aria-label={`${tab.count} unread`}>
-            {tab.count > 99 ? "99+" : tab.count}
-          </span>}
-        </button>)}
-      </nav>
+      </header>
       <div className="min-w-0 border-t border-border">
         {section === "chats" && (friend ? <section aria-label="Conversation" className="min-w-0">
           <div className="flex min-h-[62vh] min-w-0 flex-col">
