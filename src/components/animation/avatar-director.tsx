@@ -80,7 +80,6 @@ export function AvatarDirector({projects:initial,canCreate,canEdit}:{projects:Pr
       root.position.set(x,y,0);character.add(root);
       mesh(new THREE.CylinderGeometry(.115,.1,h,10),material,root,[0,-h/2,0]);
     }
-    const face={skin,outfit,hair,cap,mouth,character,leftArm,rightArm,leftLeg,rightLeg};
     let raf=0,last=0,renderIndex=0;
     function loop(now:number){
       const delta=Math.min(50,last?now-last:16);last=now;
