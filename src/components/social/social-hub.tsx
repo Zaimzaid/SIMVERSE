@@ -4,12 +4,14 @@ import { useCallback, useState } from "react";
 import { Ban, Check, Mail, MessageCircle, RefreshCw, Search, Send, UserPlus, Users, X } from "lucide-react";
 import { apiFetch } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
+import { CommunityExtras } from "./community-extras";
+import { PeerCallDock } from "./peer-call-dock";
 
 type Player = { id: string; displayName: string; avatarUrl: string | null; playerIdentity: { username: string | null } | null };
 type Request = { id: string; other: Player };
 type SocialState = { friends: Request[]; incoming: Request[]; outgoing: Request[]; blockedIds: string[]; blocked: {id:string;displayName:string}[] };
 type Result = { userId: string; username: string | null; user: { displayName: string; avatarUrl: string | null } };
-type Message = { id: string; senderId: string; recipientId: string; body: string; createdAt: string; readAt: string | null };
+type Message = { id: string; senderId: string; recipientId: string; body: string; mediaUrl?:string|null;createdAt: string; readAt: string | null;reactions?:{emoji:string;actorId:string}[] };
 
 export function SocialHub({ initial, userId }: { initial: SocialState; userId: string }) {
   const [social, setSocial] = useState(initial);
@@ -18,6 +20,7 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
   const [found, setFound] = useState<Result[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState("");
+  const [mediaUrl,setMediaUrl]=useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,20 +60,26 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!selected || busy || !body.trim()) return;
+    if (!selected || busy || (!body.trim()&&!mediaUrl.trim())) return;
     setBusy(true); setError("");
     const res = await apiFetch<{ message: Message }>("/api/social/messages", {
-      method: "POST", body: JSON.stringify({ recipientId: selected, body }),
+      method: "POST", body: JSON.stringify({ recipientId: selected, body,mediaUrl:mediaUrl||undefined }),
     });
     if (res.error) setError(res.error.message);
     else {
-      setBody("");
+      setBody("");setMediaUrl("");
       if (res.data?.message) setMessages((old) => [...old, res.data!.message]);
     }
     setBusy(false);
   }
 
-  return <div className="grid gap-5 xl:grid-cols-[minmax(18rem,0.95fr)_minmax(0,1.45fr)]">
+  async function react(messageId:string,emoji:string) {
+    const r=await apiFetch("/api/social/reactions",{method:"POST",body:JSON.stringify({kind:"DIRECT",messageId,emoji})});
+    if(r.error)setError(r.error.message);
+    else if(selected)await openChat(selected);
+  }
+  return <div className="space-y-6">
+    <div className="grid gap-5 xl:grid-cols-[minmax(18rem,0.95fr)_minmax(0,1.45fr)]">
     <div className="space-y-5">
       <section className="rounded-2xl border border-border bg-surface p-5">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><Search className="size-5 text-accent"/> Find a player</h2>
@@ -142,14 +151,24 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
         {selected && messages.length === 0 && <p className="text-sm text-muted">No messages yet. Say hello!</p>}
         {!selected && <div className="grid flex-1 place-items-center text-center text-sm text-muted"><div><MessageCircle className="mx-auto mb-3 size-10 text-accent"/><p>Messages stay between accepted SIMVERSE friends.</p><p className="mt-1 text-xs">Refresh to retrieve new messages; real-time delivery comes later.</p></div></div>}
         {messages.map(msg => <div key={msg.id} className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm ${msg.senderId === userId ? "self-end bg-accent text-accent-foreground" : "self-start border border-border bg-background text-foreground"}`}>
-          <p className="whitespace-pre-wrap break-words">{msg.body}</p><p className="mt-2 text-right text-[10px] opacity-70">{new Date(msg.createdAt).toLocaleString()}</p>
+          <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+          {msg.mediaUrl&&<a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs underline">Open shared media</a>}
+          <div className="mt-2 flex flex-wrap gap-1">{(["👍","❤️","😂"] as const).map(emoji=><button key={emoji} type="button"
+            onClick={()=>void react(msg.id,emoji)} aria-label={`React ${emoji}`}
+            className="rounded-md border border-current/30 px-2 py-1 text-xs">{emoji} {msg.reactions?.filter(r=>r.emoji===emoji).length??0}</button>)}</div>
+          <p className="mt-2 text-right text-[10px] opacity-70">{new Date(msg.createdAt).toLocaleString()}</p>
         </div>)}
       </div>
       <form onSubmit={(e) => void send(e)} className="flex gap-2 border-t border-border p-4">
-        <input aria-label="Write private message" className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
-          placeholder={selected ? "Write a message…" : "Choose a friend first"} maxLength={1500} value={body} onChange={e=>setBody(e.target.value)} disabled={!selected || busy}/>
-        <Button type="submit" disabled={!selected || !body.trim() || busy}><Send className="size-4"/> Send</Button>
+        <div className="min-w-0 flex-1 space-y-2"><input aria-label="Optional media URL" type="url" maxLength={2048} placeholder="Optional public HTTPS photo/video link"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs" value={mediaUrl} onChange={e=>setMediaUrl(e.target.value)} disabled={!selected||busy}/>
+        <input aria-label="Write private message" className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+          placeholder={selected ? "Write a message…" : "Choose a friend first"} maxLength={1500} value={body} onChange={e=>setBody(e.target.value)} disabled={!selected || busy}/></div>
+        <Button type="submit" disabled={!selected || !(body.trim()||mediaUrl.trim()) || busy}><Send className="size-4"/> Send</Button>
       </form>
     </section>
+    </div>
+    <PeerCallDock userId={userId} friends={social.friends.map(f=>({id:f.other.id,name:f.other.displayName}))}/>
+    <CommunityExtras userId={userId} friends={social.friends}/>
   </div>;
 }
