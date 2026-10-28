@@ -12,7 +12,7 @@ beforeEach(async()=>{ await resetDb(); });
 let n=0;
 async function account(name:string,publicProfile=true){
   n++;
-  const value=await registerUser({displayName:name,email:`social-${n}@example.com`,
+  const value=await registerUser({displayName:`Player ${name}`,email:`social-${n}@example.com`,
     password:"Password123",confirmPassword:"Password123"});
   await prisma.playerIdentity.update({where:{userId:value.user.id},
     data:{username:`user_${n}`,profileVisibility:publicProfile?"PUBLIC":"PRIVATE"}});
