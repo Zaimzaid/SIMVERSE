@@ -47,12 +47,14 @@ export default async function CreatePage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader
-        eyebrow="Create in SIMVERSE"
-        title="What do you want to bring to life?"
-        description="Start with a quick competition, create a reusable character or object, shape a world, or build a detailed scenario. Each preview shows what you will make before you begin."
-        icon={Sparkles}
-      />
+      <div className="simverse-page-scene simverse-page-scene--create">
+        <PageHeader
+          eyebrow="Create in SIMVERSE"
+          title="Build your SIMVERSE"
+          description="Choose what to create. Launch a simulation, design an entity, assemble a world or organize a project. Your tools are grouped by what you want to make."
+          icon={Sparkles}
+        />
+      </div>
 
       <section aria-labelledby="quick-start-heading">
         <div className="mb-4 flex items-center gap-2">
@@ -73,7 +75,7 @@ export default async function CreatePage() {
             <p className="text-sm text-muted">Reusable creations can appear across projects and experiences.</p>
           </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
           {render("entity")}
           {render("world")}
           {render("simulation")}
@@ -85,7 +87,7 @@ export default async function CreatePage() {
           <FolderKanban className="size-4 text-accent" />
           <h2 id="organize-and-future-heading" className="text-lg font-semibold text-foreground">Organize today, see what is next</h2>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {render("project")}
           {render("animation")}
         </div>

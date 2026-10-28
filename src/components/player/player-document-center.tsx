@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, FileBadge2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/client/api";
 import { useToast } from "@/components/ui/toast";
-import { documentDisplayStatus, qualificationChecklist, type VirtualDocumentKind } from "@/lib/player-identity/documents";
+import { qualificationChecklist, type VirtualDocumentKind } from "@/lib/player-identity/documents";
+import { VirtualCredentialGallery, type VirtualCredentialApplicant } from "./virtual-credential-gallery";
 
 type Country = { id: string; name: string; isoAlpha2: string | null };
 type Application = {
@@ -33,11 +34,14 @@ const kinds = [
 const field = "w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-accent";
 
 export function PlayerDocumentCenter({
-  initial, username, homeCountryId,
-}: { initial: VirtualDocumentsInitial; username: string | null; homeCountryId: string | null }) {
+  initial, username, homeCountryId, applicant,
+}: { initial: VirtualDocumentsInitial; username: string | null; homeCountryId: string | null;
+  applicant: VirtualCredentialApplicant }) {
   const router = useRouter();
   const { toast } = useToast();
   const [applications, setApplications] = useState(initial.applications);
+  // Reflect a separate reviewer’s approval when the page is refreshed.
+  useEffect(() => setApplications(initial.applications), [initial.applications]);
   const [kind, setKind] = useState<VirtualDocumentKind>("CITIZENSHIP");
   const [countryPlaceId, setCountryPlaceId] = useState(initial.countries[0]?.id ?? "");
   const [statement, setStatement] = useState("");
@@ -81,6 +85,8 @@ export function PlayerDocumentCenter({
         <p className="mt-2 text-xs text-secondary">This pilot does not charge fees or allow players to issue their own documents.
           Country-specific legal travel rights are not implemented.</p>
       </div>
+
+      <VirtualCredentialGallery applications={applications} applicant={applicant} />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <form onSubmit={apply} className="space-y-4 rounded-2xl border border-border bg-surface p-5">
@@ -136,13 +142,12 @@ export function PlayerDocumentCenter({
               <p className="text-xs text-secondary">{app.country.name}</p>
               <p className="mt-2 text-sm">Status: <strong>{app.status.replaceAll("_", " ")}</strong></p>
               {app.reviewNote && <p className="mt-2 text-xs text-secondary">Review note: {app.reviewNote}</p>}
-              {app.document && <div className="mt-3 rounded-lg border border-border bg-surface p-3">
-                <p className="text-xs font-semibold text-accent">SIMVERSE-only document · {documentDisplayStatus({
-                  status: app.document.status, expiresAt: new Date(app.document.expiresAt),
-                })}</p>
-                <p className="mt-1 break-all font-mono text-xs">{app.document.serial}</p>
-                <p className="text-xs text-muted">Expires: {new Date(app.document.expiresAt).toLocaleDateString()}</p>
-              </div>}
+              {app.document && <a href="#credential-wallet-heading" className="mt-3 inline-flex text-xs font-semibold text-accent hover:underline">
+                View your issued virtual credential ↑
+              </a>}
+              {app.status === "APPROVED" && !app.document && <p className="mt-3 text-xs text-amber-600 dark:text-amber-300">
+                Historical approval without a credential record. An authorized SIMVERSE operator must issue a dated record.
+              </p>}
             </div>)}
           </div>
         )}
