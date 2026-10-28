@@ -198,6 +198,14 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
               {tab.name}{tab.count > 0 ? ` (${tab.count})` : ""}
             </option>)}
           </select>
+          {unread > 0 && <button type="button"
+            aria-label={`${unread} unread chat messages`}
+            title="Unread chats"
+            onClick={() => { setSection("chats"); setSelected(null); }}
+            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
+            <MessageCircle className="size-4" />
+            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{unread > 99 ? "99+" : unread}</span>
+          </button>}
           {social.incoming.length > 0 && <button type="button"
             aria-label={`${social.incoming.length} pending friend requests`}
             title="Friend requests"
