@@ -209,10 +209,10 @@ export function TopBar({
             </div>
           </div>
           <DropdownSeparator />
-          <Link href="/settings">
+          <Link href="/profile">
             <DropdownItem>
               <UserRound className="size-4" />
-              Profile &amp; account
+              My player profile
             </DropdownItem>
           </Link>
           <Link href="/settings">

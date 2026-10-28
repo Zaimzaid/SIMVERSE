@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { newSimverseId } from "./player-identity-service";
 import {
   AuthenticationError,
   ConflictError,
@@ -41,6 +42,9 @@ export async function registerUser(input: unknown): Promise<RegisterResult> {
     const createdUser = await tx.user.create({
       data: { displayName, email, passwordHash },
       omit: { passwordHash: true },
+    });
+    await tx.playerIdentity.create({
+      data: { userId: createdUser.id, simverseId: newSimverseId() },
     });
     const createdWorkspace = await tx.workspace.create({
       data: { name: workspaceName, slug, ownerId: createdUser.id },

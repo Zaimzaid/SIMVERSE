@@ -28,6 +28,7 @@ import type { EarthBoundaryView, EarthPlaceDetail, EarthPlaceSummary } from "@/l
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EarthQuickNavigation } from "@/components/earth/earth-quick-navigation";
 
 interface GeographyExplorerProps {
   initialCountries: EarthPlaceSummary[];
@@ -118,6 +119,7 @@ export function GeographyExplorer({
   const [nextParcelCursor, setNextParcelCursor] = useState<string | null>(null);
   const [mapZoom, setMapZoom] = useState(1.6);
   const [streetMapEnabled, setStreetMapEnabled] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(true);
   const parcelQueryRef = useRef<{ bbox: string; zoom: number } | null>(null);
   const parcelsRef = useRef<EarthParcelView[]>([]);
   const selectParcelRef = useRef<(id: string) => void>(() => undefined);
@@ -141,6 +143,7 @@ export function GeographyExplorer({
   parcelsRef.current = parcels;
   selectParcelRef.current = (id) => {
     setSelectedParcel(parcelsRef.current.find((item) => item.id === id) ?? null);
+    setDetailsOpen(true);
   };
 
   useEffect(() => {
@@ -333,6 +336,18 @@ export function GeographyExplorer({
           });
           map.on("mouseenter", "virtual-parcels-fill", () => { map.getCanvas().style.cursor = "pointer"; });
           map.on("mouseleave", "virtual-parcels-fill", () => { map.getCanvas().style.cursor = ""; });
+          map.on("click", (event) => {
+            // Ordinary map taps make the map the focus. Clicking plots or
+            // markers instead keeps details visible, so selection isn't hidden.
+            const layers = [
+              "virtual-parcels-fill",
+              "development-zone-overview-markers",
+              "settlement-overview-markers",
+            ].filter((id) => Boolean(map.getLayer(id)));
+            if (!map.queryRenderedFeatures(event.point, { layers }).length) {
+              setDetailsOpen(false);
+            }
+          });
           map.on("moveend", () => setMapZoom(map.getZoom()));
           mapRef.current = map;
           setMapZoom(map.getZoom());
@@ -351,6 +366,15 @@ export function GeographyExplorer({
       mapRef.current = null;
     };
   }, []);
+
+  // Grid width changes when the information panel is hidden or shown.
+  // Resize MapLibre after layout rather than leaving stretched/clipped tiles.
+  useEffect(() => {
+    if (!mapReady || !mapElement.current) return;
+    const observer = new ResizeObserver(() => mapRef.current?.resize());
+    observer.observe(mapElement.current);
+    return () => observer.disconnect();
+  }, [mapReady]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -579,6 +603,7 @@ export function GeographyExplorer({
   }
 
   async function showZone(zoneSummary: EarthZoneSummary) {
+    setDetailsOpen(true);
     setLandBusy(true);
     setLandMessage("");
     setParcels([]);
@@ -702,19 +727,37 @@ export function GeographyExplorer({
   );
 
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className={`grid items-start gap-5 ${detailsOpen ? "xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}`} data-earth-map-mode={detailsOpen ? "details" : "focus"}>
       <section className="overflow-hidden rounded-2xl border border-border bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Protected Earth explorer</p>
-            <p className="text-xs text-muted">Pinned WGS84 catalog geometry over a versioned Natural Earth overview</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-4">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <EarthQuickNavigation
+              countries={initialCountries}
+              hierarchy={hierarchy}
+              selected={selected}
+              states={subdivisions}
+              lgas={localGovernments}
+              cities={localities}
+              zones={zones}
+              busy={Boolean(busyId) || landBusy}
+              onChoosePlace={(place) => void showPlace(place)}
+              onChooseZone={(zone) => void showZone(zone)}
+              onOpenDetails={() => setDetailsOpen(true)}
+            />
+            <div className="hidden min-w-0 md:block">
+              <p className="text-sm font-semibold text-foreground">SIMVERSE Earth Map</p>
+              <p className="text-xs text-muted">{selected?.name ?? "Explore countries and regions"}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href="/earth" className={buttonClasses({ variant: "ghost", size: "sm" })}>
-              Public globe
-            </Link>
-            <Badge variant="accent">{initialPlaceCount} places</Badge>
-            <Badge variant={mapReady ? "success" : "warning"}>{mapReady ? "Globe ready" : "Loading WebGL"}</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" variant={detailsOpen ? "ghost" : "secondary"}
+              onClick={() => setDetailsOpen((value) => !value)}
+              aria-expanded={detailsOpen} aria-controls="earth-information-panel"
+              data-earth-details-toggle>
+              {detailsOpen ? "Focus map" : "Show details"}
+            </Button>
+            <Link href="/earth" className={buttonClasses({ variant: "ghost", size: "sm" })}>Public globe</Link>
+            <Badge variant={mapReady ? "success" : "warning"}>{mapReady ? "Map ready" : "Loading"}</Badge>
           </div>
         </div>
         <div className="relative h-[28rem] min-h-[26rem] w-full bg-[#071323] sm:h-[34rem]">
@@ -755,7 +798,8 @@ export function GeographyExplorer({
         </div>
       </section>
 
-      <aside className="space-y-4">
+      {detailsOpen ? (
+      <aside id="earth-information-panel" className="space-y-4">
         {hierarchy.length ? (
           <nav aria-label="Geographic hierarchy" className="rounded-2xl border border-border bg-surface p-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Location hierarchy</p>
@@ -986,6 +1030,7 @@ export function GeographyExplorer({
 
         {message ? <p role="status" className="rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warning">{message}</p> : null}
       </aside>
+      ) : null}
     </div>
   );
 }
