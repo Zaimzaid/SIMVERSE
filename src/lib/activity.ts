@@ -66,6 +66,24 @@ export function describeAuditAction(
       return { icon: FileText, label: "SIMVERSE virtual travel agreement proposed" };
     case "player.governance.treaty_approved":
       return { icon: CheckCircle2, label: "SIMVERSE virtual travel agreement approved" };
+    case "player.economy.profession_selected":
+      return { icon: CheckCircle2, label: "SIMVERSE profession and starter credits activated" };
+    case "player.economy.business_draft_created":
+      return { icon: FileText, label: "SIMVERSE virtual business draft created" };
+    case "player.work.orientation_completed":
+      return { icon: CheckCircle2, label: "SIMVERSE introductory orientation completed" };
+    case "player.work.business_submitted":
+      return { icon: FileText, label: "SIMVERSE virtual business submitted for review" };
+    case "player.work.business_reviewed":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual business reviewed" };
+    case "player.work.job_posted":
+      return { icon: FileText, label: "SIMVERSE fictional vacancy posted" };
+    case "player.work.job_applied":
+      return { icon: FileText, label: "SIMVERSE job application submitted" };
+    case "player.work.employer_decision":
+      return { icon: CheckCircle2, label: "SIMVERSE job application considered" };
+    case "player.work.offer_answered":
+      return { icon: CheckCircle2, label: "SIMVERSE virtual job offer answered" };
     case "workspace.created":
       return {
         icon: Sparkles,

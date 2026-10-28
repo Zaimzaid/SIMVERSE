@@ -30,6 +30,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
@@ -40,6 +41,8 @@ model User {
   virtualTravelTreatiesProposed PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyProposer")
   virtualTravelTreatiesOriginApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyOriginApprover")
   virtualTravelTreatiesDestinationApproved PlayerBilateralTravelAgreement[] @relation("VirtualTravelTreatyDestinationApprover")
+  businessReviewGrant PlayerBusinessReviewer? @relation("BusinessReviewGrantUser")
+  businessReviews PlayerVirtualBusiness[] @relation("BusinessReviewActor")
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
@@ -101,6 +104,11 @@ model PlayerIdentity {
   documentApplications PlayerDocumentApplication[]
   virtualDocuments PlayerVirtualDocument[]
   travelVisaApplications PlayerTravelVisaApplication[]
+  careerProfile PlayerCareerProfile?
+  virtualWallet PlayerVirtualWallet?
+  virtualBusinesses PlayerVirtualBusiness[]
+  orientationCertificate PlayerOrientationCertificate?
+  workApplications PlayerWorkApplication[]
 
   @@index([profileVisibility, username])
   @@index([homeCountryId])
@@ -309,6 +317,137 @@ model PlayerBilateralTravelAgreement {
   @@index([status, createdAt])
 }
 
+// --------------------------------------------------------------------------
+// PLAYER ECONOMY Phase 5 (pilot). All SVC balances are nonredeemable
+// fictional game points: never money, crypto, payments or cash equivalents.
+// --------------------------------------------------------------------------
+
+model PlayerCareerProfile {
+  id                 String   @id @default(cuid())
+  identityId         String   @unique
+  professionCode     String   // Strict server-side closed profession catalog
+  selectedAt         DateTime @default(now())
+  onboardingVersion  Int      @default(1)
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([professionCode])
+}
+
+model PlayerVirtualWallet {
+  id          String   @id @default(cuid())
+  identityId  String   @unique
+  currency    String   @default("SVC")
+  balance     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  entries PlayerWalletEntry[]
+}
+
+// Positive single-source, immutable mint history for introductory credits.
+// Wallet snapshot and entry must be created inside the same DB transaction.
+// No exposed spending, transfer, payment or mint endpoint in this phase.
+model PlayerWalletEntry {
+  id         String @id @default(cuid())
+  walletId   String
+  eventKey   String @unique // one-time onboarding idempotency key
+  kind       String // STARTER_GRANT only in Phase 5
+  amount     Int
+  balanceAfter Int
+  createdAt  DateTime @default(now())
+
+  wallet PlayerVirtualWallet @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+}
+
+// A draft in-world company identity is not an operating license, actual
+// business registration or title. A later governed flow will approve it.
+model PlayerVirtualBusiness {
+  id             String   @id @default(cuid())
+  identityId     String
+  name           String
+  nameKey        String   @unique
+  sector         String
+  description    String   @default("")
+  status         String   @default("DRAFT") // DRAFT; no player grant endpoint
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  reviewNote String?
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("BusinessReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  jobs PlayerVirtualJob[]
+
+  @@index([identityId, createdAt])
+}
+
+// Phase 6: introductory in-world orientation. Not verified real-world education,
+// qualification, employment or medical/professional licensure.
+model PlayerOrientationCertificate {
+  id String @id @default(cuid())
+  identityId String @unique
+  professionCode String
+  assessmentVersion Int @default(1)
+  score Int
+  earnedAt DateTime @default(now())
+  identity PlayerIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+}
+
+// A SIMVERSE operator must provision an independent reviewer out-of-band.
+// No business owner or workspace role implicitly receives this grant.
+model PlayerBusinessReviewer {
+  id String @id @default(cuid())
+  userId String @unique
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation("BusinessReviewGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Employment matching is fictional and never generates payroll/money.
+// Hiring requires a previously approved virtual business.
+model PlayerVirtualJob {
+  id String @id @default(cuid())
+  businessId String
+  title String
+  description String
+  professionCode String
+  status String @default("OPEN") // OPEN | CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  business PlayerVirtualBusiness @relation(fields: [businessId], references: [id], onDelete: Restrict)
+  applications PlayerWorkApplication[]
+  @@index([status, createdAt])
+  @@index([businessId, createdAt])
+}
+
+model PlayerWorkApplication {
+  id String @id @default(cuid())
+  jobId String
+  applicantIdentityId String
+  statement String
+  status String @default("SUBMITTED") // SUBMITTED | OFFERED | REJECTED | ACCEPTED | DECLINED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job PlayerVirtualJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  applicant PlayerIdentity @relation(fields: [applicantIdentityId], references: [id], onDelete: Cascade)
+  employment PlayerVirtualEmployment?
+  @@unique([jobId, applicantIdentityId])
+  @@index([applicantIdentityId, createdAt])
+}
+
+model PlayerVirtualEmployment {
+  id String @id @default(cuid())
+  applicationId String @unique
+  startedAt DateTime @default(now())
+  status String @default("ACTIVE")
+  application PlayerWorkApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+}
+
 /// A workspace: the primary tenant boundary. Users may belong to many workspaces.
 model Workspace {
   id        String   @id @default(cuid())
@@ -335,6 +474,7 @@ model Workspace {
   tournaments          Tournament[]
   mediaArtifacts       MediaArtifact[]
   mediaShares          MediaShare[]
+  economyLabs          EconomyLab[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -1674,4 +1814,39 @@ model MediaShare {
   createdBy User?         @relation("MediaShareCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, visibility, updatedAt])
+}
+
+
+// SIMVERSE ECONOMY LAB v1 — owner-scoped fictional closed-currency demonstration.
+// This is intentionally independent from PlayerVirtualWallet / platform SVC.
+// No purchase or currency exchange endpoints exist.
+model EconomyLab {
+  id          String @id @default(cuid())
+  workspaceId String
+  creatorId   String
+  name        String
+  stateJson   String
+  access      String @default("PRIVATE") // PRIVATE or WORKSPACE (explicit creator opt-in)
+  revision    Int @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator     User @relation("EconomyLabCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  transfers   EconomyLabTransfer[]
+  @@index([workspaceId, creatorId])
+}
+
+model EconomyLabTransfer {
+  id          String @id @default(cuid())
+  labId       String
+  sequence    Int
+  day         Int
+  fromAccount String
+  toAccount   String
+  amount      Int
+  kind        String
+  createdAt   DateTime @default(now())
+  lab         EconomyLab @relation(fields: [labId], references: [id], onDelete: Cascade)
+  @@unique([labId, sequence])
+  @@index([labId, day])
 }

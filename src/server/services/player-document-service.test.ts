@@ -88,6 +88,13 @@ describe("country-scoped SIMVERSE virtual document workflow", () => {
       decision: "APPROVE", note: "Qualified under the SIMVERSE fictional pilot.",
     });
     expect(approved.application.status).toBe("APPROVED");
+    // Phase 7 visual wallet: citizenship has its own dated, fictional ID
+    // credential after approval, never during an application.
+    expect(approved.application.document?.status).toBe("ISSUED");
+    expect(approved.application.document?.kind).toBe("CITIZENSHIP");
+    expect(approved.application.document?.displayStatus).toBe("VALID");
+    expect(new Date(approved.application.document!.expiresAt).getUTCFullYear())
+      .toBe(new Date(approved.application.document!.issuedAt).getUTCFullYear() + 1);
     expect(await prisma.playerCitizenship.count({ where: { status: "ACTIVE" } })).toBe(1);
     await expect(reviewVirtualDocumentApplication(reviewer.user.id, application.id, {
       decision: "APPROVE", note: "Must not review twice.",
@@ -102,9 +109,10 @@ describe("country-scoped SIMVERSE virtual document workflow", () => {
       expect(reviewed.application.document?.serial).toMatch(/^SVV-[0-9A-F]{24}$/);
       expect(reviewed.application.document?.displayStatus).toBe("VALID");
     }
-    expect(await prisma.playerVirtualDocument.count()).toBe(2);
+    expect(await prisma.playerVirtualDocument.count()).toBe(3);
     const me = await getMyVirtualDocuments(owner.user.id);
     expect(me.applications).toHaveLength(3);
+    expect(me.applications.every((app) => app.document && app.document.issuedAt && app.document.expiresAt)).toBe(true);
     expect(me.citizenships).toHaveLength(1);
     expect(JSON.stringify(me)).not.toContain("passwordHash");
   });
