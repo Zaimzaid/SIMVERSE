@@ -1,7 +1,7 @@
 # SIMVERSE — Project Status, Product Scope and Release Roadmap
 
-**Snapshot:** 28 October 2026  
-**Source of truth:** `Zaimzaid/SIMVERSE` (private GitHub repository), current source and open PRs, plus the owner's laptop reviews.  
+**Snapshot:** 28 October 2026 — **post-merge integrated `master` source**  
+**Source of truth:** `Zaimzaid/SIMVERSE` (private GitHub repository), merged `master` commit `5c11d401`, integration [PR #22](https://github.com/Zaimzaid/SIMVERSE/pull/22), disposable-db CI, plus the owner's earlier laptop recordings.  
 **Document purpose:** guide the owner, future coding agents and collaborators on exactly what exists, what is incomplete and what to build next. This is **not** a release certificate or delivery estimate.
 
 [Return to project README](../README.md) · [Product vision](vision/VISION.md) · [Earth's authoritative 8-phase plan](earth/IMPLEMENTATION_PLAN.md)
@@ -67,22 +67,22 @@ An original global virtual universe combined with a general-purpose simulation/c
 - Sampled High-quality scenes showed about **28–30 FPS**, and an aerial scene roughly **828 draw calls** in the visible HUD. This is a limited observation, not a representative performance certification.
 - Recent UI, virtual document and illustrated background changes passed automated CI; they still need owner device review.
 
-## D. Branches and unmerged PRs — critical to avoid lost features
+## D. GitHub merge history — unified source, remaining release gates
 
 | Track | Pull requests and branches | Relationship |
 | --- | --- | --- |
-| Earth | #1, #3, #4, #5 | Earth chain, separate from most player/economy branches |
-| Marina | #6 → #16 | `feature/earth-neighborhood-3d-proof` → `feature/marina-junction-visual-v02` |
-| Player and work | #7 → #12 | Identity → Documents → Travel → Governance → Career → Employment |
-| Economy | #13 → #15 | Built on Player Phase 6; private GFC lab → local commerce → 3D town |
-| Workspace UI | #17 | Built on Economy Phase 3 (#15) |
-| Document wallet | #18 | Built on the UI branch (#17) |
-| Art backgrounds | #19 | Built on Virtual Document Wallet (#18) |
-| This documentation | A new documentation-only branch off #19 | Proposes root `README.md` and this file |
+| Earth | #1, #3, #4, #5 | Earth branches merged through the reviewed stack and the unified `master` merge |
+| Marina | #6 → #16 → #21 | #6 superseded/closed; conflict-resolved Marina V0.2 integrated through #21 → #22 |
+| Player and work | #7 → #12 | Identity → Documents → Travel → Governance → Career → Employment; merged via stack to `master` |
+| Economy | #13 → #15 | Built on Player Phase 6; private GFC lab → local commerce → 3D town; merged |
+| Workspace UI | #17 | Built on Economy Phase 3 (#15); merged |
+| Document wallet | #18 | Built on the UI branch (#17); merged |
+| Art backgrounds | #19 | Built on Virtual Document Wallet (#18); merged |
+| This documentation | #20 | Root `README.md` and this roadmap merged into `master` through #22 |
 
-As of the snapshot, **all the above PRs are open/unmerged**, and most are draft. The original `master` does not include them. An integrated build must reconcile **at least the Earth enhancement chain, the player/economy/UI branch chain and the independent Marina V0.2 chain**. A branch checkout can legitimately show an earlier UI or city because another branch's commits are not included.
+**As of 28 October 2026, the development tracks are merged into `master`.** Integration PR #21 combined Marina's V0.2 renderer and route with the Player/Economy/UI code while preserving the older Economy 3D town. The full merge PR #22 passed disposable CI and landed as `5c11d401439e24f78ba1b57a19d661299cbb4b2f`. These are **source code** merges, not production deployment or evidence that the feature flows passed a complete owner laptop smoke test.
 
-**Do not mass-merge PRs without reviewing data migrations and the overlapping Three.js renderer.** Use a dedicated integration branch with a reproducible database and a staged merge/rebase plan.
+**Next gate:** use a disposable database and the now-unified `master` branch to verify real browser behavior, particularly reviewer permissions, private economy records, both 3D routes, light/dark backgrounds and existing player data migrations. Do not run schema push or database-reset tests against the owner's existing database.
 
 ## E. What is NOT yet delivered
 
@@ -116,8 +116,8 @@ As of the snapshot, **all the above PRs are open/unmerged**, and most are draft.
 | Milestone | Goal | Current position | Completion / acceptance gate |
 | --- | --- | --- | --- |
 | **M0 — Inventory and baseline** | Confirm latest branch graph, code health, databases, visible features and owner-approved scope. | **Partially done** via audit and this documentation | Branch graph, known issues and reproducible smoke checklist signed off. |
-| **M1 — One integrated development build** | Reconcile relevant Earth, player/economy/UI and Marina city features. | **Not done** | One branch with all chosen routes, Prisma schema and auth working; CI + combined integration tests; no lost work. |
-| **M2 — UI / UX validation** | Finalize dark/light navigation, backgrounds, profile, virtual cards and mobile controls. | **Implemented in PRs #17–#19; visual signoff pending** | Owner walkthrough at 390/768/1366px, every active button works, legible contrast and no broken routes. |
+| **M1 — One integrated development build** | Reconcile relevant Earth, player/economy/UI and Marina city features. | **Source merged into `master`; combined CI passed; owner laptop smoke QA pending** | One branch with all chosen routes, Prisma schema and auth working; CI + combined integration tests; no lost work. |
+| **M2 — UI / UX validation** | Finalize dark/light navigation, backgrounds, profile, virtual cards and mobile controls. | **Merged into `master`; visual signoff pending** | Owner walkthrough at 390/768/1366px, every active button works, legible contrast and no broken routes. |
 | **M3 — Blender asset pipeline** | Source original/legally usable assets, make `.blend` masters and optimized `.glb` exports. | **Not started** | Three distinct credible buildings, one better vehicle, one rigged character and a material/asset license registry loaded in Three.js. |
 | **M4 — First polished playable street** | Deliver street, plaza, working camera, player avatar and enterable shop. | **Not started** (procedural prototypes only) | Player can explore and enter shop, interact, exit and reload without blocking errors; measured performance on target laptop. |
 | **M5 — First complete economic gameplay loop** | Join approved company/shop activity to persistent SVC/GFC-backed game state safely. | **Partial sandbox backend exists; interaction missing** | Player enters a shop, performs one authorized business action, views ledger/state and confirms persistence after refresh. No currency mint exploit. |
@@ -134,9 +134,9 @@ The feature must be *visually convincing*, *playable*, *auditable* and *repeatab
 
 ## G. Immediate next actions (in suggested order)
 
-1. **Do not merge early.** Freeze the current visual/background branch at its known CI-passing state and preserve the separately evaluated Marina V0.2 branch.
-2. **Review UI in browser.** Capture homepage/dashboard in dark and light mode, 390px mobile, Profile, Create, Documents, Simulations and Economy. Log contrast/layout defects.
-3. **Build an integration plan.** Compare PR #16's procedural renderer with PR #15's economy-town 3D component; address route, dependency and Prisma differences before merging. Create an isolated reproducible GitHub branch.
+1. **Review the merged baseline.** Use `master` at or after `5c11d401`; preserve backups and use a disposable database for all smoke/testing, not a production or valuable local database.
+2. **Review unified UI in browser.** Capture homepage/dashboard in dark and light mode, 390px mobile, Profile, Create, Documents, Simulations, Economy and Marina Junction. Log contrast/layout defects.
+3. **Complete post-merge regression and migration readiness.** Validate sign-in, player documents, scoped reviewer gates, SVC/GFC isolation, virtual land data, economy laboratory and both 3D scenes on one test dataset; plan migrations/backups separately before any real rollout.
 4. **Prepare Blender tooling:** install on the owner's Windows PC when approved; create an `assets/source` or equivalent original model registry, unit scale/axis convention, Blender→glTF export preset, texture budgets and visual benchmarks.
 5. **Model one showcase block first:** one shop with exterior/interior, one apartment, one landmark, pavement/road sections, one vehicle and an animated character. Measure model sizes and draw calls.
 6. **Implement interaction/persistence:** player/camera/animation, collisions, shop interaction API and audit-safe economic transaction. Regression-test the 2D economy and document reviewer paths.
