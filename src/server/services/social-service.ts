@@ -2,11 +2,13 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/server/db/client";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
+import { mediaUrlSchema, recordFriendInvite, recordFriendAccept, recordDirectMessage } from "./social-advanced-service";
 
 export const nameQuery = z.string().trim().toLowerCase().regex(/^[a-z][a-z0-9_]{2,23}$/);
 export const messageSchema = z.object({
   recipientId: z.string().min(1).max(80),
-  body: z.string().trim().min(1).max(1500),
+  body: z.string().trim().max(1500).default(""),
+  mediaUrl: mediaUrlSchema.optional(),
 }).strict();
 const targetSchema = z.object({ userId: z.string().min(1).max(80) }).strict();
 
@@ -76,10 +78,12 @@ export async function requestFriend(userId: string, payload: unknown) {
   const recent = await prisma.socialFriendship.count({ where: { senderId: userId, createdAt: { gte: new Date(Date.now() - 3600000) } } });
   if (recent >= 15) throw new ValidationError("You have reached the hourly invitation limit.");
   try {
-    return await prisma.socialFriendship.create({
+    const request = await prisma.socialFriendship.create({
       data: { pairKey: key, senderId: userId, receiverId: id },
       select: { id: true, status: true },
     });
+    await recordFriendInvite(id);
+    return request;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")
       throw new ConflictError("This request already exists.");
@@ -95,6 +99,7 @@ export async function respondFriend(userId: string, requestId: string, action: "
       where: { id: pending.id, status: "PENDING", receiverId: userId }, data: { status: "ACCEPTED" },
     });
     if (updated.count === 0) throw new ConflictError("The request has changed.");
+    await recordFriendAccept(pending.senderId);
     return;
   }
   const deleted = await prisma.socialFriendship.deleteMany({
@@ -127,7 +132,8 @@ export async function listConversation(userId: string, recipientId: string) {
       { senderId: recipientId, recipientId: userId },
     ] },
     orderBy: { createdAt: "desc" }, take: 100,
-    select: { id: true, body: true, senderId: true, recipientId: true, createdAt: true, readAt: true },
+    select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, readAt: true,
+      reactions:{select:{emoji:true,actorId:true}} },
   });
   await prisma.socialMessage.updateMany({
     where: { senderId: recipientId, recipientId: userId, readAt: null }, data: { readAt: new Date() },
@@ -136,15 +142,18 @@ export async function listConversation(userId: string, recipientId: string) {
 }
 export async function sendMessage(userId: string, payload: unknown) {
   const parsed = messageSchema.safeParse(payload);
-  if (!parsed.success) throw new ValidationError("Write a message of 1–1500 characters.");
-  const { recipientId, body } = parsed.data;
+  if (!parsed.success || (!parsed.data.body && !parsed.data.mediaUrl))
+    throw new ValidationError("Write a message or include a supported HTTPS media URL.");
+  const { recipientId, body, mediaUrl } = parsed.data;
   await requireFriend(userId, recipientId);
   const count = await prisma.socialMessage.count({
     where: { senderId: userId, createdAt: { gte: new Date(Date.now() - 60000) } },
   });
   if (count >= 20) throw new ValidationError("Message limit reached. Try again shortly.");
-  return prisma.socialMessage.create({
-    data: { senderId: userId, recipientId, body },
-    select: { id: true, senderId: true, recipientId: true, body: true, createdAt: true, readAt: true },
+  const message=await prisma.socialMessage.create({
+    data: { senderId: userId, recipientId, body, mediaUrl },
+    select: { id: true, senderId: true, recipientId: true, body: true, mediaUrl: true, createdAt: true, readAt: true },
   });
+  await recordDirectMessage(recipientId);
+  return message;
 }
