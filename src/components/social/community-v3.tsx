@@ -188,17 +188,19 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
           <RefreshCw className="size-4" />
         </button>
       </header>
-      <nav aria-label="Community sections" className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 sm:gap-3 sm:p-4">
+      {/* Equal-size compact tabs: always show all six, no sideways scrolling. */}
+      <nav aria-label="Community sections" className="grid w-full grid-cols-3 gap-1.5 p-2 sm:gap-2 sm:p-3 lg:grid-cols-6">
         {tabs.map(tab => <button key={tab.key} type="button"
           onClick={() => { setSection(tab.key); setSelected(null); setError(""); setNotice(""); }}
           aria-current={section === tab.key ? "page" : undefined}
           aria-label={`${tab.name}${tab.count ? ` (${tab.count})` : ""}`}
-          className={`relative flex min-h-[90px] min-w-0 flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-[98px] ${section === tab.key ? "border-accent/60 bg-background text-accent shadow-sm" : "border-border bg-surface-hover text-foreground hover:border-accent/40 hover:bg-accent-soft"}`}>
-          <span className="relative flex items-center justify-center">
-            <tab.icon className="size-5" />
-            {tab.count > 0 && <span className="absolute -right-7 -top-2 grid min-w-5 place-items-center rounded-full bg-red-600 px-1 py-0.5 text-[10px] leading-tight text-white" aria-label={`${tab.count} notifications`}>{tab.count > 99 ? "99+" : tab.count}</span>}
-          </span>
-          <span className="truncate">{tab.name}</span>
+          className={`relative flex h-[66px] flex-col min-w-0 items-center justify-center gap-1 rounded-lg border px-1.5 py-2 text-center text-[10px] font-semibold leading-tight transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:h-[62px] sm:text-xs lg:h-[52px] lg:flex-row lg:gap-2 lg:px-2 ${section === tab.key ? "border-accent/60 bg-accent-soft text-accent" : "border-border bg-surface text-secondary hover:border-accent/40 hover:bg-surface-hover hover:text-foreground"}`}
+          style={{flexDirection: undefined}}>
+          <tab.icon className="size-4 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 whitespace-normal break-words">{tab.name}</span>
+          {tab.count > 0 && <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white" aria-label={`${tab.count} unread`}>
+            {tab.count > 99 ? "99+" : tab.count}
+          </span>}
         </button>)}
       </nav>
       <div className="min-w-0 border-t border-border">
