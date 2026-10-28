@@ -16,8 +16,10 @@ export default async function MyVirtualDocumentsPage() {
     getMyPlayerIdentity(user.id), getMyVirtualDocuments(user.id),
   ]);
   return <div className="mx-auto max-w-5xl space-y-6">
-    <PageHeader icon={FileBadge2} title="Citizenship & Virtual Documents"
-      description="Manage fictional SIMVERSE citizenship, domestic and international travel-document applications." />
+    <div className="simverse-page-scene simverse-page-scene--documents">
+      <PageHeader icon={FileBadge2} title="Citizenship & Virtual Documents"
+        description="Manage fictional SIMVERSE citizenship, domestic and international travel-document applications." />
+    </div>
     <div className="flex flex-wrap gap-3">
       <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">← Back to my player identity</Link>
       <Link href="/profile/travel" className="inline-block text-sm font-semibold text-accent hover:underline">Virtual travel & immigration →</Link>

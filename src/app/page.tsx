@@ -80,9 +80,9 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden">
-          <div className="aurora" aria-hidden="true" />
-          <div className="absolute inset-0 grid-overlay" aria-hidden="true" />
+        <section className="simverse-public-hero relative isolate overflow-hidden">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true" />
+          <div className="absolute inset-0 grid-overlay opacity-10" aria-hidden="true" />
           <div className="relative mx-auto w-full max-w-5xl px-4 py-24 text-center sm:px-6 sm:py-32 lg:py-40">
             <Badge variant="accent" className="mx-auto mb-8">
               <CircleDot className="size-3" />
@@ -96,7 +96,7 @@ export default async function LandingPage() {
             <h1 className="mt-8 font-display text-4xl font-bold leading-[1.05] text-foreground sm:text-6xl">
               Simulate anything.
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-secondary">
+            <p className="hero-description mx-auto mt-5 max-w-2xl text-lg">
               Build worlds. Create entities. Run simulations. Turn outcomes into
               stories.
             </p>
