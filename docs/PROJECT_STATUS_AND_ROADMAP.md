@@ -111,7 +111,7 @@ As of the snapshot, **all the above PRs are open/unmerged**, and most are draft.
 
 ## F. Release roadmap — 10 proposed milestone gates
 
-**These are forward-looking release milestones, NOT a claim that “Player Phase 1–10” is complete.** The separate [Earth plan](earth/IMPLEMENTATION_PLAN.md) has 8 authoritative phases and must retain its own numbering.
+**M0 is the preparatory audit, followed by ten proposed release milestones M1–M10. They are forward-looking, NOT a claim that “Player Phase 1–10” is complete.** The separate [Earth plan](earth/IMPLEMENTATION_PLAN.md) has 8 authoritative phases and must retain its own numbering.
 
 | Milestone | Goal | Current position | Completion / acceptance gate |
 | --- | --- | --- | --- |
