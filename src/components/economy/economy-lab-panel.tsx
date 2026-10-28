@@ -124,7 +124,8 @@ export function EconomyLabPanel({ initialLabs, initialDetail, canCreate }: {
     {state && selected ? <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><p className="text-xs text-secondary">{selected.access === "PRIVATE" ? "Private" : "Shared with workspace"} · Fictional GFC</p>
-          <h2 className="text-2xl font-semibold">{selected.name} — Day {state.day}</h2></div>
+          <h2 className="text-2xl font-semibold">{selected.name} — Day {state.day}</h2>
+          <Link href={`/economy/lab/${selected.id}/world`} className="mt-2 inline-flex items-center rounded-xl border border-accent/40 bg-accent-soft px-4 py-2 text-sm font-semibold text-accent hover:underline">Explore the living 3D town →</Link></div>
         {selected.owner ? <button className="rounded-xl bg-accent px-5 py-3 font-semibold text-white disabled:opacity-50"
           disabled={busy || state.day >= 3650}
           onClick={() => void perform({ kind: "ADVANCE", revision: selected.revision })}>Advance one day</button> : null}

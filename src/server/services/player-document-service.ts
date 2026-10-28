@@ -201,20 +201,22 @@ export async function reviewVirtualDocumentApplication(
             reviewNote: note,
           },
         });
-      } else {
-        const issuedAt = new Date();
-        await tx.playerVirtualDocument.create({
-          data: {
-            applicationId: application.id,
-            identityId: application.identityId,
-            kind: application.kind,
-            serial: `SVV-${randomBytes(12).toString("hex").toUpperCase()}`,
-            issuedAt,
-            expiresAt: pilotDocumentExpiry(issuedAt),
-            status: "ISSUED",
-          },
-        });
       }
+      // Every approved credential, including the fictional citizenship ID,
+      // receives a distinct read-only issuance record. This does NOT grant
+      // citizenship by rendering a card; the scoped reviewer approved above.
+      const issuedAt = new Date();
+      await tx.playerVirtualDocument.create({
+        data: {
+          applicationId: application.id,
+          identityId: application.identityId,
+          kind: application.kind,
+          serial: `SVV-${randomBytes(12).toString("hex").toUpperCase()}`,
+          issuedAt,
+          expiresAt: pilotDocumentExpiry(issuedAt),
+          status: "ISSUED",
+        },
+      });
     }
     await recordAudit({
       action: "player.document.reviewed", actorUserId: reviewerUserId,
