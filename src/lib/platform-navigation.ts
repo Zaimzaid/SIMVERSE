@@ -1,5 +1,5 @@
 import {
-  Compass, Hammer, House, Layers3, UserRound, WalletCards,
+  Compass, Hammer, House, Layers3, UserRound, WalletCards, MessagesSquare,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
@@ -25,7 +25,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "build", label: "Build", description: "Create and manage content",
-    icon: Hammer, routes: ["/create", "/projects", "/assets", "/studio", "/templates"],
+    icon: Hammer, routes: ["/create", "/projects", "/assets", "/studio", "/animation", "/templates"],
   },
   {
     id: "simulations", label: "Play & Simulate", description: "Launch interactive experiences",
@@ -34,6 +34,10 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   {
     id: "economy", label: "Economy", description: "Businesses and virtual careers",
     icon: WalletCards, routes: ["/economy/lab", "/profile/career", "/profile/work"],
+  },
+  {
+    id: "community", label: "Community", description: "Your friends and private conversations",
+    icon: MessagesSquare, routes: ["/social"],
   },
   {
     id: "identity", label: "My Life", description: "Your player identity and documents",

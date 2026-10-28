@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Clapperboard, FileVideo, Layers3, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Clapperboard, FileVideo, Layers3, Sparkles, WandSparkles } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 import { listCompletedMediaSources, listMediaArtifacts } from "@/server/services/media-artifact-service";
 import { MediaArtifactCard } from "@/components/media/media-artifact-card";
@@ -28,6 +29,12 @@ export default async function StudioPage() {
         title="SIMVERSE Studio"
         description="Turn completed simulations into editable, versioned stories without changing what happened."
       />
+
+      <Link href="/animation" className="flex items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-accent-soft/50 p-5 hover:border-accent">
+        <div><h2 className="flex items-center gap-2 font-semibold"><WandSparkles className="size-5 text-accent"/> Open Animation Studio</h2>
+        <p className="mt-1 text-sm text-secondary">Build standalone 2D keyframe scenes; no completed simulation required.</p></div>
+        <span className="text-sm font-semibold text-accent">Open →</span>
+      </Link>
 
       {canCreate ? (
         <Card as="section" className="overflow-hidden border-accent/25 bg-gradient-to-br from-accent-soft via-surface to-purple/10">

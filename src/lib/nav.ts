@@ -20,6 +20,8 @@ import {
   BriefcaseBusiness,
   ClipboardList,
   Users,
+  MessagesSquare,
+  WandSparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
@@ -50,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
       { label: "My Profile", href: "/profile", icon: UserRound, exact: true },
+      { label: "Friends & Messages", href: "/social", icon: MessagesSquare, exact: true },
       { label: "My Documents", href: "/profile/documents", icon: FileBadge2, exact: true },
       { label: "Travel & Immigration", href: "/profile/travel", icon: Plane, exact: true },
       { label: "My Career & Wallet", href: "/profile/career", icon: BriefcaseBusiness, exact: true },
@@ -76,6 +79,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Assets", href: "/assets", icon: Package, permission: "asset.view" },
       { label: "Studio", href: "/studio", icon: Clapperboard, permission: "media.view" },
+      { label: "Animation Studio", href: "/animation", icon: WandSparkles, permission: "media.view" },
       { label: "Templates", href: "/templates", icon: LayoutTemplate, permission: "project.view" },
       { label: "Analytics", href: "/analytics", icon: BarChart3, permission: "analytics.view" },
     ],

@@ -30,6 +30,14 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  socialRequestsSent SocialFriendship[] @relation("SocialFriendSender")
+  socialRequestsReceived SocialFriendship[] @relation("SocialFriendReceiver")
+  socialBlocksCreated SocialBlock[] @relation("SocialBlockOwner")
+  socialBlocksReceived SocialBlock[] @relation("SocialBlockTarget")
+  socialMessagesSent SocialMessage[] @relation("SocialMessageSender")
+  socialMessagesReceived SocialMessage[] @relation("SocialMessageRecipient")
+  animationProjects AnimationProject[] @relation("AnimationOwner")
+
   economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
@@ -475,6 +483,7 @@ model Workspace {
   mediaArtifacts       MediaArtifact[]
   mediaShares          MediaShare[]
   economyLabs          EconomyLab[]
+  animationProjects AnimationProject[]
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
@@ -1849,4 +1858,69 @@ model EconomyLabTransfer {
   lab         EconomyLab @relation(fields: [labId], references: [id], onDelete: Cascade)
   @@unique([labId, sequence])
   @@index([labId, day])
+}
+
+
+// ============================================================================
+// SIMVERSE COMMUNITY V1 — private, consent-based direct social interactions.
+// One friendship row for an unordered pair; requested by one member and
+// ACCEPTED only by the other. Blocking is always a separate hard veto.
+// No public message feed or unscoped mailbox read.
+// ============================================================================
+
+model SocialFriendship {
+  id String @id @default(cuid())
+  pairKey String @unique
+  senderId String
+  receiverId String
+  status String @default("PENDING") // PENDING | ACCEPTED (validated in service)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender User @relation("SocialFriendSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("SocialFriendReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, status])
+  @@index([receiverId, status])
+}
+
+model SocialBlock {
+  id String @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker User @relation("SocialBlockOwner", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("SocialBlockTarget", fields: [blockedId], references: [id], onDelete: Cascade)
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model SocialMessage {
+  id String @id @default(cuid())
+  senderId String
+  recipientId String
+  body String
+  createdAt DateTime @default(now())
+  readAt DateTime?
+  sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("SocialMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  @@index([senderId, recipientId, createdAt])
+  @@index([recipientId, senderId, createdAt])
+  @@index([recipientId, readAt, createdAt])
+}
+
+// Standalone keyframe animation editor. Records are scoped to the author
+// AND their workspace; projects do not generate simulation results.
+model AnimationProject {
+  id String @id @default(cuid())
+  ownerId String
+  workspaceId String
+  title String
+  durationMs Int @default(5000)
+  sceneJson String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner User @relation("AnimationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([ownerId, workspaceId, updatedAt])
 }
