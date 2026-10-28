@@ -29,7 +29,7 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
   const [focusNavExpanded, setFocusNavExpanded] = useState(false);
   const isMap = pathname === "/earth/geography";
   const isEconomyWorld = /^\/economy\/lab\/[^/]+\/world\/?$/.test(pathname);
-  const isFocus = isMap || isEconomyWorld;
+  const isFocus = isMap || isEconomyWorld || pathname === "/social";
   const collapsed = isFocus ? !focusNavExpanded : sidebarCollapsed;
   const active = areaForPath(pathname);
   const section = navLabelForPath(pathname);
