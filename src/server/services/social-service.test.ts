@@ -58,6 +58,19 @@ describe("consensual social messaging",()=>{
     expect(await prisma.socialMessage.count({
       where:{senderId:b.user.id,recipientId:a.user.id,readAt:null},
     })).toBe(5);
+    const older=await listConversation(a.user.id,b.user.id,page[0].id);
+    expect(older.map(message=>message.body)).toEqual([
+      "History 0","History 1","History 2","History 3","History 4",
+    ]);
+    expect(await prisma.socialMessage.count({
+      where:{senderId:b.user.id,recipientId:a.user.id,readAt:null},
+    })).toBe(0);
+    const c=await account("C");
+    const unrelated=await prisma.socialMessage.create({data:{
+      senderId:c.user.id,recipientId:a.user.id,body:"Private cursor",
+    }});
+    await expect(listConversation(a.user.id,b.user.id,unrelated.id))
+      .rejects.toBeInstanceOf(NotFoundError);
   });
   it("blocking immediately revokes friend access, not historical message ownership",async()=>{
     const a=await account("A"),b=await account("B");
