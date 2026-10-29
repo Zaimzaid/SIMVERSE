@@ -30,7 +30,7 @@ const password = z
   .regex(/[0-9]/, "Password must contain at least one number.");
 
 const optionalUrl = z
-  .union([z.url("Enter a valid URL."), z.literal("")])
+  .union([z.url("Enter a valid URL."), z.string().regex(/^\\/api\\/images\\/[a-z0-9]{10,40}$/, "Use a valid uploaded image URL."), z.literal("")])
   .optional()
   .transform((value) => (value ? value : undefined));
 
