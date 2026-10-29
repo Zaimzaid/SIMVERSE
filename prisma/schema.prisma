@@ -2262,3 +2262,76 @@ model MarketUploadedFile {
   @@index([workspaceId, assetId])
   @@index([uploaderId, createdAt])
 }
+
+
+// ============================================================================
+// SIMVERSE FICTIONAL PLANET — owner-authored virtual geography (Planet Phase 2)
+// Intentionally independent from EarthGeoPlace and source-derived ISO geography.
+// No country is seeded. A single stable planet record is initialized lazily.
+// ============================================================================
+
+model FictionalPlanet {
+  id        String   @id
+  name      String
+  radiusKm  Int      @default(6000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  countries FictionalCountry[]
+}
+
+model FictionalCountry {
+  id                 String   @id @default(cuid())
+  planetId           String
+  slug               String
+  name               String
+  description        String? 
+  color              String   @default("#38DCE4")
+  status             String   @default("DRAFT")
+  draftVersionId     String?
+  publishedVersionId String?
+  createdByUserId    String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  planet   FictionalPlanet @relation(fields: [planetId], references: [id], onDelete: Restrict)
+  versions FictionalCountryVersion[]
+
+  @@unique([planetId, slug])
+  @@index([planetId, status, name])
+  @@index([createdByUserId])
+}
+
+model FictionalCountryVersion {
+  id              String   @id @default(cuid())
+  countryId       String
+  revision        Int
+  name            String
+  slug            String
+  description     String?
+  color           String
+  geometryJson    String
+  geometryHash    String
+  areaKm2         Float
+  labelLongitude  Float
+  labelLatitude   Float
+  createdByUserId String
+  createdAt       DateTime @default(now())
+
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+
+  @@unique([countryId, revision])
+  @@index([countryId, createdAt])
+}
+
+/// A platform grant, not a workspace role. Its bootstrap is an operator action.
+/// Normal workspace OWNER/ADMIN roles are necessary but never sufficient.
+model FictionalPlanetSteward {
+  userId          String   @id
+  isActive        Boolean  @default(true)
+  canPublish      Boolean  @default(false)
+  grantedByUserId String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

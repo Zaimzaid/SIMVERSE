@@ -54,6 +54,12 @@ export async function resetDb(): Promise<void> {
   await prisma.earthDevelopmentZoneVersion.deleteMany();
   await prisma.earthDevelopmentZone.deleteMany();
   await prisma.earthSteward.deleteMany();
+  // Fictional SIMVERSE Planet is independent of imported Earth geography.
+  // Immutable country history is removed only in disposable test databases.
+  await prisma.fictionalCountryVersion.deleteMany();
+  await prisma.fictionalCountry.deleteMany();
+  await prisma.fictionalPlanetSteward.deleteMany();
+  await prisma.fictionalPlanet.deleteMany();
   // SIMVERSE Earth global geography catalog (children and immutable source
   // history first, then the self-referencing place hierarchy and datasets).
   await prisma.earthGeoPlaceRevision.deleteMany();
