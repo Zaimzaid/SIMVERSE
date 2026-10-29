@@ -5,18 +5,18 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/client/api";
 
 type Relationship = { kind: "NONE" | "INCOMING" | "OUTGOING" | "FRIENDS" | "BLOCKED"; requestId: string | null };
-export function PublicProfileFriendActions({ playerId, username, initial }: {
-  playerId: string; username: string; initial: Relationship;
+export function PublicProfileFriendActions({ playerId, initial }: {
+  playerId: string; initial: Relationship;
 }) {
   const [relationship, setRelationship] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function act(method: "POST" | "PATCH", payload: Record<string, string>) {
     setError(""); setBusy(true);
-    const result = await apiFetch("/api/social/friends", { method, body: JSON.stringify(payload) });
+    const result = await apiFetch<{ id: string }>("/api/social/friends", { method, body: JSON.stringify(payload) });
     setBusy(false);
     if (result.error) { setError(result.error.message); return; }
-    if (method === "POST") setRelationship({ kind: "OUTGOING", requestId: null });
+    if (method === "POST") setRelationship({ kind: "OUTGOING", requestId: result.data?.id ?? null });
     if (payload.action === "ACCEPT") setRelationship({ kind: "FRIENDS", requestId: null });
     if (payload.action === "REMOVE") setRelationship({ kind: "NONE", requestId: null });
   }

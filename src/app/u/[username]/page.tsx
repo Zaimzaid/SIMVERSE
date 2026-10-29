@@ -59,7 +59,7 @@ export default async function PublicPlayerPage({ params }: Props) {
           <span className="rounded-lg border border-border px-3 py-2">{player.experienceMode === "BOTH" ? "Player & Creator" : player.experienceMode === "PLAYER" ? "Player" : "Creator"}</span>
           {player.virtualHomeCountry && <span className="flex items-center gap-2 rounded-lg border border-border px-3 py-2"><Globe2 className="size-4"/> Virtual home: {player.virtualHomeCountry}</span>}
         </div>
-        {!own && viewer && <PublicProfileFriendActions playerId={player.userId} username={player.username} initial={relation}/>}
+        {!own && viewer && <PublicProfileFriendActions playerId={player.userId} initial={relation}/>}
         {!own && !viewer && <Link href="/login" className="inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white">Sign in to connect</Link>}
         <section aria-label="Published creator work" className="border-t border-border pt-5">
           <h2 className="flex items-center gap-2 text-lg font-semibold"><Clapperboard className="size-5 text-accent"/> Public creations</h2>
