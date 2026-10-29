@@ -11,6 +11,7 @@ import { loginSchema, parseOrThrow, registerSchema } from "@/lib/validation";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
 import { prisma, toSafeUser, SAFE_USER_OMIT } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
+import { verificationEnabled,mailConfigured } from "./email-verification-service";
 
 export interface RegisterResult {
   user: SafeUser;
@@ -34,13 +35,15 @@ export async function registerUser(input: unknown): Promise<RegisterResult> {
     throw new ConflictError("An account already exists with this email address.");
   }
 
+  const requireVerification=verificationEnabled();
+  if(requireVerification&&!mailConfigured())throw new ConflictError("Account registration is temporarily unavailable. Email delivery is not configured.");
   const passwordHash = await hashPassword(password);
   const workspaceName = `${displayName}'s Workspace`;
   const slug = `${slugify(displayName) || "workspace"}-${randomBytes(3).toString("hex")}`;
 
   const { user, workspace } = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
-      data: { displayName, email, passwordHash },
+      data: { displayName, email, passwordHash, emailVerificationRequired:requireVerification },
       omit: SAFE_USER_OMIT,
     });
     await tx.playerIdentity.create({
@@ -95,6 +98,9 @@ export async function authenticateUser(input: unknown): Promise<SafeUser> {
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
     throw new AuthenticationError();
+  }
+  if(user.emailVerificationRequired && !user.emailVerifiedAt){
+    throw new AuthenticationError("Verify your email address before logging in. You can request another verification email.");
   }
 
   await recordAudit({ action: "user.logged_in", actorUserId: user.id });
