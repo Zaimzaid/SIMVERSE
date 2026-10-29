@@ -25,6 +25,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { planetHomeCameraDistance } from "./visual-contract";
+import { samplePlanetSurface } from "./surface-field";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -56,18 +57,18 @@ export class SignaturePlanetRenderer {
     });
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = 1.16;
     this.renderer.setClearColor(0x020812, 1);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.lowPower ? 1.5 : 2));
     this.camera.position.set(0, 0, 7.15);
     this.camera.lookAt(0, 0, 0);
 
     this.scene.background = new Color("#020812");
-    this.scene.add(new AmbientLight(0x416eac, 0.85));
-    const sun = new DirectionalLight(0xbcefff, 3.25);
+    this.scene.add(new AmbientLight(0x8cb8df, 0.92));
+    const sun = new DirectionalLight(0xd7efff, 2.55);
     sun.position.set(-4, 3, 6);
     this.scene.add(sun);
-    const edge = new DirectionalLight(0x8a6ce5, 1.75);
+    const edge = new DirectionalLight(0x8a6ce5, 0.95);
     edge.position.set(4, -2, -5);
     this.scene.add(edge);
 
@@ -88,45 +89,25 @@ export class SignaturePlanetRenderer {
 
   private createSurfaceTexture(): CanvasTexture {
     const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 512;
+    // Longitude has matching edge pixels; both ends of the image are identical.
+    canvas.width = this.lowPower ? 768 : 1024;
+    canvas.height = this.lowPower ? 384 : 512;
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Planet surface drawing is unavailable.");
     const data = context.createImageData(canvas.width, canvas.height);
-    let seed = 712309;
-    const random = () => {
-      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
     for (let y = 0; y < canvas.height; y++) {
+      const latitude = y / (canvas.height - 1);
       for (let x = 0; x < canvas.width; x++) {
+        const longitude = x / (canvas.width - 1);
+        const [red, green, blue] = samplePlanetSurface(longitude, latitude);
         const index = (y * canvas.width + x) * 4;
-        const latitude = Math.abs(y / canvas.height - 0.5) * 2;
-        const band = Math.sin(y * 0.074 + Math.sin(x * 0.014) * 4) * 6;
-        const sweep = Math.sin(x * 0.022 + y * 0.016) * 5;
-        const fine = (random() - 0.5) * 10;
-        const polar = latitude * 14;
-        data.data[index] = Math.max(0, 17 + band + sweep + fine + polar * 0.5);
-        data.data[index + 1] = Math.max(0, 53 + band + sweep * 2 + fine + polar);
-        data.data[index + 2] = Math.max(0, 83 + band * 2 + sweep * 2 + fine + polar);
+        data.data[index] = red;
+        data.data[index + 1] = green;
+        data.data[index + 2] = blue;
         data.data[index + 3] = 255;
       }
     }
     context.putImageData(data, 0, 0);
-    // Fine mineral/atmospheric threads, deliberately not landmass-like silhouettes.
-    context.globalAlpha = 0.065;
-    for (let i = 0; i < 95; i++) {
-      const y = random() * canvas.height;
-      context.beginPath();
-      context.strokeStyle = i % 3 === 0 ? "#8d7ff4" : "#5bd8e4";
-      context.lineWidth = 0.5 + random() * 1.2;
-      for (let x = 0; x <= canvas.width; x += 16) {
-        const currentY = y + Math.sin(x * 0.014 + i) * (4 + random() * 4);
-        if (x === 0) context.moveTo(x, currentY);
-        else context.lineTo(x, currentY);
-      }
-      context.stroke();
-    }
     const texture = this.track(new CanvasTexture(canvas));
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = Math.min(this.renderer.capabilities.getMaxAnisotropy(), 4);
@@ -137,11 +118,11 @@ export class SignaturePlanetRenderer {
     const geometry = this.track(new SphereGeometry(1.55, this.lowPower ? 64 : 96, this.lowPower ? 44 : 72));
     const material = this.track(new MeshStandardMaterial({
       map: this.createSurfaceTexture(),
-      color: 0xc1e5ff,
-      roughness: 0.83,
-      metalness: 0.15,
-      emissive: new Color("#061a2d"),
-      emissiveIntensity: 0.45,
+      color: 0xdbefff,
+      roughness: 0.95,
+      metalness: 0.04,
+      emissive: new Color("#0a2948"),
+      emissiveIntensity: 0.18,
     }));
     this.root.add(new Mesh(geometry, material));
 
@@ -152,7 +133,7 @@ export class SignaturePlanetRenderer {
       blending: AdditiveBlending,
       uniforms: {
         glowCyan: { value: new Color("#38dce4") },
-        glowViolet: { value: new Color("#8a77e7") },
+        glowViolet: { value: new Color("#7c83d9") },
       },
       vertexShader: `
         varying vec3 vNormalWorld;
@@ -171,13 +152,13 @@ export class SignaturePlanetRenderer {
         uniform vec3 glowViolet;
         void main() {
           vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-          float rim = pow(1.0 - abs(dot(normalize(vNormalWorld), viewDirection)), 3.1);
+          float rim = pow(1.0 - abs(dot(normalize(vNormalWorld), viewDirection)), 4.2);
           vec3 color = mix(glowCyan, glowViolet, clamp(vWorldPosition.y * 0.28 + 0.34, 0.0, 1.0));
-          gl_FragColor = vec4(color, rim * 0.62);
+          gl_FragColor = vec4(color, rim * 0.28);
         }
       `,
     }));
-    this.root.add(new Mesh(this.track(new SphereGeometry(1.66, 64, 48)), atmosphere));
+    this.root.add(new Mesh(this.track(new SphereGeometry(1.61, 64, 48)), atmosphere));
   }
 
   private createRings(): void {
@@ -187,18 +168,18 @@ export class SignaturePlanetRenderer {
     const mainMaterial = this.track(new MeshBasicMaterial({
       color: 0x74f5f3,
       transparent: true,
-      opacity: 0.84,
+      opacity: 0.70,
       depthWrite: false,
     }));
     const mainGlowMaterial = this.track(new MeshBasicMaterial({
       color: 0x38dce4,
       transparent: true,
-      opacity: 0.12,
+      opacity: 0.075,
       depthWrite: false,
       blending: AdditiveBlending,
     }));
     main.add(new Mesh(this.track(new TorusGeometry(2.02, 0.012, 8, 320)), mainMaterial));
-    main.add(new Mesh(this.track(new TorusGeometry(2.02, 0.067, 8, 320)), mainGlowMaterial));
+    main.add(new Mesh(this.track(new TorusGeometry(2.02, 0.045, 8, 320)), mainGlowMaterial));
     main.add(new Mesh(
       this.track(new TorusGeometry(1.91, 0.0035, 6, 260)),
       this.track(new MeshBasicMaterial({ color: 0xd3ffff, transparent: true, opacity: 0.33, depthWrite: false })),
@@ -252,12 +233,13 @@ export class SignaturePlanetRenderer {
       this.lastTickAt = timestamp;
       return;
     }
+    if (!this.playing || this.reducedMotion) return;
     const frameLimit = this.lowPower ? 1000 / 30 : 1000 / 60;
     if (timestamp - this.lastFrameAt < frameLimit) return;
     const elapsedSeconds = this.lastTickAt ? Math.min((timestamp - this.lastTickAt) / 1000, 0.06) : 0;
     this.lastTickAt = timestamp;
     this.lastFrameAt = timestamp;
-    if (this.playing && !this.reducedMotion) this.root.rotation.y += elapsedSeconds * 0.075;
+    this.root.rotation.y += elapsedSeconds * 0.075;
     this.draw();
   };
 

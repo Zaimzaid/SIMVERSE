@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SIGNATURE_PLANET_V1, planetHomeCameraDistance } from "./visual-contract";
+import { PLANET_HOME_DESKTOP_DISTANCE, SIGNATURE_PLANET_V1, planetHomeCameraDistance } from "./visual-contract";
 
 describe("Signature Orbital Planet visual contract", () => {
   it("has no seeded fictional or real-world countries", () => {
@@ -16,8 +16,8 @@ describe("Signature Orbital Planet visual contract", () => {
   });
 
   it("keeps the preferred desktop framing and protects against malformed aspect ratios", () => {
-    expect(planetHomeCameraDistance(16 / 9)).toBe(7.15);
-    expect(planetHomeCameraDistance(0)).toBe(7.15);
-    expect(planetHomeCameraDistance(Number.NaN)).toBe(7.15);
+    expect(planetHomeCameraDistance(16 / 9)).toBe(PLANET_HOME_DESKTOP_DISTANCE);
+    expect(planetHomeCameraDistance(0)).toBe(PLANET_HOME_DESKTOP_DISTANCE);
+    expect(planetHomeCameraDistance(Number.NaN)).toBe(PLANET_HOME_DESKTOP_DISTANCE);
   });
 });

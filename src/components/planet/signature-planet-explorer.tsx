@@ -23,7 +23,6 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import type { SignaturePlanetRenderer } from "@/lib/planet/signature-planet-renderer";
@@ -62,6 +61,12 @@ export function SignaturePlanetExplorer() {
     let alive = true;
     let instance: SignaturePlanetRenderer | null = null;
     let observer: ResizeObserver | null = null;
+    // Attach a non-passive native wheel handler for actual canvas zoom.
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      engineRef.current?.zoom(event.deltaY * 0.004);
+    };
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
 
     void import("@/lib/planet/signature-planet-renderer")
       .then(({ SignaturePlanetRenderer, checkPlanetWebGL }) => {
@@ -86,6 +91,7 @@ export function SignaturePlanetExplorer() {
     return () => {
       alive = false;
       observer?.disconnect();
+      canvas.removeEventListener("wheel", handleWheel);
       instance?.dispose();
       engineRef.current = null;
       pointersRef.current.clear();
@@ -129,11 +135,6 @@ export function SignaturePlanetExplorer() {
     }
   };
 
-  const onWheel = (event: ReactWheelEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    engineRef.current?.zoom(event.deltaY * 0.004);
-  };
-
   const onKeyDown = (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
     const controls: Record<string, () => void> = {
       ArrowLeft: () => engineRef.current?.rotate(-25, 0),
@@ -165,7 +166,6 @@ export function SignaturePlanetExplorer() {
         onPointerUp={onPointerEnd}
         onPointerCancel={onPointerEnd}
         onLostPointerCapture={(event) => pointersRef.current.delete(event.pointerId)}
-        onWheel={onWheel}
         onKeyDown={onKeyDown}
       />
 
@@ -186,10 +186,10 @@ export function SignaturePlanetExplorer() {
       </header>
 
       <main className="pointer-events-none relative z-10 flex flex-1 flex-col justify-between gap-6 px-4 pb-6 pt-8 sm:px-8 sm:pb-8">
-        <div className="max-w-sm">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">A universe waiting to be created</p>
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">Your world.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">No borders yet.</span></h1>
-          <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">An original planet, ready for the countries and stories we create.</p>
+        <div className="max-w-md">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.17em] text-cyan-200/85 sm:text-sm">A universe waiting to be created</p>
+          <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-6xl">Your world.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">No borders yet.</span></h1>
+          <p className="mt-4 max-w-[19rem] text-sm leading-relaxed text-slate-200 sm:max-w-sm sm:text-base">An original planet, ready for the countries and stories we create.</p>
         </div>
 
         {!ready && (
@@ -207,14 +207,14 @@ export function SignaturePlanetExplorer() {
         )}
 
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div className="pointer-events-auto max-w-xs rounded-[22px] border border-white/15 bg-[#06162a]/90 p-4 shadow-xl backdrop-blur-md sm:p-5">
-            <div className="mb-3 flex items-center justify-between gap-6">
+          <div className="pointer-events-auto max-w-[20rem] rounded-[22px] border border-white/15 bg-[#06162a]/90 p-4 shadow-xl backdrop-blur-md sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-200"><Globe2 size={15} aria-hidden /> World status</div>
               <span className="rounded-full bg-amber-200/10 px-2 py-1 text-[10px] font-medium text-amber-100">Unallocated</span>
             </div>
             <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">countries</span></div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages.</p>
-            <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">No countries have been published. The Country Creator will let us build our own territories.</p>
+            <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-sm text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
             <button type="button" onClick={() => engineRef.current?.zoom(-0.55)} disabled={!ready} aria-label="Zoom in" title="Zoom in" className="grid size-10 place-items-center rounded-xl text-slate-100 transition hover:bg-white/10 disabled:opacity-40"><Plus size={18} aria-hidden /></button>
@@ -226,7 +226,7 @@ export function SignaturePlanetExplorer() {
         </div>
       </main>
 
-      <div className="pointer-events-none relative z-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#041020]/80 px-4 py-3 text-xs text-slate-400 backdrop-blur sm:px-8">
+      <div className="pointer-events-none relative z-10 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#041020]/80 px-4 py-3 text-sm text-slate-300 backdrop-blur sm:px-8">
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex items-center gap-1.5"><Compass size={13} aria-hidden /> Drag to orbit</span>
           <span className="flex items-center gap-1.5"><ChevronDown size={13} aria-hidden /> Pinch or scroll to zoom</span>
