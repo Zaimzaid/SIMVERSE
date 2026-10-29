@@ -34,6 +34,7 @@ import {
 import { planetHomeCameraDistance } from "./visual-contract";
 import { samplePlanetSurface } from "./surface-field";
 import type { PlanetPoint } from "./geometry";
+import type { PublishedPlanetCountry } from "./public-country-geometry";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -46,6 +47,9 @@ export class SignaturePlanetRenderer {
   readonly renderer: WebGLRenderer;
   private readonly root = new Group();
   private readonly previewGroup = new Group();
+  private readonly countriesGroup = new Group();
+  private publishedCountries: readonly PublishedPlanetCountry[] = [];
+  onViewChange: (() => void) | null = null;
   private readonly raycaster = new Raycaster();
   private readonly pointer = new Vector2();
   private planetSurface: Mesh | null = null;
@@ -88,6 +92,7 @@ export class SignaturePlanetRenderer {
     this.createPlanet();
     this.createRings();
     this.root.add(this.previewGroup);
+    this.root.add(this.countriesGroup);
     this.root.rotation.set(-0.13, -0.38, 0);
     this.scene.add(this.root);
     this.resize(canvas.clientWidth, canvas.clientHeight);
@@ -353,8 +358,136 @@ export class SignaturePlanetRenderer {
     this.draw();
   }
 
+
+  /** Render each published sovereign territory, including island pieces and holes. */
+  setPublishedCountries(countries: readonly PublishedPlanetCountry[], selectedId: string | null = null): void {
+    this.publishedCountries = countries;
+    for (const group of [...this.countriesGroup.children]) {
+      this.countriesGroup.remove(group);
+      group.traverse(object => {
+        if (object instanceof Mesh || object instanceof Line) {
+          object.geometry.dispose();
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach(material => material.dispose());
+        }
+      });
+    }
+    for (const country of countries) {
+      const selected = country.id === selectedId;
+      const tint = new Color(country.color);
+      const group = new Group();
+      const polygons = country.geometry.type === "Polygon"
+        ? [country.geometry.coordinates] : country.geometry.coordinates;
+
+      for (const polygon of polygons) {
+        const outer = polygon[0];
+        if (!outer || outer.length < 4) continue;
+        const unwrap = (ring: PlanetPoint[]): Vector2[] => {
+          const result: Vector2[] = [];
+          let lon = ring[0]![0];
+          for (const point of ring.slice(0, -1)) {
+            while (point[0] - lon > 180) lon += 360;
+            while (point[0] - lon < -180) lon -= 360;
+            lon = point[0] + Math.round((lon - point[0]) / 360) * 360;
+            result.push(new Vector2(lon, point[1]));
+          }
+          return result;
+        };
+        const contour = unwrap(outer);
+        const shellCenter = contour.reduce((sum, point) => sum + point.x, 0) / contour.length;
+        const holes = polygon.slice(1).map(ring => {
+          const points = unwrap(ring);
+          const center = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+          const correction = Math.round((shellCenter - center) / 360) * 360;
+          return points.map(point => new Vector2(point.x + correction, point.y));
+        });
+        const triangles = ShapeUtils.triangulateShape(contour, holes);
+        const merged = [...contour, ...holes.flat()];
+        const positions: number[] = [];
+        const emitTriangle = (a: Vector2, b: Vector2, c: Vector2, depth: number): void => {
+          if (depth <= 0) {
+            for (const point of [a, b, c]) {
+              const xyz = this.at(point.x, point.y, 1.566);
+              positions.push(xyz.x, xyz.y, xyz.z);
+            }
+            return;
+          }
+          const ab = a.clone().add(b).multiplyScalar(0.5);
+          const bc = b.clone().add(c).multiplyScalar(0.5);
+          const ca = c.clone().add(a).multiplyScalar(0.5);
+          emitTriangle(a, ab, ca, depth - 1);
+          emitTriangle(ab, b, bc, depth - 1);
+          emitTriangle(ca, bc, c, depth - 1);
+          emitTriangle(ab, bc, ca, depth - 1);
+        };
+        for (const triangle of triangles) {
+          const [ai, bi, ci] = triangle;
+          if (ai === undefined || bi === undefined || ci === undefined) continue;
+          const a = merged[ai], b = merged[bi], c = merged[ci];
+          if (a && b && c) {
+            const extent = Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a));
+            const subdivisions = extent > 18 ? 4 : extent > 9 ? 3 : extent > 4 ? 2 : 1;
+            emitTriangle(a, b, c, subdivisions);
+          }
+        }
+        if (positions.length) {
+          const geometry = new BufferGeometry();
+          geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+          const material = new MeshBasicMaterial({
+            color: tint, transparent: true, opacity: selected ? 0.53 : 0.30,
+            depthTest: true, depthWrite: false, side: DoubleSide,
+          });
+          group.add(new Mesh(geometry, material));
+        }
+        for (const ring of [contour, ...holes]) {
+          const outline: number[] = [];
+          for (let i = 0; i < ring.length; i++) {
+            const a = ring[i]!;
+            const b = ring[(i + 1) % ring.length]!;
+            const steps = Math.max(2, Math.ceil(a.distanceTo(b) / 1.5));
+            for (let j = 0; j <= steps; j++) {
+              const t = j / steps;
+              const xyz = this.at(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, 1.574);
+              outline.push(xyz.x, xyz.y, xyz.z);
+            }
+          }
+          if (outline.length >= 6) {
+            const geometry = new BufferGeometry();
+            geometry.setAttribute("position", new Float32BufferAttribute(outline, 3));
+            group.add(new Line(geometry, new LineBasicMaterial({
+              color: selected ? 0xd6ffff : tint,
+              transparent: true, opacity: selected ? 1 : 0.79, depthTest: true,
+            })));
+          }
+        }
+      }
+      this.countriesGroup.add(group);
+    }
+    this.draw();
+  }
+
+  /** Rotate selected country's saved label location onto the visible hemisphere. */
+  focusCountry(label: PlanetPoint): void {
+    const local = this.at(label[0], label[1], 1).normalize();
+    this.root.quaternion.setFromUnitVectors(local, new Vector3(0, 0, 1));
+    this.draw();
+  }
+
+  /** Project a saved country label into its actual canvas location. */
+  projectCountryLabel(label: PlanetPoint): { x: number; y: number } | null {
+    this.root.updateMatrixWorld(true);
+    const point = this.root.localToWorld(this.at(label[0], label[1], 1.582));
+    const towardCamera = this.camera.position.clone().sub(point);
+    if (towardCamera.dot(point) <= 0) return null;
+    const ndc = point.clone().project(this.camera);
+    if (!Number.isFinite(ndc.x) || !Number.isFinite(ndc.y) || ndc.z < -1 || ndc.z > 1 ||
+      Math.abs(ndc.x) > 0.92 || Math.abs(ndc.y) > 0.92) return null;
+    return { x: (ndc.x + 1) * 50, y: (1 - ndc.y) * 50 };
+  }
+
   private draw = (): void => {
     this.renderer.render(this.scene, this.camera);
+    this.onViewChange?.();
   };
 
   private loop = (timestamp: number): void => {
@@ -418,6 +551,8 @@ export class SignaturePlanetRenderer {
 
   dispose(): void {
     cancelAnimationFrame(this.frameId);
+    this.onViewChange = null;
+    this.setPublishedCountries([]);
     for (const resource of this.resources) resource.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
