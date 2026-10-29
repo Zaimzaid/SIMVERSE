@@ -1,6 +1,6 @@
 import type { SafeUser } from "@/lib/types";
 import { parseOrThrow, updateProfileSchema } from "@/lib/validation";
-import { prisma } from "@/server/db/client";
+import { prisma, SAFE_USER_OMIT } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
 
 /** Update the current user's profile (display name, avatar). */
@@ -13,7 +13,7 @@ export async function updateProfile(
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { displayName: data.displayName, avatarUrl: data.avatarUrl ?? null },
-    omit: { passwordHash: true },
+    omit: SAFE_USER_OMIT,
   });
 
   await recordAudit({
