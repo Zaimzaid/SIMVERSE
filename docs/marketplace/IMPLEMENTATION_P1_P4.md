@@ -85,3 +85,26 @@ The marketplace implementation now also includes:
 ### Additional production gates
 
 A durable cloud object-storage provider, malware scanning, asynchronous optimization pipeline, immutable binary retention, seller verification, and merchant/consumer policies are still mandatory for public commercial release. Local mounted-volume pilot files are not suitable for stateless production deployment.
+
+
+## Continuation checkpoint — licensed Entity and World linkage
+
+The buyer library now supports two explicit, permission-checked destinations:
+
+1. **Use in Entity**: Select an existing Entity in your active workspace. Requires `entity.edit` and a valid ACTIVE entitlement to a GLB. The action imports the nonresellable reference if needed and sets the Entity visual profile to the selected model. It deliberately replaces only the visual model, not stats, AI, animation mappings, controls, or gameplay. Repeating the same assignment does not produce new visual-profile revisions.
+2. **Add to World**: Select an existing editable World. Requires `world.manage` and an ACTIVE entitlement. The action imports the source reference if needed and pins the current imported asset version in the World asset-association list. Repeating the action does not append duplicate associations or World versions. This is **not** automatic visible scene placement or runtime animation.
+
+The private Marketplace file route has a narrowly allowlisted model URL exception in the existing Entity visual-profile schema so a licensed buyer can preview or use the GLB. The file route still checks the signed-in user's license or workspace/moderator rights. Team members and public viewers without their own entitlements cannot silently fetch the binary. **Do not claim team-wide or public-world use without workspace and runtime licensing/access work.**
+
+The buyer Library now offers manual 3D preview activation rather than mounting every WebGL canvas at once. Placement and model-reference contract tests were added for the destination integrations.
+
+### Required QA
+
+- Buyer A buys the GLB; User B does not. Verify B cannot attach or read the model via guessed identifiers.
+- Buyer A selects an Entity and sees a private visual-preview model when logged in. Ensure prior appearance is replaced without altering Entity gameplay settings.
+- Buyer A selects a World. Verify a new World version records a single asset association and the second click is idempotent; no visible-placement claim should appear.
+- Validate foreign-workspace Entity/World IDs are rejected and archived destinations remain protected.
+- Repeat with a private `/api/marketplace/files/<32-hex-id>` reference from the private-upload pilot.
+- Test actual browser loading, animation behavior, responsive control layout and license-bound access before any public release.
+
+**Commerce:** Payments, payouts and player-to-player trading still remain completely disabled.
