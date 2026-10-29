@@ -10,6 +10,7 @@ import {WorkspaceCreateForm} from "@/components/platform/settings/workspace-crea
 import {NotificationSettings} from "@/components/platform/settings/notification-settings";
 import {getAccountPreferences} from "@/server/services/account-security-service";
 import Link from "next/link";
+import {AccountDataSettings} from "@/components/platform/settings/account-data-settings";
 import {TwoFactorSettings} from "@/components/platform/settings/two-factor-settings";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -43,12 +44,13 @@ export default async function SettingsPage() {
         <AppearanceSettings />
         <NotificationSettings initialEnabled={preferences.socialAlertsEnabled}/>
         <AccountSecuritySettings />
+        <AccountDataSettings />
         <TwoFactorSettings initialEnabled={Boolean(user.twoFactorEnabledAt)}/> 
         <section className="rounded-xl border border-border bg-surface p-5 space-y-3">
           <h2 className="font-semibold text-foreground">Privacy and connected services</h2>
           <p className="text-sm text-secondary">Your public player profile and discoverability are controlled from your player identity settings. The default is private.</p>
           <Link href="/profile" className="text-sm font-medium text-accent underline">Manage player identity and visibility</Link>
-          <p className="text-xs text-muted">External cloud connections and self-service account deletion are not available in this release.</p>
+          <p className="text-xs text-muted">External cloud connections are not available in this release. Account deletion requests can be submitted and cancelled above; deletion is not automatic.</p>
         </section>
       </div>
     </div>

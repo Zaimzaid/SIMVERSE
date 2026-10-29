@@ -73,6 +73,7 @@ model User {
   uploadedImages UploadedImage[] @relation("UserUploadedImages")
   loginChallenges TwoFactorChallenge[]
   emailVerificationTokens EmailVerificationToken[]
+  accountDeletionRequest AccountDeletionRequest?
   auditLogs       AuditLog[]        @relation("AuditActor")
   createdEntities Entity[]          @relation("EntityCreator")
 
@@ -2092,4 +2093,14 @@ model ProjectAssignment {
   membership WorkspaceMember @relation(fields:[membershipId],references:[id],onDelete:Cascade)
   @@unique([projectId,membershipId])
   @@index([membershipId])
+}
+
+model AccountDeletionRequest {
+ id String @id @default(cuid())
+ userId String @unique
+ requestedAt DateTime @default(now())
+ cancelledAt DateTime?
+ status String @default("PENDING") // PENDING | CANCELLED; no automatic deletion
+ reason String?
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
 }
