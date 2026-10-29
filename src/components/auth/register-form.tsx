@@ -20,12 +20,14 @@ const initial = {
   confirmPassword: "",
 };
 
-export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
+export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next?: string }) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [verificationRequired,setVerificationRequired]=useState(false);
+  const [resendMessage,setResendMessage]=useState("");
 
   function field(key: keyof typeof initial) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -44,7 +46,7 @@ export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
     setErrors({});
     setSubmitting(true);
 
-    const { error } = await apiFetch("/api/auth/register", {
+    const { data, error } = await apiFetch<{verificationRequired?:boolean}>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(values),
     });
@@ -56,10 +58,11 @@ export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
       return;
     }
 
+    if(data?.verificationRequired){setVerificationRequired(true);setSubmitting(false);setValues(v=>({...v,password:"",confirmPassword:""}));return;}
     router.replace(
       earthIntent
         ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
-        : "/dashboard",
+        : next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard",
     );
     router.refresh();
   }
@@ -72,7 +75,7 @@ export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
         <>
           Already have an account?{" "}
           <Link
-            href={earthIntent ? `/login?earthIntent=${encodeURIComponent(earthIntent)}` : "/login"}
+            href={earthIntent ? `/login?earthIntent=${encodeURIComponent(earthIntent)}` : next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
             className="font-medium text-accent hover:underline"
           >
             Log in
@@ -81,6 +84,13 @@ export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
       }
     >
       <FormError message={formError} />
+      {verificationRequired?<div className="space-y-4 text-sm text-secondary">
+       <p>An email-verification link was requested for <strong>{values.email}</strong>. Check your inbox and spam folder. You must verify before signing in.</p>
+       <Button type="button" variant="secondary" onClick={async()=>{const r=await apiFetch("/api/auth/resend-verification",{method:"POST",body:JSON.stringify({email:values.email})});setResendMessage(r.error?.message??"If the account requires verification, another email will be sent when eligible.");}}>Resend verification link</Button>
+       {resendMessage?<p role="status">{resendMessage}</p>:null}
+       <Link href="/login" className="block text-accent underline">Go to login</Link>
+      </div>:null}
+      {!verificationRequired && <>
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <Field label="Display name" htmlFor="displayName" error={errors.displayName}>
           <Input
@@ -145,7 +155,7 @@ export function RegisterForm({ earthIntent }: { earthIntent?: string }) {
           {submitting ? "Creating account…" : "Create account"}
           {!submitting ? <ArrowRight className="size-4" /> : null}
         </Button>
-      </form>
+      </form></>}
     </AuthCard>
   );
 }
