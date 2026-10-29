@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FolderKanban } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getProject, type ProjectView } from "@/server/services/project-service";
 import { PageHeader } from "@/components/ui/page-header";
@@ -21,7 +21,7 @@ async function loadProject(userId: string, workspaceId: string, projectId: strin
   try {
     return await getProject(userId, workspaceId, projectId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }

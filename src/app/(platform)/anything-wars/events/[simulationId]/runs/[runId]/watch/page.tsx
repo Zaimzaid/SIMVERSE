@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { anythingWarsRunHref } from "@/lib/anything-wars/routes";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { requirePlatformContext } from "@/server/context";
 import { getAnythingWarsEvent } from "@/server/services/anything-wars-service";
@@ -22,7 +22,7 @@ export default async function AnythingWarsWatchPage({ params }: { params: Promis
       getSimulationRun(user.id, workspace.id, runId),
     ]);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   if (run.simulationId !== event.id) notFound();

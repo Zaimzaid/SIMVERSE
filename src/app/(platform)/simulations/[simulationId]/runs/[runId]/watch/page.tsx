@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getSimulationRun } from "@/server/services/simulation-run-service";
 import { SimulationViewer } from "@/components/viewer/simulation-viewer";
@@ -17,7 +17,7 @@ export default async function WatchPage({ params }: PageProps) {
   try {
     run = await getSimulationRun(user.id, workspace.id, runId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   if (run.simulationId !== simulationId) notFound();

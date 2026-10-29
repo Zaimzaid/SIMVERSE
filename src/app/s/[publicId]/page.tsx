@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { env } from "@/lib/env";
 import { shareImagePath } from "@/lib/media/share/constants";
 import { getPublicMediaShare } from "@/server/services/media-share-service";
@@ -39,7 +39,7 @@ export default async function PublicSharePage({ params }: PageProps) {
   try {
     share = await getPublicMediaShare(publicId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   return <PublicShareView share={share} publicId={publicId} />;

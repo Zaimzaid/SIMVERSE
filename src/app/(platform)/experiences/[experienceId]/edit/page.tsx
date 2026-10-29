@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Aperture, ArrowLeft } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { listAssets } from "@/server/services/asset-service";
 import { listEntities } from "@/server/services/entity-service";
@@ -17,7 +17,7 @@ import { experienceToFormInitial } from "@/components/experiences/experience-for
 export const metadata: Metadata = { title: "Edit Experience Profile" };
 export default async function EditExperiencePage({ params }: { params: Promise<{ experienceId: string }> }) {
   const { experienceId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
-  let profile; try { profile = await getExperienceProfile(user.id, workspace.id, experienceId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let profile; try { profile = await getExperienceProfile(user.id, workspace.id, experienceId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   if (!permissions.includes("experience.manage") || profile.status === "ARCHIVED") return <div className="space-y-6"><PageHeader icon={Aperture} title="Edit Experience Profile" description={`Update ${profile.name}.`} /><EmptyState icon={Aperture} title={profile.status === "ARCHIVED" ? "Restore this Profile to edit it" : "You can’t edit this Profile"} description={profile.status === "ARCHIVED" ? "Archived Profiles are read-only until restored." : "Your role does not include Experience Profile management."} action={<Link href={`/experiences/${profile.id}`} className={buttonClasses({ variant: "secondary" })}>Back to Profile</Link>} /></div>;
   const [assetResult, entityResult, worldResult] = await Promise.all([listAssets(user.id, workspace.id, { status: "CURRENT", pageSize: 100, sort: "name_asc" }), listEntities(user.id, workspace.id, { status: "ACTIVE", pageSize: 100, sort: "name_asc" }), listWorlds(user.id, workspace.id, { status: "CURRENT", pageSize: 100, sort: "name_asc" })]);
   const assets: { id: string; name: string; type: string; currentVersion: number }[] = assetResult.items.map((asset) => ({ id: asset.id, name: asset.name, type: asset.type, currentVersion: asset.currentVersion }));

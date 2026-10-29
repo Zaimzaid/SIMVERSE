@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Boxes, Palette } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { listAttributeDefinitions } from "@/server/services/attribute-service";
 import {
@@ -26,7 +26,7 @@ async function loadEntity(userId: string, workspaceId: string, entityId: string)
   try {
     return await getEntity(userId, workspaceId, entityId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Aperture, ArrowLeft, Edit3, Globe2, Hash, Plus, Swords, Users } from "lucide-react";
 import { anythingWarsExecutionIssue } from "@/lib/anything-wars/constants";
 import { anythingWarsEventHref, anythingWarsRunHref } from "@/lib/anything-wars/routes";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { raceConfigV1Schema } from "@/lib/modules/race/config";
 import { survivalConfigV1Schema } from "@/lib/modules/survival/config";
 import { formatRelativeTime } from "@/lib/utils";
@@ -35,7 +35,7 @@ export default async function AnythingWarsEventPage({ params }: { params: Promis
   try {
     event = await getAnythingWarsEvent(user.id, workspace.id, simulationId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   const runs = await listSimulationRuns(user.id, workspace.id, simulationId);

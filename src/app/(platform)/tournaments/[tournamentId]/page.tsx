@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, Clock3, ListOrdered, Network, Pencil, Play, Trophy, Users } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getTournament } from "@/server/services/tournament-service";
 import { RunMatchButton, TournamentActions } from "@/components/tournaments/tournament-actions";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tournamen
 export default async function TournamentDetailPage({ params }: { params: Promise<{ tournamentId: string }> }) {
   const { tournamentId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
   let tournament: Tournament;
-  try { tournament = await getTournament(user.id, workspace.id, tournamentId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  try { tournament = await getTournament(user.id, workspace.id, tournamentId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const canManage = permissions.includes("tournament.manage"); const canRun = permissions.includes("tournament.run") && tournament.status === "IN_PROGRESS";
   const participantById = new Map(tournament.participants.map((participant) => [participant.id, participant]));
   const roundById = new Map(tournament.rounds.map((round) => [round.id, round]));

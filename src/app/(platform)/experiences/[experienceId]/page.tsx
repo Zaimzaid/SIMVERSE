@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Aperture, ArrowLeft, Clock3, Film, Music, Pencil, Sparkles, Tags, Volume2 } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { EXPERIENCE_PROFILE_STATUS_LABELS } from "@/lib/experiences/constants";
 import { requirePlatformContext } from "@/server/context";
 import { getExperienceProfile } from "@/server/services/experience-profile-service";
@@ -15,7 +15,7 @@ import { experienceStatusVariant } from "@/components/experiences/experience-car
 export async function generateMetadata({ params }: { params: Promise<{ experienceId: string }> }): Promise<Metadata> { const { experienceId } = await params; try { const { user, workspace } = await requirePlatformContext(); return { title: (await getExperienceProfile(user.id, workspace.id, experienceId)).name }; } catch { return { title: "Experience Profile" }; } }
 export default async function ExperienceDetailPage({ params }: { params: Promise<{ experienceId: string }> }) {
   const { experienceId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
-  let profile; try { profile = await getExperienceProfile(user.id, workspace.id, experienceId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let profile; try { profile = await getExperienceProfile(user.id, workspace.id, experienceId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const canManage = permissions.includes("experience.manage"); const definition = profile.version.definition;
   return <div className="space-y-6"><Link href="/experiences" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"><ArrowLeft className="size-4" />Experience Profiles</Link>
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><div className="mb-2 flex flex-wrap gap-2"><Badge variant={experienceStatusVariant(profile.status)}>{EXPERIENCE_PROFILE_STATUS_LABELS[profile.status]}</Badge><Badge variant="outline">{profile.preset.replaceAll("_", " ")}</Badge><Badge variant="outline">v{profile.currentVersion}</Badge></div><h1 className="font-display text-2xl font-semibold">{profile.name}</h1><p className="mt-1 max-w-3xl text-sm text-secondary">{profile.description ?? "Engine-neutral presentation direction."}</p></div><div className="flex gap-2">{canManage && profile.status !== "ARCHIVED" ? <Link href={`/experiences/${profile.id}/edit`} className={buttonClasses({ variant: "secondary" })}><Pencil className="size-4" />Edit</Link> : null}{canManage ? <ExperienceActions profile={profile} /> : null}</div></div>

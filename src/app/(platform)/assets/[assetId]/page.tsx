@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Boxes, Clock3, ExternalLink, GitBranch, History, Package, Pencil } from "lucide-react";
 import { ASSET_STATUS_LABELS, ASSET_TYPE_LABELS } from "@/lib/assets/constants";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { formatRelativeTime } from "@/lib/utils";
 import { requirePlatformContext } from "@/server/context";
 import { getAsset } from "@/server/services/asset-service";
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ assetId: 
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ assetId: string }> }) {
   const { assetId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
-  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const version = asset.version; const canManage = permissions.includes("asset.manage");
   const complete = version.productionChecklist.filter((item) => item.completed).length;
   return <div className="space-y-6">

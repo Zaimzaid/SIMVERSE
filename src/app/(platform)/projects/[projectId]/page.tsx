@@ -13,7 +13,7 @@ import {
   Swords,
   User as UserIcon,
 } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { ENTITY_MAX_PAGE_SIZE } from "@/lib/entities/constants";
 import { SIMULATION_MAX_PAGE_SIZE } from "@/lib/simulations/constants";
 import { formatRelativeTime } from "@/lib/utils";
@@ -39,7 +39,7 @@ async function loadProject(userId: string, workspaceId: string, projectId: strin
   try {
     return await getProject(userId, workspaceId, projectId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }
