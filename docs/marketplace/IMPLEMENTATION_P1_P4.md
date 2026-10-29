@@ -57,3 +57,31 @@
 ## Suggested next implementation checkpoint
 
 Complete protected GLB upload + thumbnail + buyer-entitled download with a chosen object-storage provider, then a real `Add to Entity` destination. The current reference import is not a substitute for protected binary transfer. Follow with end-to-end role/cross-tenant tests. Only once that flow is proven should P3 payment-provider work begin.
+
+
+## Continuation checkpoint: private 3D model pilot (29 October 2026)
+
+The marketplace implementation now also includes:
+
+- Seller-only private GLB v2 upload form and POST /api/marketplace/files. Files must be <= 20 MB, self-contained, and have valid GLB JSON structure. Only original 3D production assets can be uploaded.
+- Configurable mounted filesystem via SIMVERSE_MARKETPLACE_STORAGE_DIR, which must be an absolute private persistent storage path. No serverless ephemeral storage or public-folder writes.
+- A SHA-256 integrity record and uniquely named private model file; uploaded assets gain a new versioned reference in the existing Asset Library.
+- Authenticated GET /api/marketplace/files/[fileId] checks creator workspace rights, independent moderator rights, or buyer rights to the exact pinned asset version. Otherwise files are not served.
+- The buyer's My Library page can display a real Three.js GLB viewer for eligible acquired model references. Nonbuyers do not receive raw private models.
+- Marketplace GLB parsing and marketplace integration test suites. Navigation test expectation updated for the new eighth section.
+
+**Boundaries:** This is a storage and preview *pilot*, not production-grade binary distribution. No malware scan, safe public GLB derivative preview, cross-instance object-storage replication, thumbnail processor, production CDN, file quarantine workflow, copyright certification, or automatic Entity/World compatibility is implemented. The full acquisition flow still requires browser/device QA. Payments, paid fulfillment, payouts and trading remain disabled. The earlier phase-status table must be read together with this newer checkpoint.
+
+### Local pilot test path
+
+1. Start from a *disposable test database* and separately configured persistent private directory. Never apply schema or clean files in production without review and backup.
+2. Create an original 3D asset in the private Asset Library.
+3. Seller opens Marketplace > Sell, uploads GLB, then validates the new version through the established production status workflow.
+4. Seller creates free listing and submits for independent moderator review.
+5. Moderator inspects the source and publishes, buyer gets the free item and previews it in My Library.
+6. Buyer imports the licensed reference into an authorized workspace; permission-gated reads should work only for the original creator and licensed buyer.
+7. Verify direct file read without an ACTIVE entitlement returns 404; content hash mismatch is rejected; no payment or trade endpoints fulfill.
+
+### Additional production gates
+
+A durable cloud object-storage provider, malware scanning, asynchronous optimization pipeline, immutable binary retention, seller verification, and merchant/consumer policies are still mandatory for public commercial release. Local mounted-volume pilot files are not suitable for stateless production deployment.
