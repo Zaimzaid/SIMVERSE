@@ -19,7 +19,7 @@ type SocialState = {
 type SearchResult = { userId: string; username: string | null; user: { displayName: string; avatarUrl: string | null } };
 type Message = {
   id: string; senderId: string; recipientId: string; body: string;
-  mediaUrl: string | null; createdAt: string; readAt: string | null;
+  mediaUrl: string | null; createdAt: string; deliveredAt: string | null; readAt: string | null;
   reactions?: { emoji: string; actorId: string }[];
 };
 type Conversation = {
@@ -86,8 +86,18 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     if (r.data) setSocial(r.data);
   }, []);
   const refreshInbox = useCallback(async () => {
-    const r = await apiFetch<{ conversations: Conversation[]; unread: number }>("/api/social/inbox");
-    if (r.data) { setInbox(r.data.conversations); setUnread(r.data.unread); }
+    const r = await apiFetch<{ conversations: Conversation[]; unread: number; pendingDeliveryIds: string[] }>("/api/social/inbox");
+    if (r.data) {
+      setInbox(r.data.conversations); setUnread(r.data.unread);
+      // A message is "Delivered" only after the receiving browser confirms it.
+      // This is separate from opening a conversation ("Read").
+      if (r.data.pendingDeliveryIds.length) {
+        void apiFetch("/api/social/delivery", {
+          method: "POST",
+          body: JSON.stringify({ messageIds: r.data.pendingDeliveryIds }),
+        });
+      }
+    }
   }, []);
   const refreshExtras = useCallback(async () => {
     const [g, n] = await Promise.all([
@@ -355,7 +365,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
                   {(["👍", "❤️", "😂"] as const).map(emoji => <button key={emoji} type="button" aria-label={`React ${emoji}`} onClick={() => void react(msg.id, emoji)}
                     className="rounded-md border border-current/20 px-1.5 py-0.5 text-[11px]">{emoji} {msg.reactions?.filter(r => r.emoji === emoji).length ?? 0}</button>)}
                   <time className="ml-auto text-[10px] opacity-70">{timestamp(msg.createdAt)}</time>
-                  {msg.senderId === userId && <span className="text-[10px] opacity-75">{msg.readAt ? "Read" : "Sent"}</span>}
+                  {msg.senderId === userId && <span className="text-[10px] opacity-75">{msg.readAt ? "Read" : msg.deliveredAt ? "Delivered" : "Sent"}</span>}
                 </div>
               </div>)}
             </div>
