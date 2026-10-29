@@ -24,8 +24,16 @@
 ## Verification
 `npm ci`, `npx prisma db push` on a disposable database, `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`. Complete manual browser tests before merging.
 
+### Personal Google Drive connection
+- Optional Google Drive integration using server-side Google OAuth authorization code flow, per-session single-use 10-minute state and encrypted access/refresh tokens. Requested scope is `drive.file` (files SIMVERSE creates/opens), not full Drive access.
+- When connected, the user can manually upload their account snapshot as a JSON backup and disconnect later. Existing Drive files are not deleted when disconnecting.
+- To enable: set `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`, `APP_URL` and register exactly `{APP_URL}/api/account/cloud/google/callback` in Google Cloud's OAuth web-client redirect URIs. Enable Google Drive API, configure consent screen/test users and production app verification as applicable.
+- Tokens depend on the existing `SESSION_SECRET` for AES-256-GCM encryption; rotating it without a planned migration invalidates existing connections.
+- Client credentials are held on the server, never sent to the browser. Only the app-created JSON backup is uploaded. This is not a background sync, a complete workspace backup or a multi-provider connector.
+- Live Google OAuth and actual upload require real Google credentials and user consent; CI only tests the protocol flow against mock endpoints.
+
 ## Remaining major features
 - Full project-level permission isolation across all linked data, asset and simulation APIs.
-- Production cloud storage OAuth: Google Drive, OneDrive, Dropbox or S3; provider apps and verified redirect URIs required. No fake "connected" state or cloud backup claims.
+- Additional cloud providers (OneDrive, Dropbox, S3), scheduled sync and full-world/asset backups require separate integrations and production credentials.
 - A real, safe, auditable account-deletion/ownership-transfer processor, data retention policy and complete data export.
 - Owner-to-owner ownership transfer and advanced staff approvals.
