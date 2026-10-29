@@ -9,7 +9,7 @@ import type { SafeUser } from "@/lib/types";
 import { slugify } from "@/lib/utils";
 import { loginSchema, parseOrThrow, registerSchema } from "@/lib/validation";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
-import { prisma, toSafeUser } from "@/server/db/client";
+import { prisma, toSafeUser, SAFE_USER_OMIT } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
 
 export interface RegisterResult {
@@ -41,7 +41,7 @@ export async function registerUser(input: unknown): Promise<RegisterResult> {
   const { user, workspace } = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
       data: { displayName, email, passwordHash },
-      omit: { passwordHash: true },
+      omit: SAFE_USER_OMIT,
     });
     await tx.playerIdentity.create({
       data: { userId: createdUser.id, simverseId: newSimverseId() },
