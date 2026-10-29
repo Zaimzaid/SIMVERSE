@@ -7,10 +7,12 @@ import {
   moderateMarketListing, openSeller, proposeTrade, publicCatalog, publicListing,
   requestPaidCheckout, reviewQueue, sellerListings, setWishlist, submitMarketListing,
 } from "@/server/services/marketplace-service";
+import { useMarketplaceModelInEntity, attachMarketplaceAssetToWorld } from "@/server/services/marketplace-placement-service";
 import { z } from "zod";
 import { parseOrThrow } from "@/lib/validation";
 const actionSchema=z.object({action:z.string().min(1).max(70)}).passthrough();
 const idSchema=z.string().min(1).max(200);
+const placementSchema=z.object({entitlementId:idSchema,targetId:idSchema}).strict();
 
 export async function GET(request:NextRequest) {
   try {
@@ -40,6 +42,14 @@ export async function POST(request:NextRequest) {
       case "acquire-free": return dataResponse({entitlement:await acquireFree(userId,body.payload)},201);
       case "wishlist": return dataResponse(await setWishlist(userId,body.payload));
       case "import-entitlement": return dataResponse({asset:await importEntitledAsset(userId,workspaceId,parseOrThrow(idSchema,body.id))},201);
+      case "use-in-entity": {
+        const {entitlementId,targetId}=parseOrThrow(placementSchema,body.payload);
+        return dataResponse(await useMarketplaceModelInEntity(userId,workspaceId,entitlementId,targetId));
+      }
+      case "attach-to-world": {
+        const {entitlementId,targetId}=parseOrThrow(placementSchema,body.payload);
+        return dataResponse(await attachMarketplaceAssetToWorld(userId,workspaceId,entitlementId,targetId));
+      }
       case "review": return dataResponse({listing:await moderateMarketListing(userId,parseOrThrow(idSchema,body.id),body.approve===true,String(body.note??""))});
       case "checkout": return await requestPaidCheckout(userId,body.payload);
       case "trade-offer": return await proposeTrade(userId,body.payload);
