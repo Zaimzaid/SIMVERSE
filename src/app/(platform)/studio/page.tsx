@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clapperboard, FileVideo, Layers3, Sparkles, WandSparkles } from "lucide-react";
+import { Clapperboard, FileVideo, Layers3, Sparkles, Video, WandSparkles } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 import { listCompletedMediaSources, listMediaArtifacts } from "@/server/services/media-artifact-service";
 import { MediaArtifactCard } from "@/components/media/media-artifact-card";
@@ -29,6 +29,14 @@ export default async function StudioPage() {
         title="SIMVERSE Studio"
         description="Turn completed simulations into editable, versioned stories without changing what happened."
       />
+
+      <Link href="/studio/video" className="flex items-center justify-between gap-4 rounded-2xl border border-accent/40 bg-gradient-to-r from-accent-soft to-surface p-5 hover:border-accent">
+        <div>
+          <h2 className="flex items-center gap-2 font-semibold"><Video className="size-5 text-accent" />Open Video Studio</h2>
+          <p className="mt-1 text-sm text-secondary">Upload your own footage. Trim, crop, add text and logos, adjust audio and picture, then export a WebM video.</p>
+        </div>
+        <span className="shrink-0 text-sm font-semibold text-accent">Edit video →</span>
+      </Link>
 
       <Link href="/animation" className="flex items-center justify-between gap-4 rounded-2xl border border-accent/30 bg-accent-soft/50 p-5 hover:border-accent">
         <div><h2 className="flex items-center gap-2 font-semibold"><WandSparkles className="size-5 text-accent"/> Open Animation Studio</h2>
@@ -72,7 +80,7 @@ export default async function StudioPage() {
           <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-background/40 text-muted"><FileVideo className="size-5" /></span>
           <div>
             <h2 className="font-medium text-foreground">A foundation for future media tools</h2>
-            <p className="mt-1 text-sm text-secondary">Video editing, rendered exports, publishing, and AI direction come later. This Studio currently creates truthful structured storyboards and browser result card previews.</p>
+            <p className="mt-1 text-sm text-secondary">Video Studio now supports local, single-clip browser editing and WebM export. Multi-track editing, MP4 export, publishing, and AI direction remain future work. Simulation storyboards and image exports remain separate.</p>
           </div>
         </CardContent>
       </Card>
