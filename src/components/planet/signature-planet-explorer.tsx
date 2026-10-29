@@ -215,6 +215,9 @@ export function SignaturePlanetExplorer() {
             <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">countries</span></div>
             <p className="mt-2 text-xs leading-relaxed text-slate-400">No countries have been published. The Country Creator will let us build our own territories.</p>
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-sm text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
+            <Link href="/planet/create" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2.5 text-sm font-semibold text-cyan-100 hover:border-cyan-200/60 hover:bg-cyan-300/15">
+              <Plus size={15} className="mr-2" aria-hidden /> Country Creator (admin)
+            </Link>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
             <button type="button" onClick={() => engineRef.current?.zoom(-0.55)} disabled={!ready} aria-label="Zoom in" title="Zoom in" className="grid size-10 place-items-center rounded-xl text-slate-100 transition hover:bg-white/10 disabled:opacity-40"><Plus size={18} aria-hidden /></button>
