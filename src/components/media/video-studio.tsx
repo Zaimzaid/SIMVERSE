@@ -214,13 +214,17 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
 
   function setStart(value: number) {
     const trimmed = clampTrim(value, settings.trimEnd, duration);
-    update({ trimStart: trimmed.start, trimEnd: trimmed.end, textStart: Math.max(trimmed.start, settings.textStart) });
+    const textStart = Math.min(trimmed.end, Math.max(trimmed.start, settings.textStart));
+    const textEnd = Math.max(textStart, Math.min(trimmed.end, settings.textEnd));
+    update({ trimStart: trimmed.start, trimEnd: trimmed.end, textStart, textEnd });
     if (videoRef.current && videoRef.current.currentTime < trimmed.start) videoRef.current.currentTime = trimmed.start;
   }
 
   function setEnd(value: number) {
     const trimmed = clampTrim(settings.trimStart, value, duration);
-    update({ trimStart: trimmed.start, trimEnd: trimmed.end, textEnd: Math.min(trimmed.end, settings.textEnd) });
+    const textStart = Math.min(trimmed.end, Math.max(trimmed.start, settings.textStart));
+    const textEnd = Math.max(textStart, Math.min(trimmed.end, settings.textEnd));
+    update({ trimStart: trimmed.start, trimEnd: trimmed.end, textStart, textEnd });
     if (videoRef.current && videoRef.current.currentTime > trimmed.end) videoRef.current.currentTime = trimmed.end;
   }
 
@@ -288,6 +292,7 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
     try {
       video.pause();
       await seekTo(video, snapshot.trimStart);
+      if (cancelled) return;
       renderVideoFrame(canvas, video, snapshot, logoRef.current);
 
       canvasStream = canvas.captureStream(30);
@@ -306,6 +311,7 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
         video.muted = false;
         video.volume = 1;
         await chain.context.resume();
+        if (cancelled) return;
         audioDestination = chain.context.createMediaStreamDestination();
         chain.gain.connect(audioDestination);
         audioTracks.push(...audioDestination.stream.getAudioTracks());
@@ -322,6 +328,7 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
         recorder.onerror = () => reject(new Error("The browser could not finish recording."));
         recorder.onstop = () => resolve(new Blob(chunks, { type: format.split(";")[0] }));
       });
+      if (cancelled) return;
       recorder.start(250);
       try { await video.play(); }
       catch (playbackError) { stop(); await completed.catch(() => undefined); throw playbackError; }
@@ -337,7 +344,8 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
         if (video.currentTime >= snapshot.trimEnd - 0.025 || video.ended) { stop(); return; }
         raf = requestAnimationFrame(tick);
       };
-      raf = requestAnimationFrame(tick);
+      if (cancelled) stop();
+      else raf = requestAnimationFrame(tick);
       const result = await completed;
       if (!cancelled) {
         if (!result.size) throw new Error("Recording produced an empty file.");
