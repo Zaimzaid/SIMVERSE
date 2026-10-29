@@ -169,7 +169,7 @@ export async function myMarketLibrary(userId:string) {
   const versionByKey=new Map(versions.map(v=>[v.assetId+":"+v.version,v]));
   return entries.map(x=>{
     const ref=versionByKey.get(x.assetId+":"+x.assetVersion)?.externalReference;
-    const modelUrl=ref && (/^\\/api\\/marketplace\\/files\\/[a-f0-9]{32}$/.test(ref) || /\\.glb(?:[?#]|$)/i.test(ref))?ref:null;
+    const modelUrl=ref && (new RegExp("^/api/marketplace/files/[a-f0-9]{32}$").test(ref) || ref.toLowerCase().split("?")[0]?.endsWith(".glb")) ? ref : null;
     return {...x,listing:byId.get(x.listingId)??null,modelUrl};
   });
 }
