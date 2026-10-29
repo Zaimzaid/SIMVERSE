@@ -131,13 +131,25 @@ export async function listConversation(userId: string, recipientId: string) {
       { senderId: userId, recipientId },
       { senderId: recipientId, recipientId: userId },
     ] },
-    orderBy: { createdAt: "desc" }, take: 100,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 100,
     select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, readAt: true,
       reactions:{select:{emoji:true,actorId:true}} },
   });
-  await prisma.socialMessage.updateMany({
-    where: { senderId: recipientId, recipientId: userId, readAt: null }, data: { readAt: new Date() },
-  });
+  // Only acknowledge messages actually returned by this page. Previously a
+  // single history fetch marked every older, unseen message as read.
+  const receivedIds = messages
+    .filter(message => message.senderId === recipientId && message.readAt === null)
+    .map(message => message.id);
+  if (receivedIds.length) {
+    const readAt = new Date();
+    await prisma.socialMessage.updateMany({
+      where: { id: { in: receivedIds }, senderId: recipientId, recipientId: userId, readAt: null },
+      data: { readAt },
+    });
+    for (const message of messages) {
+      if (message.senderId === recipientId && message.readAt === null) message.readAt = readAt;
+    }
+  }
   return messages.reverse();
 }
 export async function sendMessage(userId: string, payload: unknown) {
