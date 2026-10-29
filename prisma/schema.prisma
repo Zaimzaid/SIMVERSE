@@ -27,6 +27,14 @@ model User {
   displayName  String
   passwordHash String
   avatarUrl    String?
+  socialAlertsEnabled Boolean @default(true)
+  twoFactorSecret String?
+  twoFactorPendingSecret String?
+  twoFactorPendingExpiresAt DateTime?
+  twoFactorEnabledAt DateTime?
+  twoFactorRecoveryHashes String?
+  emailVerifiedAt DateTime?
+  emailVerificationRequired Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -62,6 +70,12 @@ model User {
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
   sessions        Session[]
+  uploadedImages UploadedImage[] @relation("UserUploadedImages")
+  loginChallenges TwoFactorChallenge[]
+  emailVerificationTokens EmailVerificationToken[]
+  accountDeletionRequest AccountDeletionRequest?
+  googleDriveConnection GoogleDriveConnection?
+  cloudOauthStates CloudOauthState[]
   auditLogs       AuditLog[]        @relation("AuditActor")
   createdEntities Entity[]          @relation("EntityCreator")
 
@@ -107,6 +121,7 @@ model PlayerIdentity {
   creatorName    String?
   biography      String   @default("")
   bannerUrl      String?
+  avatarAppearanceJson String?
   profileVisibility String @default("PRIVATE") // PRIVATE | PUBLIC; app validated
   experienceMode String   @default("BOTH")      // PLAYER | CREATOR | BOTH
   homeCountryId  String?
@@ -475,6 +490,8 @@ model Workspace {
 
   owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members   WorkspaceMember[]
+  invitations WorkspaceInvitation[]
+  uploadedImages UploadedImage[] @relation("WorkspaceUploadedImages")
   auditLogs AuditLog[]
 
   entities             Entity[]
@@ -494,16 +511,34 @@ model Workspace {
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
+/// Single-use, email-bound team invitation. Only a SHA-256 digest is stored.
+model WorkspaceInvitation {
+  id String @id @default(cuid())
+  workspaceId String
+  email String
+  role String
+  tokenHash String @unique
+  invitedById String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+  @@index([expiresAt])
+}
+
 model WorkspaceMember {
   id          String   @id @default(cuid())
   workspaceId String
   userId      String
   role        String // WorkspaceRole (OWNER|ADMIN|CREATOR|OPERATOR|EDITOR|ANALYST|VIEWER) — validated in app layer
+  deniedPermissions String @default("[]") // deny-only member overrides
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectAssignments ProjectAssignment[]
 
   @@unique([workspaceId, userId])
   @@index([userId])
@@ -1537,6 +1572,7 @@ model Project {
   entityLinks ProjectEntity[]
   simulations Simulation[]
   tournaments Tournament[]
+  teamAssignments ProjectAssignment[]
 
   // Every index leads with workspaceId so all list/search/sort queries stay tenant-scoped.
   @@index([workspaceId, status])
@@ -1906,16 +1942,21 @@ model SocialMessage {
   id String @id @default(cuid())
   senderId String
   recipientId String
+  // Optional idempotency key for reconnect/retry-safe modern clients.
+  clientId String?
   body String
   mediaUrl String?
   createdAt DateTime @default(now())
+  deliveredAt DateTime?
   readAt DateTime?
   sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User @relation("SocialMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   reactions SocialReaction[]
+  @@unique([senderId, clientId])
   @@index([senderId, recipientId, createdAt])
   @@index([recipientId, senderId, createdAt])
   @@index([recipientId, readAt, createdAt])
+  @@index([recipientId, deliveredAt, createdAt])
 }
 
 // Standalone keyframe animation editor. Records are scoped to the author
@@ -2012,4 +2053,212 @@ model SocialCallSignal {
   receiver User @relation("CallSignalReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   @@index([receiverId, createdAt])
   @@index([callId,createdAt])
+}
+
+model TwoFactorChallenge {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  attempts Int @default(0)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+model EmailVerificationToken {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+
+model UploadedImage {
+  id String @id @default(cuid())
+  uploadedById String
+  workspaceId String?
+  purpose String // AVATAR | WORKSPACE_LOGO
+  mediaType String
+  content Bytes
+  createdAt DateTime @default(now())
+  user User @relation("UserUploadedImages", fields:[uploadedById],references:[id],onDelete:Cascade)
+  workspace Workspace? @relation("WorkspaceUploadedImages",fields:[workspaceId],references:[id],onDelete:Cascade)
+  @@index([uploadedById,createdAt])
+  @@index([workspaceId])
+}
+
+model ProjectAssignment {
+  id String @id @default(cuid())
+  projectId String
+  membershipId String
+  responsibility String @default("CONTRIBUTOR") // LEAD | CONTRIBUTOR | REVIEWER | OBSERVER
+  notes String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  membership WorkspaceMember @relation(fields:[membershipId],references:[id],onDelete:Cascade)
+  @@unique([projectId,membershipId])
+  @@index([membershipId])
+}
+
+model AccountDeletionRequest {
+ id String @id @default(cuid())
+ userId String @unique
+ requestedAt DateTime @default(now())
+ cancelledAt DateTime?
+ status String @default("PENDING") // PENDING | CANCELLED; no automatic deletion
+ reason String?
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+}
+
+model CloudOauthState {
+  id String @id @default(cuid())
+  userId String
+  sessionId String
+  stateHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+model GoogleDriveConnection {
+  id String @id @default(cuid())
+  userId String @unique
+  encryptedAccessToken String
+  encryptedRefreshToken String
+  expiresAt DateTime
+  connectedAt DateTime @default(now())
+  lastBackupAt DateTime?
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+}
+
+ // Universal Marketplace P1–P4: commerce and simulation economies are strictly isolated.
+model MarketSeller {
+ id String @id @default(cuid())
+ ownerUserId String
+ workspaceId String
+ slug String @unique
+ displayName String
+ bio String @default("")
+ status String @default("ACTIVE_FREE")
+ verified Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([ownerUserId, workspaceId])
+ @@index([ownerUserId, status])
+}
+model MarketListing {
+ id String @id @default(cuid())
+ sellerId String
+ sourceAssetId String
+ sourceVersion Int
+ title String
+ description String @default("")
+ category String
+ productKind String @default("DIGITAL_ASSET")
+ licenseType String @default("PERSONAL")
+ status String @default("DRAFT")
+ priceMinor Int @default(0)
+ currency String @default("NGN")
+ transferable Boolean @default(false)
+ reviewedById String?
+ reviewedAt DateTime?
+ reviewNote String?
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([sellerId,sourceAssetId,sourceVersion])
+ @@index([status,category,publishedAt])
+ @@index([sellerId,status])
+}
+model MarketEntitlement {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ assetId String
+ assetVersion Int
+ licenseType String
+ source String @default("FREE")
+ transferable Boolean @default(false)
+ status String @default("ACTIVE")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([userId,listingId])
+ @@index([userId,status])
+ @@index([listingId,status])
+}
+model MarketWishlist {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ createdAt DateTime @default(now())
+ @@unique([userId,listingId])
+}
+model MarketOrder {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ amountMinor Int
+ currency String
+ status String @default("AWAITING_PROVIDER")
+ provider String?
+ providerRef String? @unique
+ idempotencyKey String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId,createdAt])
+ @@index([status,createdAt])
+}
+model MarketTradeOffer {
+ id String @id @default(cuid())
+ entitlementId String
+ sellerUserId String
+ buyerUserId String
+ status String @default("PROPOSED")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([sellerUserId,status])
+ @@index([buyerUserId,status])
+ @@index([entitlementId,status])
+}
+
+
+model MarketModeratorGrant {
+ id String @id @default(cuid())
+ userId String @unique
+ isActive Boolean @default(false)
+ createdAt DateTime @default(now())
+}
+
+
+model MarketImport {
+ id String @id @default(cuid())
+ entitlementId String
+ userId String
+ workspaceId String
+ importedAssetId String?
+ status String @default("PENDING")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([entitlementId,workspaceId])
+ @@index([userId,workspaceId,status])
+}
+
+
+// Private binary storage pilot. Files remain authorization-gated; no public URL.
+model MarketUploadedFile {
+  id            String   @id @default(cuid())
+  uploaderId    String
+  workspaceId   String
+  assetId       String
+  assetVersion  Int?
+  originalName  String
+  byteSize      Int
+  sha256        String
+  status        String   @default("PRIVATE") // PRIVATE | QUARANTINED
+  createdAt     DateTime @default(now())
+  @@index([workspaceId, assetId])
+  @@index([uploaderId, createdAt])
 }

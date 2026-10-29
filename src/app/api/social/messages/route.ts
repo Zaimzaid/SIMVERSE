@@ -6,9 +6,12 @@ export async function GET(request: Request) {
   try {
     const user = await getSessionUser();
     if (!user) throw new AuthenticationError("Sign in first.");
-    const peer = new URL(request.url).searchParams.get("peer");
+    const params = new URL(request.url).searchParams;
+    const peer = params.get("peer");
+    const before = params.get("before");
     if (!peer || peer.length > 80) throw new ValidationError("Choose a conversation.");
-    return dataResponse({ messages: await listConversation(user.id, peer) });
+    if (before !== null && (!before || before.length > 80)) throw new ValidationError("Invalid message cursor.");
+    return dataResponse({ messages: await listConversation(user.id, peer, before ?? undefined) });
   } catch (error) { return errorResponse(error); }
 }
 export async function POST(request: Request) {

@@ -9,6 +9,7 @@ import { apiFetch, fieldErrorsFrom } from "@/lib/client/api";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { ImageUpload } from "@/components/platform/settings/image-upload";
 
 export interface EditablePlayerIdentity {
   simverseId: string;
@@ -176,6 +177,12 @@ export function PlayerIdentityForm({ initial, countries }: Props) {
                 className={inputClass} placeholder="https://…"/>
               {errors.bannerUrl ? <p className="mt-1 text-xs text-warning">{errors.bannerUrl}</p> : null}
             </div>
+          </div>
+          <div className="grid gap-4 rounded-xl border border-border bg-background p-4 sm:grid-cols-2">
+            <ImageUpload endpoint="/api/account/avatar" label="Upload profile photo"
+              onUploaded={(url) => setField("avatarUrl", url)}/>
+            <ImageUpload endpoint="/api/account/banner" label="Upload cover banner"
+              onUploaded={(url) => setField("bannerUrl", url)}/>
           </div>
           <div className="mt-4">
             <label htmlFor="identity-biography" className={labelClass}>Biography</label>

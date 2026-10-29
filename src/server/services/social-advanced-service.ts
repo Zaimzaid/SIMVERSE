@@ -27,6 +27,8 @@ async function active(userId:string,groupId:string) {
   return m;
 }
 async function notify(userId:string,kind:string,title:string,detail:string,href="/social") {
+  const enabled=await prisma.user.findUnique({where:{id:userId},select:{socialAlertsEnabled:true}});
+  if(!enabled?.socialAlertsEnabled)return;
   await prisma.socialNotification.create({data:{userId,kind,title,detail:detail.slice(0,180),href}});
 }
 export async function createSocialGroup(userId:string,payload:unknown) {
@@ -78,7 +80,12 @@ export async function groupMessages(userId:string,groupId:string) {
     select:{id:true,groupId:true,senderId:true,body:true,mediaUrl:true,createdAt:true,
       sender:{select:{displayName:true}},reactions:{select:{emoji:true,actorId:true}}},
   });
-  return rows.reverse();
+  // A blocked user can still be a member of a shared group, but neither
+  // their messages nor their reactions should surface to the blocker.
+  return rows.reverse().map(row => ({
+    ...row,
+    reactions: row.reactions.filter(reaction => !blocked.has(reaction.actorId)),
+  }));
 }
 export async function sendGroupMessage(userId:string,payload:unknown) {
   const parsed=groupTextSchema.safeParse(payload);
@@ -112,17 +119,33 @@ export async function reactToMessage(userId:string,payload:unknown) {
   const msg=await prisma.socialGroupMessage.findUnique({where:{id:messageId}});
   if(!msg)throw new NotFoundError("Message not found.");
   await active(userId,msg.groupId);
+  // Group membership alone must not permit reacting to a blocked person's
+  // otherwise-hidden message through a direct API request.
+  if (userId !== msg.senderId) {
+    const blocked = await prisma.socialBlock.findFirst({
+      where: { OR: [
+        { blockerId: userId, blockedId: msg.senderId },
+        { blockerId: msg.senderId, blockedId: userId },
+      ] },
+      select: { blockerId: true },
+    });
+    if (blocked) throw new AuthorizationError("This message is unavailable.");
+  }
   const key={actorId:userId,groupMessageId:messageId,emoji};
   const existing=await prisma.socialReaction.findUnique({where:{actorId_groupMessageId_emoji:key}});
   if(existing){await prisma.socialReaction.delete({where:{id:existing.id}});return {active:false};}
   await prisma.socialReaction.create({data:key});return {active:true};
 }
 export async function notifications(userId:string) {
-  const items=await prisma.socialNotification.findMany({
-    where:{userId},orderBy:{createdAt:"desc"},take:60,
-    select:{id:true,kind:true,title:true,detail:true,href:true,readAt:true,createdAt:true},
-  });
-  return {items,unread:items.filter(x=>!x.readAt).length};
+  // The 60-item preview is bounded; the unread badge must count *all* alerts.
+  const [items, unread] = await Promise.all([
+    prisma.socialNotification.findMany({
+      where:{userId},orderBy:{createdAt:"desc"},take:60,
+      select:{id:true,kind:true,title:true,detail:true,href:true,readAt:true,createdAt:true},
+    }),
+    prisma.socialNotification.count({where:{userId,readAt:null}}),
+  ]);
+  return {items,unread};
 }
 export async function readNotifications(userId:string) {
   await prisma.socialNotification.updateMany({where:{userId,readAt:null},data:{readAt:new Date()}});

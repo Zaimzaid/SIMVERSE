@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Ban, Bell, Check, ChevronLeft, Clock3, Mail, MessageCircle, Phone,
   RefreshCw, Search, Send, UserPlus, Users, UsersRound, Video, X,
@@ -19,7 +19,7 @@ type SocialState = {
 type SearchResult = { userId: string; username: string | null; user: { displayName: string; avatarUrl: string | null } };
 type Message = {
   id: string; senderId: string; recipientId: string; body: string;
-  mediaUrl: string | null; createdAt: string; readAt: string | null;
+  mediaUrl: string | null; createdAt: string; deliveredAt: string | null; readAt: string | null;
   reactions?: { emoji: string; actorId: string }[];
 };
 type Conversation = {
@@ -28,6 +28,13 @@ type Conversation = {
 };
 type Section = "chats" | "friends" | "find" | "requests" | "groups" | "alerts";
 type CallRequest = { peerId: string; mode: "VOICE" | "VIDEO"; nonce: number } | null;
+
+function mergeMessages(previous: Message[], incoming: Message[]): Message[] {
+  const unique = new Map<string, Message>(previous.map(message => [message.id, message]));
+  for (const message of incoming) unique.set(message.id, message);
+  return [...unique.values()].sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+}
 
 function avatar(name: string, src: string | null, size = "size-11") {
   return <span className={`${size} relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-600 to-slate-800 text-sm font-bold text-white`}>
@@ -47,15 +54,21 @@ function Counter({ value }: { value: number }) {
   return value > 0 ? <span className="ml-auto grid min-w-6 place-items-center rounded-full bg-cyan-500 px-1.5 py-0.5 text-[11px] font-bold text-slate-950" aria-label={`${value} unread`}>{value > 99 ? "99+" : value}</span> : null;
 }
 
-export function CommunityV3({ initial, userId }: { initial: SocialState; userId: string }) {
+export function CommunityV3({ initial, userId, initialPeerId = null }: { initial: SocialState; userId: string; initialPeerId?: string | null }) {
   const [social, setSocial] = useState(initial);
   const [section, setSection] = useState<Section>("chats");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialPeerId);
+  const selectedRef = useRef<string | null>(null);
+  const chatReloadRef = useRef<(() => void) | null>(null);
+  const pendingSendRef = useRef<{ recipientId: string; body: string; mediaUrl?: string; clientId: string } | null>(null);
+  const [connection, setConnection] = useState<"connecting" | "live" | "fallback">("connecting");
   const [inbox, setInbox] = useState<Conversation[]>([]);
   const [unread, setUnread] = useState(0);
   const [groupInvites, setGroupInvites] = useState(0);
   const [alertUnread, setAlertUnread] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [search, setSearch] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -66,13 +79,25 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [notice, setNotice] = useState("");
   const [callRequest, setCallRequest] = useState<CallRequest>(null);
 
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+
   const refreshSocial = useCallback(async () => {
     const r = await apiFetch<SocialState>("/api/social");
     if (r.data) setSocial(r.data);
   }, []);
   const refreshInbox = useCallback(async () => {
-    const r = await apiFetch<{ conversations: Conversation[]; unread: number }>("/api/social/inbox");
-    if (r.data) { setInbox(r.data.conversations); setUnread(r.data.unread); }
+    const r = await apiFetch<{ conversations: Conversation[]; unread: number; pendingDeliveryIds: string[] }>("/api/social/inbox");
+    if (r.data) {
+      setInbox(r.data.conversations); setUnread(r.data.unread);
+      // A message is "Delivered" only after the receiving browser confirms it.
+      // This is separate from opening a conversation ("Read").
+      if (r.data.pendingDeliveryIds.length) {
+        void apiFetch("/api/social/delivery", {
+          method: "POST",
+          body: JSON.stringify({ messageIds: r.data.pendingDeliveryIds }),
+        });
+      }
+    }
   }, []);
   const refreshExtras = useCallback(async () => {
     const [g, n] = await Promise.all([
@@ -88,26 +113,64 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     const timer = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()]);
-    }, 5000);
+    }, 15000);
     return () => window.clearInterval(timer);
+  }, [refreshSocial, refreshInbox, refreshExtras]);
+
+  useEffect(() => {
+    if (typeof EventSource === "undefined") {
+      setConnection("fallback");
+      return;
+    }
+    const events = new EventSource("/api/social/events");
+    const onSync = () => {
+      if (document.visibilityState !== "visible") return;
+      void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()]);
+      chatReloadRef.current?.();
+    };
+    events.addEventListener("sync", onSync);
+    events.onopen = () => setConnection("live");
+    events.onerror = () => setConnection("fallback");
+    const onVisible = () => {
+      if (document.visibilityState === "visible") onSync();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      events.removeEventListener("sync", onSync);
+      document.removeEventListener("visibilitychange", onVisible);
+      events.close();
+    };
   }, [refreshSocial, refreshInbox, refreshExtras]);
 
   useEffect(() => {
     if (!selected) return;
     let cancelled = false;
+    let firstPage = true;
     const load = async () => {
       const r = await apiFetch<{ messages: Message[] }>(`/api/social/messages?peer=${encodeURIComponent(selected)}`);
       if (cancelled) return;
       if (r.data) {
-        setMessages(r.data.messages);
+        const latest = r.data.messages;
+        // Polling must not discard older pages the player already loaded.
+        setMessages(existing => mergeMessages(existing, latest));
+        if (firstPage) {
+          setHasOlder(latest.length === 100);
+          firstPage = false;
+        }
         void refreshInbox();
       } else if (r.error) setError(r.error.message);
     };
+    chatReloadRef.current = () => { if (document.visibilityState === "visible") void load(); };
     void load();
+    // Safety fallback during SSE outages or constrained hosting.
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
-    }, 4000);
-    return () => { cancelled = true; window.clearInterval(timer); };
+    }, 15000);
+    return () => {
+      cancelled = true;
+      chatReloadRef.current = null;
+      window.clearInterval(timer);
+    };
   }, [selected, refreshInbox]);
 
   const friend = social.friends.find(item => item.other.id === selected)?.other;
@@ -121,7 +184,28 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   ];
 
   function openChat(peerId: string) {
-    setSection("chats"); setSelected(peerId); setMessages([]); setError(""); setNotice("");
+    setSection("chats"); setSelected(peerId); setMessages([]); setHasOlder(false);
+    pendingSendRef.current = null; setError(""); setNotice("");
+  }
+  async function loadOlder() {
+    if (!selected || loadingOlder || !hasOlder || !messages.length) return;
+    setLoadingOlder(true); setError("");
+    const oldest = messages[0];
+    if (!oldest) { setLoadingOlder(false); return; }
+    const oldestId = oldest.id;
+    const url = `/api/social/messages?peer=${encodeURIComponent(selected)}&before=${encodeURIComponent(oldestId)}`;
+    const r = await apiFetch<{ messages: Message[] }>(url);
+    if (selectedRef.current !== selected) {
+      setLoadingOlder(false);
+      return;
+    }
+    if (r.data) {
+      const older = r.data.messages;
+      setMessages(current => mergeMessages(current, older));
+      setHasOlder(older.length === 100);
+      void refreshInbox();
+    } else if (r.error) setError(r.error.message);
+    setLoadingOlder(false);
   }
   async function lookup(event: React.FormEvent) {
     event.preventDefault(); setError(""); setResults([]); setSearchPerformed(true);
@@ -149,13 +233,22 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     event.preventDefault();
     if (!selected || busy || !(body.trim() || mediaUrl.trim())) return;
     setBusy(true); setError("");
+    const current = { recipientId: selected, body: body.trim(), mediaUrl: mediaUrl || undefined };
+    const previous = pendingSendRef.current;
+    const clientId = previous &&
+      previous.recipientId === current.recipientId &&
+      previous.body === current.body && previous.mediaUrl === current.mediaUrl
+      ? previous.clientId : crypto.randomUUID();
+    const payload = { ...current, clientId };
+    pendingSendRef.current = payload;
     const r = await apiFetch<{ message: Message }>("/api/social/messages", {
-      method: "POST", body: JSON.stringify({ recipientId: selected, body, mediaUrl: mediaUrl || undefined }),
+      method: "POST", body: JSON.stringify(payload),
     });
-    if (r.error) setError(r.error.message);
+    if (r.error) setError(r.error.message + " Your message was kept; press Send to retry.");
     else {
+      pendingSendRef.current = null;
       setBody(""); setMediaUrl("");
-      if (r.data?.message) setMessages(items => [...items, { ...r.data!.message, reactions: [] }]);
+      if (r.data?.message) setMessages(items => mergeMessages(items, [{ ...r.data!.message, reactions: [] }]));
       void refreshInbox();
     }
     setBusy(false);
@@ -167,7 +260,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     if (r.error) setError(r.error.message);
     else if (selected) {
       const response = await apiFetch<{ messages: Message[] }>(`/api/social/messages?peer=${encodeURIComponent(selected)}`);
-      if (response.data) setMessages(response.data.messages);
+      if (response.data) setMessages(current => mergeMessages(current, response.data!.messages));
     }
   }
   const unreadMap = new Map(inbox.map(item => [item.friendId, item.unread]));
@@ -259,6 +352,11 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
               </button>
             </header>
             <div aria-live="polite" className="flex min-h-[340px] max-h-[62vh] flex-1 flex-col gap-3 overflow-y-auto bg-background/30 p-4 sm:p-6">
+              {hasOlder && messages.length > 0 && <button type="button" disabled={loadingOlder}
+                onClick={() => void loadOlder()}
+                className="self-center rounded-lg border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover disabled:opacity-50">
+                {loadingOlder ? "Loading earlier messages…" : "Load earlier messages"}
+              </button>}
               {!messages.length && <p className="m-auto text-center text-sm text-secondary">Start your conversation with {friend.displayName}.</p>}
               {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-start rounded-2xl p-3 text-sm shadow-sm ${msg.senderId === userId ? "self-end rounded-br-sm bg-accent text-accent-foreground" : "rounded-bl-sm border border-border bg-surface"}`}>
                 {msg.body && <p className="whitespace-pre-wrap break-words">{msg.body}</p>}
@@ -267,6 +365,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
                   {(["👍", "❤️", "😂"] as const).map(emoji => <button key={emoji} type="button" aria-label={`React ${emoji}`} onClick={() => void react(msg.id, emoji)}
                     className="rounded-md border border-current/20 px-1.5 py-0.5 text-[11px]">{emoji} {msg.reactions?.filter(r => r.emoji === emoji).length ?? 0}</button>)}
                   <time className="ml-auto text-[10px] opacity-70">{timestamp(msg.createdAt)}</time>
+                  {msg.senderId === userId && <span className="text-[10px] opacity-75">{msg.readAt ? "Read" : msg.deliveredAt ? "Delivered" : "Sent"}</span>}
                 </div>
               </div>)}
             </div>
@@ -378,6 +477,10 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
       </div>
     </div>
     <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest} />
-    <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" /> Messages refresh every few seconds while this page is open. Live sockets and push notifications are later milestones.</p>
+    <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" />
+      {connection === "live" ? "Live updates connected (pilot); reconnects automatically." :
+       connection === "fallback" ? "Reconnecting live updates; automatic refresh remains active." :
+       "Connecting to live updates…"}
+    </p>
   </div>;
 }

@@ -3,7 +3,7 @@ import {prisma} from "@/server/db/client";
 import {AuthorizationError,NotFoundError,ValidationError} from "@/lib/errors";
 import {registerUser} from "./auth-service";
 import {resetDb} from "../../../test/helpers/db";
-import {requestFriend,respondFriend,sendMessage} from "./social-service";
+import {requestFriend,respondFriend,sendMessage,blockPlayer} from "./social-service";
 import {createSocialGroup,listSocialGroups,respondGroupInvite,groupMessages,sendGroupMessage,
   reactToMessage,notifications,readNotifications,sendCallSignal,receiveCallSignals} from "./social-advanced-service";
 beforeEach(async()=>await resetDb());
@@ -42,6 +42,36 @@ describe("SIMVERSE social expansion",()=>{
     expect(direct.mediaUrl).toBe("https://example.com/photo.png");
     expect((await reactToMessage(b,{kind:"DIRECT",messageId:direct.id,emoji:"👍"})).active).toBe(true);
     await expect(reactToMessage(outsider,{kind:"DIRECT",messageId:direct.id,emoji:"👍"})).rejects.toBeInstanceOf(NotFoundError);
+  });
+  it("counts unread notifications beyond the 60-item preview",async()=>{
+    const a=await member();
+    await prisma.socialNotification.createMany({data:Array.from({length:75},(_,i)=>({
+      userId:a,kind:"MESSAGE",title:`Alert ${i}`,detail:"A message arrived.",href:"/social",
+    }))});
+    const preview=await notifications(a);
+    expect(preview.items).toHaveLength(60);
+    expect(preview.unread).toBe(75);
+    await readNotifications(a);
+    expect((await notifications(a)).unread).toBe(0);
+  });
+  it("hides blocked members' reactions and rejects reactions to blocked messages",async()=>{
+    const owner=await member(),viewer=await member(),blocked=await member();
+    await befriend(owner,viewer);
+    await befriend(owner,blocked);
+    const group=await createSocialGroup(owner,{title:"Three Friends",invitees:[viewer,blocked]});
+    await respondGroupInvite(viewer,group.id,"ACCEPT");
+    await respondGroupInvite(blocked,group.id,"ACCEPT");
+    const hidden=await sendGroupMessage(blocked,{groupId:group.id,body:"Hidden sender"});
+    const visible=await sendGroupMessage(owner,{groupId:group.id,body:"Visible sender"});
+    await reactToMessage(blocked,{kind:"GROUP",messageId:visible.id,emoji:"👍"});
+    await blockPlayer(viewer,{userId:blocked});
+    const history=await groupMessages(viewer,group.id);
+    expect(history.map(m=>m.id)).not.toContain(hidden.id);
+    expect(history.find(m=>m.id===visible.id)?.reactions).toEqual([]);
+    await expect(reactToMessage(viewer,{kind:"GROUP",messageId:hidden.id,emoji:"❤️"}))
+      .rejects.toBeInstanceOf(AuthorizationError);
+    expect((await groupMessages(owner,group.id)).find(m=>m.id===visible.id)?.reactions)
+      .toHaveLength(1);
   });
   it("records private notifications and gates call signaling to accepted friends",async()=>{
     const a=await member(),b=await member(),c=await member();

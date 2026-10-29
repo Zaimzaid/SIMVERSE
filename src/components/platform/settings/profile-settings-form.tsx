@@ -8,6 +8,7 @@ import { apiFetch, fieldErrorsFrom } from "@/lib/client/api";
 import { zodFieldErrors } from "@/lib/client/form";
 import { useToast } from "@/components/ui/toast";
 import { Avatar } from "@/components/ui/avatar";
+import {ImageUpload} from "./image-upload";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -120,11 +121,14 @@ export function ProfileSettingsForm({
             />
           </Field>
 
+          <ImageUpload endpoint="/api/account/avatar" label="Upload a profile picture" onUploaded={url=>{
+            setAvatarUrl(url);setSaved(s=>({...s,avatarUrl:url}));toast({variant:"success",title:"Profile picture uploaded"});
+          }}/>
           <Field
             label="Avatar URL"
             htmlFor="avatar-url"
             error={errors.avatarUrl}
-            hint="Optional. Link to an image; leave blank to use your initials."
+            hint="Optional. You can upload an image above, paste an image URL, or leave blank for initials."
           >
             <Input
               id="avatar-url"

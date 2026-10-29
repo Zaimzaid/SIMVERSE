@@ -2,6 +2,17 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Marketplace records have independent identities and must be cleared before
+  // their referenced assets, workspaces and users in every integration test.
+  await prisma.marketTradeOffer.deleteMany();
+  await prisma.marketOrder.deleteMany();
+  await prisma.marketWishlist.deleteMany();
+  await prisma.marketImport.deleteMany();
+  await prisma.marketEntitlement.deleteMany();
+  await prisma.marketListing.deleteMany();
+  await prisma.marketUploadedFile.deleteMany();
+  await prisma.marketSeller.deleteMany();
+  await prisma.marketModeratorGrant.deleteMany();
   await prisma.socialReaction.deleteMany();
   await prisma.socialGroupMessage.deleteMany();
   await prisma.socialGroupMember.deleteMany();
@@ -99,8 +110,16 @@ export async function resetDb(): Promise<void> {
   await prisma.tag.deleteMany();
   await prisma.attributeDefinition.deleteMany();
   // Platform (Phase 0).
+  await prisma.uploadedImage.deleteMany();
   await prisma.auditLog.deleteMany();
+  await prisma.cloudOauthState.deleteMany();
+  await prisma.googleDriveConnection.deleteMany();
+  await prisma.accountDeletionRequest.deleteMany();
+  await prisma.projectAssignment.deleteMany();
+  await prisma.twoFactorChallenge.deleteMany();
+  await prisma.emailVerificationToken.deleteMany();
   await prisma.session.deleteMany();
+  await prisma.workspaceInvitation.deleteMany();
   await prisma.workspaceMember.deleteMany();
   await prisma.workspace.deleteMany();
   await prisma.user.deleteMany();

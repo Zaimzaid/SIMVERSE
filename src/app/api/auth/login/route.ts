@@ -6,6 +6,7 @@ import {
 } from "@/server/security/auth-rate-limit";
 import { createSession, setActiveWorkspaceCookie } from "@/server/auth/session";
 import { authenticateUser } from "@/server/services/auth-service";
+import {beginTwoFactorChallenge} from "@/server/services/two-factor-service";
 import { listWorkspacesForUser } from "@/server/services/workspace-service";
 import { dataResponse, errorResponse } from "@/server/api/response";
 
@@ -25,6 +26,10 @@ export async function POST(req: NextRequest) {
     }
     clearLoginEmailFailures(email);
 
+    if(user.twoFactorEnabledAt){
+      const challenge=await beginTwoFactorChallenge(user.id);
+      return dataResponse({twoFactorRequired:true,challenge});
+    }
     await createSession(user.id, {
       userAgent: req.headers.get("user-agent"),
       ipAddress: ip === "unidentified" ? null : ip,

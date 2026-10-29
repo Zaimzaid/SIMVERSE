@@ -130,6 +130,7 @@ export async function getPublicPlayerProfile(rawUsername: string) {
   if (!profile || profile.profileVisibility !== "PUBLIC") return null;
   return {
     username: profile.username!,
+    userId: profile.userId,
     displayName: profile.user.displayName,
     avatarUrl: profile.user.avatarUrl,
     creatorName: profile.creatorName,

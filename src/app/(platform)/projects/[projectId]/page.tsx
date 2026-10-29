@@ -27,6 +27,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProjectActions } from "@/components/projects/project-actions";
+import {ProjectTeamPanel} from "@/components/projects/project-team-panel";
+import {listProjectAssignments} from "@/server/services/project-assignment-service";
+import {getWorkspaceMembers} from "@/server/services/workspace-service";
 import { ProjectEntitiesManager } from "@/components/projects/project-entities-manager";
 import { SimulationCard } from "@/components/simulations/simulation-card";
 
@@ -68,7 +71,7 @@ export default async function ProjectDetailPage({ params }: PageParams) {
 
   // Entities linked to this project (any status — an archived-but-linked entity
   // still belongs here) and the project's simulations (drafts + ready, no archived).
-  const [entityList, simulationList] = await Promise.all([
+  const [entityList, simulationList, assignments, teamMembers] = await Promise.all([
     listEntities(user.id, workspace.id, {
       projectId: project.id,
       status: "ALL",
@@ -80,6 +83,8 @@ export default async function ProjectDetailPage({ params }: PageParams) {
       sort: "updated_desc",
       pageSize: SIMULATION_MAX_PAGE_SIZE,
     }),
+    listProjectAssignments(user.id,workspace.id,project.id),
+    permissions.includes("workspace.members.view")?getWorkspaceMembers(user.id,workspace.id):Promise.resolve([]),
   ]);
 
   const createSimulationHref = `/simulations/new?projectId=${project.id}`;
@@ -185,10 +190,17 @@ export default async function ProjectDetailPage({ params }: PageParams) {
     </div>
   );
 
+  const teamTab=<ProjectTeamPanel projectId={project.id}
+    canManage={permissions.includes("workspace.members.manage")}
+    members={teamMembers.map(m=>({id:m.id,name:m.user.displayName,email:m.user.email}))}
+    assignments={assignments.map(a=>({id:a.id,membershipId:a.membershipId,responsibility:a.responsibility,
+      notes:a.notes,memberName:a.membership.user.displayName,memberEmail:a.membership.user.email,
+      memberAvatar:a.membership.user.avatarUrl}))}/>;
   const tabs: TabItem[] = [
     { id: "overview", label: "Overview", content: overviewTab },
     { id: "entities", label: `Entities (${project.entityCount})`, content: entitiesTab },
     { id: "simulations", label: `Simulations (${project.simulationCount})`, content: simulationsTab },
+    { id: "team", label: `Team (${assignments.length})`, content: teamTab },
   ];
 
   return (
