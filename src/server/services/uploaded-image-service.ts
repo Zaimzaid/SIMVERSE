@@ -20,7 +20,7 @@ export async function saveUserAvatar(userId:string,content:Uint8Array,type:strin
  const mediaType=validateImageBytes(content,type);
  const previous=await prisma.user.findUniqueOrThrow({where:{id:userId},select:{avatarUrl:true}});
  const image=await prisma.$transaction(async tx=>{
-  const row=await tx.uploadedImage.create({data:{uploadedById:userId,workspaceId:null,purpose:"AVATAR",mediaType,content}});
+  const row=await tx.uploadedImage.create({data:{uploadedById:userId,workspaceId:null,purpose:"AVATAR",mediaType,content:new Uint8Array(content)}});
   await tx.user.update({where:{id:userId},data:{avatarUrl:`/api/images/${row.id}`}});
   return row;
  });
@@ -34,7 +34,7 @@ export async function saveWorkspaceLogo(userId:string,workspaceId:string,content
  const mediaType=validateImageBytes(content,type);
  const previous=await prisma.workspace.findUniqueOrThrow({where:{id:workspaceId},select:{logoUrl:true}});
  const image=await prisma.$transaction(async tx=>{
-  const row=await tx.uploadedImage.create({data:{uploadedById:userId,workspaceId,purpose:"WORKSPACE_LOGO",mediaType,content}});
+  const row=await tx.uploadedImage.create({data:{uploadedById:userId,workspaceId,purpose:"WORKSPACE_LOGO",mediaType,content:new Uint8Array(content)}});
   await tx.workspace.update({where:{id:workspaceId},data:{logoUrl:`/api/images/${row.id}`}});
   return row;
  });
