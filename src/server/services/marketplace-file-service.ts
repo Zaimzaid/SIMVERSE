@@ -31,7 +31,7 @@ async function checkFilePermission(userId:string,fileId:string) {
   if(mod?.isActive)return item;
   // A buyer must own the exact pinned asset version pointing to this file.
   const version=await prisma.assetVersion.findFirst({
-    where:{assetId:item.assetId,externalReference:marketPrivateReference(fileId),...(item.assetVersion?{version:item.assetVersion}:{})},
+    where:{assetId:item.assetId,externalReference:marketPrivateReference(fileId)},
     select:{version:true},
   });
   if(version){
