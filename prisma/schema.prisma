@@ -2126,3 +2126,20 @@ model MarketImport {
  @@unique([entitlementId,workspaceId])
  @@index([userId,workspaceId,status])
 }
+
+
+// Private binary storage pilot. Files remain authorization-gated; no public URL.
+model MarketUploadedFile {
+  id            String   @id @default(cuid())
+  uploaderId    String
+  workspaceId   String
+  assetId       String
+  assetVersion  Int?
+  originalName  String
+  byteSize      Int
+  sha256        String
+  status        String   @default("PRIVATE") // PRIVATE | QUARANTINED
+  createdAt     DateTime @default(now())
+  @@index([workspaceId, assetId])
+  @@index([uploaderId, createdAt])
+}
