@@ -108,3 +108,21 @@ The buyer Library now offers manual 3D preview activation rather than mounting e
 - Test actual browser loading, animation behavior, responsive control layout and license-bound access before any public release.
 
 **Commerce:** Payments, payouts and player-to-player trading still remain completely disabled.
+
+
+## Continuation checkpoint: World Layout Studio with rendered models
+
+- World detail now links to `/worlds/[worldId]/layout`, an interactive client-side Three.js layout editor. The page is workspace-scoped and shows only model URLs that the current user is entitled to access; a colleague without a buyer entitlement sees an honest placeholder instead.
+- Saved World asset associations are rendered at their existing metric X/Y/Z coordinates. For licensed GLB sources that the user can load, the real 3D geometry appears; otherwise the UI displays clearly labelled placeholder blocks. The studio supports orbit/zoom, click-to-select, numeric position/rotation/scale controls, and discard/save.
+- `/api/worlds/[worldId]/layout` provides authorized read and placement-only PATCH operations. The server checks World permissions, status, expected World version, complete association identifiers, licenses and existing World bounds. Edits preserve the rest of the World blueprint and create a new immutable World version. Cross-workspace reads/edits are blocked.
+- The new tests verify persistence, version checks, invalid IDs, out-of-bounds coordinates and that importing a marketplace model does not reveal its URL to another workspace member without an active entitlement.
+
+**Scope:** This is a genuine interactive *World layout preview/editor*, not the main in-world runtime. It does **not** yet add collision/physics, 3D terrain generation, animation, persistent NPCs, game mechanics, robust renderer optimization, client mesh instancing or drag handles. Objects beyond the first 60 have editable coordinate records but are excluded from this prototype 3D preview. A model may still fail to load in a particular browser and will then remain a placeholder. Commercial payments and player trading remain off.
+
+### QA checklist
+
+1. From an authorized buyer account, acquire a real creator GLB, add it to a World, then open **World → 3D Layout**.
+2. Confirm real model geometry renders rather than only a placeholder. Move the lion's X/Z position, change yaw and size; save, reload and verify the persisted layout/new World version.
+3. With a different user lacking the entitlement, verify the private GLB is inaccessible, no model URL is leaked by the layout read response, and the editor displays a placeholder.
+4. Test invalid coordinates, missing associations, stale version, archived World and foreign-workspace target.
+5. Check Firefox/Chromium, mobile, WebGL-disabled fallback, and large source models before production.
