@@ -5,7 +5,7 @@ import { registerUser } from "./auth-service";
 import { resetDb } from "../../../test/helpers/db";
 import {
   friendshipKey, listConversation, listSocial, requestFriend, respondFriend,
-  searchPublicPlayers, sendMessage, blockPlayer, unblockPlayer,
+  searchPublicPlayers, sendMessage, blockPlayer, unblockPlayer, acknowledgeDirectDelivery,
 } from "./social-service";
 import { socialActivityMarker } from "./social-live-service";
 
@@ -90,6 +90,23 @@ describe("consensual social messaging",()=>{
       .rejects.toBeInstanceOf(ConflictError);
     const legacy=await sendMessage(a.user.id,{recipientId:b.user.id,body:"Legacy without ID"});
     expect(legacy.id).not.toBe(first.id);
+  });
+  it("lets only the recipient confirm delivery and broadcasts the new receipt",async()=>{
+    const sender=await account("Sender"),receiver=await account("Receiver"),outsider=await account("Other");
+    const invite=await requestFriend(sender.user.id,{userId:receiver.user.id});
+    await respondFriend(receiver.user.id,invite.id,"ACCEPT");
+    const msg=await sendMessage(sender.user.id,{recipientId:receiver.user.id,body:"Delivery acknowledgement"});
+    const before=await socialActivityMarker(sender.user.id);
+    expect((await acknowledgeDirectDelivery(sender.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    expect((await acknowledgeDirectDelivery(outsider.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    expect((await acknowledgeDirectDelivery(receiver.user.id,{messageIds:[msg.id]})).acknowledged).toBe(1);
+    expect((await acknowledgeDirectDelivery(receiver.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    const stored=await prisma.socialMessage.findUnique({where:{id:msg.id},select:{deliveredAt:true,readAt:true}});
+    expect(stored?.deliveredAt).toBeInstanceOf(Date);
+    expect(stored?.readAt).toBeNull();
+    expect(await socialActivityMarker(sender.user.id)).not.toBe(before);
+    await expect(acknowledgeDirectDelivery(receiver.user.id,{messageIds:[]}))
+      .rejects.toBeInstanceOf(ValidationError);
   });
   it("generates changing opaque activity markers for new messages and read receipts",async()=>{
     const a=await account("Sender"),b=await account("Recipient");
