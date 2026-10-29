@@ -36,6 +36,22 @@ export function WorldLayoutStudio({initial,canEdit}:{initial:Layout;canEdit:bool
     setPoses(current=>({...current,[selected]:next}));
     setChanged(true);setNotice("");
   };
+  function fieldValue(part:"position"|"rotationDegrees"|"scale",key:string):number {
+    if(!pose)return 0;
+    if(part==="rotationDegrees"){
+      if(key==="pitch")return pose.rotationDegrees.pitch;
+      if(key==="yaw")return pose.rotationDegrees.yaw;
+      return pose.rotationDegrees.roll;
+    }
+    if(part==="position"){
+      if(key==="x")return pose.position.x;
+      if(key==="y")return pose.position.y;
+      return pose.position.z;
+    }
+    if(key==="x")return pose.scale.x;
+    if(key==="y")return pose.scale.y;
+    return pose.scale.z;
+  }
   function setPart(part:"position"|"rotationDegrees"|"scale",key:string,value:string){
     if(!pose)return;
     if(part==="position" && ["x","y","z"].includes(key)){
@@ -131,7 +147,7 @@ export function WorldLayoutStudio({initial,canEdit}:{initial:Layout;canEdit:bool
               {section.keys.map(key=><label key={key} className="space-y-1">
                 <span className="text-xs text-muted">{key.toUpperCase()}</span>
                 <input type="number" step={section.step} disabled={!canEdit}
-                  value={pose[section.part][key]}
+                  value={fieldValue(section.part,key)}
                   onChange={event=>setPart(section.part,key,event.target.value)}
                   className="w-full rounded-lg border border-border bg-background px-2 py-2 text-sm disabled:opacity-60"/>
               </label>)}
