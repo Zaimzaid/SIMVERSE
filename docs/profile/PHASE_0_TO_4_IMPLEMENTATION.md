@@ -54,3 +54,20 @@ Dependency chain: master → #28 → #29 → #31 → this branch.
 - Phase 3: social + limited media portfolio code implemented; publication and moderation still incomplete.
 - Phase 4: persisted procedural-avatar prototype built; true world integration NOT done.
 - No production-ready certification is given.
+
+## Continuation — playable proof, studio connection and profile hardening
+- `/profile/avatar/world` now loads the user-owned appearance into an original **movable** 3D test environment, with WASD/arrow keys, touch movement buttons, deterministic bounded movement and tree collision, four proximity goals, restart control, camera follow and a WebGL fallback.
+- Movement calculations in `src/lib/player-avatar/world-movement.ts` have unit tests. This is **single-player client-side demonstration only**; no multiplayer physics, authoritative server position or saveable quest rewards.
+- Animation Studio's 3D Avatar & Camera Lab can explicitly **import the saved profile avatar appearance** into an animation scene. Importing is a snapshot; the animation only persists if saved separately under workspace permissions. Editing the animation does not silently overwrite the player profile.
+- Player-owned workspace creations are now shown only from the **currently active workspace**, so cross-workspace links no longer misleadingly point at resources in an inactive workspace.
+- Choosing to publish a profile is **not** a setup-completion target. Private-by-default profiles can complete the three recommended setup steps without publishing.
+- Full world runtime integration, rigged/imported models, optimized animation controllers, public portfolio publishing beyond PUBLIC media shares, mobile browser QA and end-to-end operator-approved data migrations still remain follow-ups.
+
+### Acceptance checks for the continuation
+1. Sign in, save a distinctive avatar color; refresh; enter `/profile/avatar/world` and confirm it survives reload.
+2. Walk with keyboard and touch, verify diagonal speed, collide with trees, and collect four markers. Restart must reset movement/objectives without changing the saved avatar.
+3. Disable WebGL and verify the friendly fallback message rather than an application crash.
+4. Go to `/animation/3d`, load player appearance, save a new scene, reload the scene and confirm the imported colors.
+5. Switch workspaces and verify private creation lists and links respect the currently active workspace.
+6. Keep a profile private and complete all **three** optional setup steps without being pressured to publish.
+7. Review TypeScript, lint, full Vitest suite and Next build in GitHub Actions; verify actual UI on desktop and a mobile browser before merging.

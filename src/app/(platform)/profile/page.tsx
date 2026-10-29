@@ -29,7 +29,6 @@ export default async function MyProfilePage() {
     { done: Boolean(identity.username), label: "Choose your username" },
     { done: Boolean(identity.avatarUrl), label: "Add a profile photo" },
     { done: Boolean(identity.biography.trim()), label: "Write a short introduction" },
-    { done: identity.profileVisibility === "PUBLIC", label: "Choose whether to make your profile public (optional)" },
   ];
   const completed = steps.filter((step) => step.done).length;
   return <div className="mx-auto max-w-6xl space-y-7">
@@ -54,17 +53,18 @@ export default async function MyProfilePage() {
     </section>
     <section aria-label="Profile overview" className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Your friends</p><p className="mt-1 text-2xl font-semibold">{social.friends.length}</p><Link href="/social" className="mt-2 block text-xs text-accent">Open community →</Link></div>
-      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Creations in your workspaces</p><p className="mt-1 text-2xl font-semibold">{portfolio.items.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">My creations →</Link></div>
+      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Creations in your active workspace</p><p className="mt-1 text-2xl font-semibold">{portfolio.items.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">My creations →</Link></div>
       <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Publicly shared stories</p><p className="mt-1 text-2xl font-semibold">{portfolio.published.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">View portfolio →</Link></div>
     </section>
     <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6" aria-labelledby="getting-started">
       <div className="flex items-start gap-3"><Sparkles className="mt-1 size-5 text-accent"/>
         <div className="flex-1"><h2 id="getting-started" className="text-lg font-semibold">Make your profile yours</h2>
-          <p className="text-sm text-secondary">{completed} of 4 optional setup steps completed. You can explore SIMVERSE at any time.</p></div></div>
+          <p className="text-sm text-secondary">{completed} of 3 simple setup steps completed. You can explore SIMVERSE at any time.</p></div></div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {steps.map((step) => <div key={step.label} className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 text-sm">
           <span aria-hidden className={step.done ? "text-emerald-500" : "text-muted"}>{step.done ? "✓" : "○"}</span>{step.label}</div>)}
       </div>
+      <p className="mt-3 text-xs text-secondary">Your profile is private by default. You can keep it private and still complete all steps.</p>
       <Link href="#identity" className="mt-3 inline-block text-sm font-semibold text-accent">Continue setup →</Link>
     </section>
     <section aria-labelledby="profile-sections">

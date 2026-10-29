@@ -1,15 +1,20 @@
 import { prisma } from "@/server/db/client";
+import { getActiveWorkspaceIdCookie } from "@/server/auth/session";
 
 /**
  * Profile is an aggregation layer, not a second owner of creations.
- * Private entries require a CURRENT workspace membership; public entries
+ * Private entries require membership in the active workspace; public entries
  * require an explicitly PUBLIC share, never merely an unlisted link.
  */
 export async function getMyCreatorPortfolio(userId: string) {
   const memberships = await prisma.workspaceMember.findMany({
     where: { userId }, select: { workspaceId: true },
   });
-  const workspaceId = { in: memberships.map((m) => m.workspaceId) };
+  // The destination libraries read only the active workspace. Do not show
+  // links from other workspaces that would resolve to a missing or denied page.
+  const requested = await getActiveWorkspaceIdCookie();
+  const active = memberships.find((m) => m.workspaceId === requested) ?? memberships[0];
+  const workspaceId = { in: active ? [active.workspaceId] : [] };
   const [projects, worlds, simulations, animations, published] = await Promise.all([
     prisma.project.findMany({
       where: { createdById: userId, workspaceId }, select: { id: true, name: true, updatedAt: true, status: true },
