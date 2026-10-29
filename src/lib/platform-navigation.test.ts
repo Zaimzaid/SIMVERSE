@@ -18,7 +18,7 @@ describe("SIMVERSE workspace navigation redesign", () => {
     for (const item of NAV_ITEMS) {
       expect(unique.has(item.href)).toBe(true);
     }
-    expect(visibleAreas(full).length).toBe(7);
+    expect(visibleAreas(full).length).toBe(8);
   });
 
   it("shows only permitted links, never by itself changes server authorization", () => {

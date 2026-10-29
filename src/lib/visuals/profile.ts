@@ -67,6 +67,8 @@ export const PRODUCTION_ANIMATION_STATES = [
 
 const modelUrlSchema = z.string().trim().max(2048).refine(
   (value) => {
+    // Private SIMVERSE models are authenticated routes without an extension.
+    if (/^\/api\/marketplace\/files\/[a-f0-9]{32}$/.test(value)) return true;
     if (/^\/(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[^?#]+\.(?:glb|gltf)(?:[?#].*)?$/i.test(value)) return true;
     try {
       const url = new URL(value);
