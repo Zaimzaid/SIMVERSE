@@ -50,3 +50,28 @@ export async function getUploadedImage(imageId:string) {
  // Only intended public identity images are stored here.
  return img;
 }
+
+
+/** Public avatar-banner hosting; only the owner may replace their own banner. */
+export async function savePlayerBanner(userId: string, content: Uint8Array, type: string) {
+  const mediaType = validateImageBytes(content, type);
+  const previous = await prisma.playerIdentity.findUnique({
+    where: { userId }, select: { bannerUrl: true },
+  });
+  if (!previous) throw new NotFoundError("Your player identity is unavailable.");
+  const image = await prisma.$transaction(async (tx) => {
+    const row = await tx.uploadedImage.create({
+      data: { uploadedById: userId, workspaceId: null, purpose: "PLAYER_BANNER",
+        mediaType, content: new Uint8Array(content) },
+    });
+    await tx.playerIdentity.update({ where: { userId }, data: { bannerUrl: "/api/images/" + row.id } });
+    return row;
+  });
+  const old = previous.bannerUrl?.match(/^\/api\/images\/([a-z0-9]+)$/);
+  if (old) await prisma.uploadedImage.deleteMany({
+    where: { id: old[1], uploadedById: userId, purpose: "PLAYER_BANNER" },
+  });
+  await recordAudit({ actorUserId: userId, action: "user.player_identity_updated",
+    entityType: "UploadedImage", entityId: image.id });
+  return { url: "/api/images/" + image.id };
+}
