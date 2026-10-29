@@ -3,7 +3,7 @@ import { requireApiContext } from "@/server/api/context";
 import { dataResponse, errorResponse } from "@/server/api/response";
 import { ValidationError } from "@/lib/errors";
 import {
-  acquireFree, createMarketListing, getMySeller, myMarketLibrary, myWishlist,
+  acquireFree, createMarketListing, getMySeller, importEntitledAsset, myMarketLibrary, myWishlist,
   moderateMarketListing, openSeller, proposeTrade, publicCatalog, publicListing,
   requestPaidCheckout, reviewQueue, sellerListings, setWishlist, submitMarketListing,
 } from "@/server/services/marketplace-service";
@@ -39,6 +39,7 @@ export async function POST(request:NextRequest) {
       case "submit-listing": return dataResponse({listing:await submitMarketListing(userId,workspaceId,parseOrThrow(idSchema,body.id),body.payload)});
       case "acquire-free": return dataResponse({entitlement:await acquireFree(userId,body.payload)},201);
       case "wishlist": return dataResponse(await setWishlist(userId,body.payload));
+      case "import-entitlement": return dataResponse({asset:await importEntitledAsset(userId,workspaceId,parseOrThrow(idSchema,body.id))},201);
       case "review": return dataResponse({listing:await moderateMarketListing(userId,parseOrThrow(idSchema,body.id),body.approve===true,String(body.note??""))});
       case "checkout": return await requestPaidCheckout(userId,body.payload);
       case "trade-offer": return await proposeTrade(userId,body.payload);
