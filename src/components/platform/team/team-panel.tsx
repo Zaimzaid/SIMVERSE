@@ -3,7 +3,7 @@ import {useState} from "react";
 import {useRouter} from "next/navigation";
 import {UserPlus,Copy,Trash2} from "lucide-react";
 import type {WorkspaceRole} from "@/lib/permissions";
-import {ROLE_META} from "@/lib/permissions";
+import {ROLE_META,permissionsForRole,type Permission} from "@/lib/permissions";
 import {apiFetch} from "@/lib/client/api";
 import {Avatar} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {Card,CardHeader,CardTitle,CardDescription,CardContent} from "@/component
 import {Field} from "@/components/ui/field";
 import {Input} from "@/components/ui/input";
 import {Select} from "@/components/ui/select";
-type TeamMember={id:string;userId:string;role:WorkspaceRole;name:string;email:string;avatarUrl:string|null;joinedAt:string};
+type TeamMember={id:string;userId:string;role:WorkspaceRole;deniedPermissions:Permission[];name:string;email:string;avatarUrl:string|null;joinedAt:string};
 type Invite={id:string;email:string;role:string;expiresAt:string};
 type Activity={id:string;action:string;at:string;actor:string};
 type Props={activity:Activity[];workspaceId:string;actorRole:WorkspaceRole;currentUserId:string;canManage:boolean;members:TeamMember[];invitations:Invite[]};
@@ -19,6 +19,8 @@ const options=["ADMIN","CREATOR","OPERATOR","EDITOR","ANALYST","VIEWER"] as cons
 export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members,invitations,activity}:Props) {
  const router=useRouter();
  const [email,setEmail]=useState("");
+ const [editingPermissions,setEditingPermissions]=useState<string|null>(null);
+ const [restricted,setRestricted]=useState<Permission[]>([]);
  const [inviteRole,setInviteRole]=useState<typeof options[number]>("CREATOR");
  const [inviteLink,setInviteLink]=useState("");
  const [emailSent,setEmailSent]=useState(false);
@@ -34,6 +36,14 @@ export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members
   setInviteLink(r.data?.inviteUrl??"");setEmailSent(Boolean(r.data?.emailSent));setEmail("");
   setNotice(r.data?.emailSent?"Invitation email sent.":"Invitation created. Copy the private link and send it to the invited person.");
   router.refresh();
+ }
+ async function saveRestrictions(member:TeamMember){
+  setActing(member.id);setError("");setNotice("");
+  const r=await apiFetch(`/api/workspaces/${workspaceId}/members/${member.id}/permissions`,{
+    method:"PATCH",body:JSON.stringify({deniedPermissions:restricted}),
+  });
+  setActing("");if(r.error){setError(r.error.message);return;}
+  setEditingPermissions(null);setNotice("Access restrictions saved.");router.refresh();
  }
  async function changeRole(member:TeamMember,newRole:string){
   if(newRole===member.role) return;
@@ -81,16 +91,27 @@ export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members
   </Card>:null}
   <Card as="section"><CardHeader><CardTitle>Members ({members.length})</CardTitle><CardDescription>Access is enforced by the server, not just hidden interface controls.</CardDescription></CardHeader>
    <CardContent className="divide-y divide-border">
-    {members.map(m=><div key={m.id} className="flex flex-wrap items-center gap-3 py-4">
+    {members.map(m=><div key={m.id} className="space-y-3 py-4"><div className="flex flex-wrap items-center gap-3">
      <Avatar name={m.name} src={m.avatarUrl}/>
      <div className="min-w-40 flex-1"><p className="font-medium text-foreground">{m.name}{m.userId===currentUserId?" (you)":""}</p><p className="text-sm text-secondary">{m.email}</p></div>
      {canEdit(m)?<div className="flex flex-wrap items-center gap-2">
       <Select aria-label={`Role for ${m.name}`} disabled={acting===m.id} value={m.role} onChange={e=>void changeRole(m,e.target.value)} className="w-36">
        {options.filter(r=>actorRole==="OWNER"||r!=="ADMIN").map(r=><option value={r} key={r}>{ROLE_META[r].label}</option>)}
       </Select>
+      {actorRole==="OWNER"?<Button size="sm" variant="secondary" onClick={()=>{setEditingPermissions(editingPermissions===m.id?null:m.id);setRestricted(m.deniedPermissions);}}>Access</Button>:null}
       <Button variant="ghost" size="sm" disabled={acting===m.id} onClick={()=>void removeMember(m)} aria-label={`Remove ${m.name}`}><Trash2 className="size-4 text-danger"/></Button>
      </div>:<span className="rounded-md border border-border px-3 py-1.5 text-xs text-secondary">{ROLE_META[m.role].label}</span>}
-    </div>)}
+    </div>
+    {editingPermissions===m.id && actorRole==="OWNER" && m.role!=="OWNER"?<div className="rounded-lg border border-border bg-background/30 p-3 space-y-3">
+     <p className="text-sm font-medium">Restrict {m.name}'s access</p>
+     <p className="text-xs text-muted">Uncheck any access this role should not have. This can only remove permissions from their role; it cannot grant new powers.</p>
+     <div className="grid max-h-72 grid-cols-1 gap-2 overflow-auto sm:grid-cols-2">{permissionsForRole(m.role).map(p=><label key={p} className="flex items-center gap-2 text-xs text-secondary">
+      <input type="checkbox" checked={!restricted.includes(p)} onChange={e=>setRestricted(current=>e.target.checked?current.filter(item=>item!==p):[...current,p])}/>
+      <span>{p.replaceAll("."," · ").replaceAll("_"," ")}</span>
+     </label>)}</div>
+     <div className="flex gap-2"><Button size="sm" loading={acting===m.id} onClick={()=>void saveRestrictions(m)}>Save restrictions</Button><Button size="sm" variant="ghost" onClick={()=>setEditingPermissions(null)}>Cancel</Button></div>
+    </div>:null}
+   </div>)}
    </CardContent>
   </Card>
   {canManage?<Card as="section"><CardHeader><CardTitle>Pending invitations ({invitations.length})</CardTitle><CardDescription>Revoke unused links whenever access should no longer be granted.</CardDescription></CardHeader>
