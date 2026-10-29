@@ -155,7 +155,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
           {submitting ? "Creating account…" : "Create account"}
           {!submitting ? <ArrowRight className="size-4" /> : null}
         </Button>
-      </form></>
+      </form></>}
     </AuthCard>
   );
 }
