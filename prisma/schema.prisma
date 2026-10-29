@@ -27,6 +27,14 @@ model User {
   displayName  String
   passwordHash String
   avatarUrl    String?
+  socialAlertsEnabled Boolean @default(true)
+  twoFactorSecret String?
+  twoFactorPendingSecret String?
+  twoFactorPendingExpiresAt DateTime?
+  twoFactorEnabledAt DateTime?
+  twoFactorRecoveryHashes String?
+  emailVerifiedAt DateTime?
+  emailVerificationRequired Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -62,6 +70,12 @@ model User {
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
   sessions        Session[]
+  uploadedImages UploadedImage[] @relation("UserUploadedImages")
+  loginChallenges TwoFactorChallenge[]
+  emailVerificationTokens EmailVerificationToken[]
+  accountDeletionRequest AccountDeletionRequest?
+  googleDriveConnection GoogleDriveConnection?
+  cloudOauthStates CloudOauthState[]
   auditLogs       AuditLog[]        @relation("AuditActor")
   createdEntities Entity[]          @relation("EntityCreator")
 
@@ -475,6 +489,8 @@ model Workspace {
 
   owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members   WorkspaceMember[]
+  invitations WorkspaceInvitation[]
+  uploadedImages UploadedImage[] @relation("WorkspaceUploadedImages")
   auditLogs AuditLog[]
 
   entities             Entity[]
@@ -499,11 +515,13 @@ model WorkspaceMember {
   workspaceId String
   userId      String
   role        String // WorkspaceRole (OWNER|ADMIN|CREATOR|OPERATOR|EDITOR|ANALYST|VIEWER) — validated in app layer
+  deniedPermissions String @default("[]") // deny-only member overrides
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectAssignments ProjectAssignment[]
 
   @@unique([workspaceId, userId])
   @@index([userId])
@@ -1537,6 +1555,7 @@ model Project {
   entityLinks ProjectEntity[]
   simulations Simulation[]
   tournaments Tournament[]
+  teamAssignments ProjectAssignment[]
 
   // Every index leads with workspaceId so all list/search/sort queries stay tenant-scoped.
   @@index([workspaceId, status])
@@ -2147,4 +2166,108 @@ model MarketUploadedFile {
   createdAt     DateTime @default(now())
   @@index([workspaceId, assetId])
   @@index([uploaderId, createdAt])
+}
+
+
+model WorkspaceInvitation {
+  id String @id @default(cuid())
+  workspaceId String
+  email String
+  role String
+  tokenHash String @unique
+  invitedById String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+  @@index([expiresAt])
+}
+
+
+model TwoFactorChallenge {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  attempts Int @default(0)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+
+
+model EmailVerificationToken {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+
+
+model UploadedImage {
+  id String @id @default(cuid())
+  uploadedById String
+  workspaceId String?
+  purpose String // AVATAR | WORKSPACE_LOGO
+  mediaType String
+  content Bytes
+  createdAt DateTime @default(now())
+  user User @relation("UserUploadedImages", fields:[uploadedById],references:[id],onDelete:Cascade)
+  workspace Workspace? @relation("WorkspaceUploadedImages",fields:[workspaceId],references:[id],onDelete:Cascade)
+  @@index([uploadedById,createdAt])
+  @@index([workspaceId])
+}
+
+
+model ProjectAssignment {
+  id String @id @default(cuid())
+  projectId String
+  membershipId String
+  responsibility String @default("CONTRIBUTOR") // LEAD | CONTRIBUTOR | REVIEWER | OBSERVER
+  notes String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  membership WorkspaceMember @relation(fields:[membershipId],references:[id],onDelete:Cascade)
+  @@unique([projectId,membershipId])
+  @@index([membershipId])
+}
+
+
+model AccountDeletionRequest {
+ id String @id @default(cuid())
+ userId String @unique
+ requestedAt DateTime @default(now())
+ cancelledAt DateTime?
+ status String @default("PENDING") // PENDING | CANCELLED; no automatic deletion
+ reason String?
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+}
+
+
+model CloudOauthState {
+  id String @id @default(cuid())
+  userId String
+  sessionId String
+  stateHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+
+
+model GoogleDriveConnection {
+  id String @id @default(cuid())
+  userId String @unique
+  encryptedAccessToken String
+  encryptedRefreshToken String
+  expiresAt DateTime
+  connectedAt DateTime @default(now())
+  lastBackupAt DateTime?
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
 }
