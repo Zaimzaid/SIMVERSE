@@ -145,7 +145,9 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   async function loadOlder() {
     if (!selected || loadingOlder || !hasOlder || !messages.length) return;
     setLoadingOlder(true); setError("");
-    const oldestId = messages[0].id;
+    const oldest = messages[0];
+    if (!oldest) { setLoadingOlder(false); return; }
+    const oldestId = oldest.id;
     const url = `/api/social/messages?peer=${encodeURIComponent(selected)}&before=${encodeURIComponent(oldestId)}`;
     const r = await apiFetch<{ messages: Message[] }>(url);
     if (selectedRef.current !== selected) {
