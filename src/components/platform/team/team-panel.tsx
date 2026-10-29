@@ -13,9 +13,10 @@ import {Input} from "@/components/ui/input";
 import {Select} from "@/components/ui/select";
 type TeamMember={id:string;userId:string;role:WorkspaceRole;name:string;email:string;avatarUrl:string|null;joinedAt:string};
 type Invite={id:string;email:string;role:string;expiresAt:string};
-type Props={workspaceId:string;actorRole:WorkspaceRole;currentUserId:string;canManage:boolean;members:TeamMember[];invitations:Invite[]};
+type Activity={id:string;action:string;at:string;actor:string};
+type Props={activity:Activity[];workspaceId:string;actorRole:WorkspaceRole;currentUserId:string;canManage:boolean;members:TeamMember[];invitations:Invite[]};
 const options=["ADMIN","CREATOR","OPERATOR","EDITOR","ANALYST","VIEWER"] as const;
-export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members,invitations}:Props) {
+export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members,invitations,activity}:Props) {
  const router=useRouter();
  const [email,setEmail]=useState("");
  const [inviteRole,setInviteRole]=useState<typeof options[number]>("CREATOR");
@@ -100,6 +101,13 @@ export function TeamPanel({workspaceId,actorRole,currentUserId,canManage,members
     </div>)}
    </CardContent>
   </Card>:null}
+  {canManage?<Card as="section"><CardHeader><CardTitle>Recent workspace activity</CardTitle><CardDescription>Latest recorded actions across this workspace. Activity is recorded when the underlying feature supports auditing.</CardDescription></CardHeader>
+   <CardContent className="max-h-96 divide-y divide-border overflow-auto">
+    {!activity.length?<p className="text-sm text-muted">No activity recorded.</p>:activity.map(a=><div key={a.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+      <span><strong>{a.actor}</strong> · {a.action.replaceAll("."," ").replaceAll("_"," ")}</span>
+      <span className="shrink-0 text-xs text-muted">{new Date(a.at).toLocaleString()}</span>
+    </div>)}
+   </CardContent></Card>:null}
   <Card as="section"><CardHeader><CardTitle>What each role can do</CardTitle><CardDescription>Choose the least access a teammate needs to do their work.</CardDescription></CardHeader>
    <CardContent className="grid gap-3 sm:grid-cols-2">{(Object.entries(ROLE_META) as [WorkspaceRole,{label:string;description:string}][]).map(([role,meta])=><div key={role} className="rounded-lg border border-border p-3"><p className="font-medium">{meta.label}</p><p className="text-sm text-secondary">{meta.description}</p></div>)}</CardContent>
   </Card>

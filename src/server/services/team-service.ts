@@ -126,3 +126,12 @@ export async function removeWorkspaceMember(actorId:string,workspaceId:string,me
   await prisma.workspaceMember.delete({where:{id:memberId}});
   await recordAudit({action:"workspace.member_removed",actorUserId:actorId,workspaceId,entityType:"WorkspaceMember",entityId:memberId,metadata:{removedUserId:target.userId}});
 }
+
+/** Recent workspace activity for owners/admins, without exposing audit metadata. */
+export async function listWorkspaceTeamActivity(userId:string,workspaceId:string){
+ await manager(userId,workspaceId);
+ return prisma.auditLog.findMany({
+  where:{workspaceId},orderBy:{createdAt:"desc"},take:80,
+  select:{id:true,action:true,createdAt:true,actor:{select:{displayName:true}}},
+ });
+}
