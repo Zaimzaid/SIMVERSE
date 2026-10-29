@@ -115,7 +115,7 @@ export default async function LandingPage() {
             </div>
 
             <p className="mt-8 text-xs font-medium uppercase tracking-wider text-muted">
-              Phase 0 · Platform foundation available now
+              Early access · Creation and simulation tools in active development
             </p>
           </div>
         </section>

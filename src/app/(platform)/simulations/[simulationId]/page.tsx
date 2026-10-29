@@ -18,7 +18,7 @@ import {
   User as UserIcon,
   Users,
 } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { productionEngineRegistry } from "@/lib/engine/registry";
 import { battleExecutionIssue, DEFAULT_BATTLE_MAX_TICKS, MAX_BATTLE_TICKS } from "@/lib/modules/battle/config";
 import {
@@ -66,7 +66,7 @@ async function loadSimulation(
   try {
     return await getSimulation(userId, workspaceId, simulationId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }

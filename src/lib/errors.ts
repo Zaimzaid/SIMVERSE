@@ -78,3 +78,9 @@ export interface ErrorResponseBody {
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
+
+/** Hide both missing and inaccessible resources behind the same 404 in detail pages. */
+export function isHiddenResourceError(error: unknown): error is AppError {
+  return isAppError(error) &&
+    (error.code === "NOT_FOUND" || error.code === "AUTHORIZATION_ERROR");
+}

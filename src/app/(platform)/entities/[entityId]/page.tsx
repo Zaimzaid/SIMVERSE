@@ -11,7 +11,7 @@ import {
   Tag as TagIcon,
   User as UserIcon,
 } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { resolveCategory } from "@/lib/entities/categories";
 import { ATTRIBUTE_DATA_TYPE_META } from "@/lib/entities/constants";
 import { formatRelativeTime } from "@/lib/utils";
@@ -40,7 +40,7 @@ async function loadEntity(userId: string, workspaceId: string, entityId: string)
   try {
     return await getEntity(userId, workspaceId, entityId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }

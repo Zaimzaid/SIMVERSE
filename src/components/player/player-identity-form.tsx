@@ -214,7 +214,7 @@ export function PlayerIdentityForm({ initial, countries }: Props) {
               {countries.map((country) => <option value={country.id} key={country.id}>{country.name}</option>)}
             </select>
             {errors.homeCountryId ? <p className="mt-1 text-xs text-warning">{errors.homeCountryId}</p> : null}
-            {!countries.length ? <p className="mt-2 text-xs text-muted">No active countries are imported yet. Your profile can be saved without choosing a country.</p> : null}
+            {!countries.length ? <p className="mt-2 text-xs text-muted">Virtual home countries will appear once verified locations are added. Save your profile now and choose one later.</p> : null}
           </div>
           <div className="mt-4 rounded-xl border border-border bg-background p-4">
             <p className="text-sm font-semibold">Citizenship & document status</p>

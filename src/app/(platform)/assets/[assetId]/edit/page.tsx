@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Package } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getAsset, listAssets } from "@/server/services/asset-service";
 import { listEntities } from "@/server/services/entity-service";
@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 export const metadata: Metadata = { title: "Edit Asset" };
 export default async function EditAssetPage({ params }: { params: Promise<{ assetId: string }> }) {
   const { assetId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
-  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   if (!permissions.includes("asset.manage") || asset.status === "ARCHIVED") return <EmptyState icon={Package} title="This Asset cannot be edited" description={asset.status === "ARCHIVED" ? "Restore it before creating another version." : "Your role has read-only Asset Library access."} />;
   const [entities, assets] = await Promise.all([
     listEntities(user.id, workspace.id, { status: "ALL", sort: "name_asc", pageSize: 100 }),

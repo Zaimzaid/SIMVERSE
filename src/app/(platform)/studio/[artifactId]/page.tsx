@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getMediaArtifact } from "@/server/services/media-artifact-service";
 import { getArtifactShare } from "@/server/services/media-share-service";
@@ -15,7 +15,7 @@ export default async function StoryboardPage({ params }: PageProps) {
   let artifact;
   try { artifact = await getMediaArtifact(user.id, workspace.id, artifactId); }
   catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   const share = await getArtifactShare(user.id, workspace.id, artifactId);

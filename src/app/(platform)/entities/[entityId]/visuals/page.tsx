@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Boxes, Palette } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import type { VisualProfileInput } from "@/lib/visuals/profile";
 import { buttonClasses } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -20,7 +20,7 @@ export default async function EntityVisualsPage({ params }: PageProps) {
   try {
     entity = await getEntity(user.id, workspace.id, entityId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   const stored = entity.visualProfile;

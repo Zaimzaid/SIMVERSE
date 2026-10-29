@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ListOrdered, Network, Pencil, Play, Trophy, Users } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getTournament } from "@/server/services/tournament-service";
 import { RunMatchButton, TournamentActions } from "@/components/tournaments/tournament-actions";
@@ -16,7 +16,7 @@ export default async function AnythingWarsTournamentPage({ params }: { params: P
   const { user, workspace, permissions } = await requirePlatformContext();
   let tournament: Tournament;
   try { tournament = await getTournament(user.id, workspace.id, tournamentId); }
-  catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const canManage = permissions.includes("tournament.manage");
   const canRun = permissions.includes("tournament.run") && tournament.status === "IN_PROGRESS";
   const participants = new Map(tournament.participants.map((participant) => [participant.id, participant]));

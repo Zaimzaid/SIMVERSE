@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Aperture, ArrowLeft, CalendarClock, ChevronDown, Globe2, Play, Plus, RefreshCw, Trophy, Users } from "lucide-react";
 import { anythingWarsOutcome } from "@/lib/anything-wars/outcome";
 import { anythingWarsEventHref, anythingWarsQuickHref, anythingWarsRematchHref, anythingWarsRunHref, anythingWarsWatchHref } from "@/lib/anything-wars/routes";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { supportsStoryboardSource } from "@/lib/media/adapters";
 import { BATTLE_MODULE_ID, BATTLE_MODULE_VERSION } from "@/lib/modules/battle/config";
 import { DEFAULT_RACE_MAX_TICKS, RACE_MODULE_ID, RACE_MODULE_VERSION } from "@/lib/modules/race/config";
@@ -48,7 +48,7 @@ export default async function AnythingWarsRunPage({ params, searchParams }: Page
       getSimulationRun(user.id, workspace.id, runId),
     ]);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
   if (run.simulationId !== event.id) notFound();

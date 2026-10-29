@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, History } from "lucide-react";
 import { ASSET_STATUS_LABELS, ASSET_TYPE_LABELS } from "@/lib/assets/constants";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { requirePlatformContext } from "@/server/context";
 import { getAsset, listAssetVersions } from "@/server/services/asset-service";
 import { assetStatusVariant } from "@/components/assets/asset-card";
@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 export const metadata: Metadata = { title: "Asset version history" };
 export default async function AssetVersionsPage({ params }: { params: Promise<{ assetId: string }> }) {
   const { assetId } = await params; const { user, workspace } = await requirePlatformContext();
-  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let asset; try { asset = await getAsset(user.id, workspace.id, assetId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const versions = await listAssetVersions(user.id, workspace.id, asset.id);
   return <div className="space-y-6"><Link href={`/assets/${asset.id}`} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"><ArrowLeft className="size-4" />{asset.name}</Link>
     <PageHeader icon={History} title="Version history" description="Immutable metadata snapshots. Current edits append a version and never rewrite these records." />

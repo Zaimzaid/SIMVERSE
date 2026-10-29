@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock3, Edit3, Globe2, MapPin, Package, Users, Boxes } from "lucide-react";
-import { NotFoundError } from "@/lib/errors"; import { WORLD_BIOME_LABELS, WORLD_STATUS_LABELS } from "@/lib/worlds/constants";
+import { isHiddenResourceError } from "@/lib/errors"; import { WORLD_BIOME_LABELS, WORLD_STATUS_LABELS } from "@/lib/worlds/constants";
 import { requirePlatformContext } from "@/server/context"; import { getWorld } from "@/server/services/world-service";
 import { Badge } from "@/components/ui/badge"; import { buttonClasses } from "@/components/ui/button"; import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; import { PageHeader } from "@/components/ui/page-header";
 import { WorldActions } from "@/components/worlds/world-actions"; import { worldStatusVariant } from "@/components/worlds/world-card";
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "World" };
 const pretty = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 export default async function WorldDetailPage({ params }: { params: Promise<{ worldId: string }> }) {
   const { worldId } = await params; const { user, workspace, permissions } = await requirePlatformContext();
-  let world; try { world = await getWorld(user.id, workspace.id, worldId); } catch (error) { if (error instanceof NotFoundError) notFound(); throw error; }
+  let world; try { world = await getWorld(user.id, workspace.id, worldId); } catch (error) { if (isHiddenResourceError(error)) notFound(); throw error; }
   const blueprint = world.version.blueprint; const dimensions = blueprint.terrain.dimensions; const canManage = permissions.includes("world.manage");
   return <div className="space-y-6"><div><Link href="/worlds" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"><ArrowLeft className="size-4" />Worlds</Link><PageHeader icon={Globe2} title={world.name} description={world.description ?? "Engine-neutral World Blueprint."} actions={<div className="flex flex-wrap gap-2">{canManage && world.status !== "ARCHIVED" ? <Link href={`/worlds/${world.id}/edit`} className={buttonClasses()}><Edit3 className="size-4" />Edit</Link> : null}<Link href={`/worlds/${world.id}/layout`} className={buttonClasses({ variant: "secondary" })}><Boxes className="size-4" />3D Layout</Link><Link href={`/worlds/${world.id}/versions`} className={buttonClasses({ variant: "secondary" })}><Clock3 className="size-4" />History</Link>{canManage ? <WorldActions world={world} /> : null}</div>} /></div>
     <div className="flex flex-wrap gap-2"><Badge variant={worldStatusVariant(world.status)}>{WORLD_STATUS_LABELS[world.status]}</Badge><Badge>{WORLD_BIOME_LABELS[world.biome]}</Badge><Badge>Version {world.currentVersion}</Badge><Badge>{world.visibility}</Badge>{world.tags.map((tag) => <Badge key={tag.id}>{tag.name}</Badge>)}</div>

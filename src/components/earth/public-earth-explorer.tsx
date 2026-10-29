@@ -380,7 +380,7 @@ export function PublicEarthExplorer({
             </div>
             {!overview.countries.length ? (
               <p className="mt-4 rounded-xl border border-warning/30 bg-warning-soft p-3 text-sm text-warning">
-                Verified catalog locations are temporarily unavailable. Global overview navigation still works.
+                We’re preparing verified destinations. You can still explore the globe, and supported locations will appear here when ready.
               </p>
             ) : null}
           </section>

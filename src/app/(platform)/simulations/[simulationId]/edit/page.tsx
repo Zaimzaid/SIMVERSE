@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Swords } from "lucide-react";
-import { NotFoundError } from "@/lib/errors";
+import { isHiddenResourceError } from "@/lib/errors";
 import { PROJECT_MAX_PAGE_SIZE } from "@/lib/projects/constants";
 import { requirePlatformContext } from "@/server/context";
 import { getSimulation, type SimulationView } from "@/server/services/simulation-service";
@@ -29,7 +29,7 @@ async function loadSimulation(
   try {
     return await getSimulation(userId, workspaceId, simulationId);
   } catch (error) {
-    if (error instanceof NotFoundError) notFound();
+    if (isHiddenResourceError(error)) notFound();
     throw error;
   }
 }
@@ -94,7 +94,7 @@ export default async function EditSimulationPage({ params }: PageParams) {
       const current = await getProject(user.id, workspace.id, simulation.projectId);
       projects.unshift({ id: current.id, name: current.name });
     } catch (error) {
-      if (!(error instanceof NotFoundError)) throw error;
+      if (!(isHiddenResourceError(error))) throw error;
     }
   }
 
