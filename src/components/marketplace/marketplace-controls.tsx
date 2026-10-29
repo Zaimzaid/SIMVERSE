@@ -67,14 +67,15 @@ export function SellerListingForm({assets}:{assets:{id:string;name:string;type:s
   const router=useRouter();const [working,setWorking]=useState(false);const [message,setMessage]=useState("");
   async function submit(e:FormEvent<HTMLFormElement>) {
     e.preventDefault();setWorking(true);setMessage("");
-    const form=new FormData(e.currentTarget);
+    const element=e.currentTarget;
+    const form=new FormData(element);
     try {
       await send("create-listing",{
         sourceAssetId:String(form.get("sourceAssetId")),title:String(form.get("title")),
         description:String(form.get("description")),category:String(form.get("category")),
         productKind:"DIGITAL_ASSET",licenseType:String(form.get("licenseType")),priceMinor:0,
       });
-      e.currentTarget.reset();setMessage("Draft created. Submit it for review below.");router.refresh();
+      element.reset();setMessage("Draft created. Submit it for review below.");router.refresh();
     }catch(error){setMessage(error instanceof Error?error.message:"Failed to create listing.");}
     finally{setWorking(false);}
   }
