@@ -124,13 +124,22 @@ export async function blockPlayer(userId: string, payload: unknown) {
 export async function unblockPlayer(userId: string, targetId: string) {
   await prisma.socialBlock.deleteMany({ where: { blockerId: userId, blockedId: targetId } });
 }
-export async function listConversation(userId: string, recipientId: string) {
+export async function listConversation(userId: string, recipientId: string, beforeId?: string) {
   await requireFriend(userId, recipientId);
+  const participants = { OR: [
+    { senderId: userId, recipientId },
+    { senderId: recipientId, recipientId: userId },
+  ] };
+  if (beforeId) {
+    // Never allow a caller to page using an unrelated private message ID.
+    const anchor = await prisma.socialMessage.findFirst({
+      where: { id: beforeId, ...participants }, select: { id: true },
+    });
+    if (!anchor) throw new NotFoundError("Message not found in this conversation.");
+  }
   const messages = await prisma.socialMessage.findMany({
-    where: { OR: [
-      { senderId: userId, recipientId },
-      { senderId: recipientId, recipientId: userId },
-    ] },
+    where: participants,
+    ...(beforeId ? { cursor: { id: beforeId }, skip: 1 } : {}),
     orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 100,
     select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, readAt: true,
       reactions:{select:{emoji:true,actorId:true}} },
