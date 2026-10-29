@@ -59,8 +59,8 @@ export function PlayerAvatarPreview({ appearance, world = false }: {
     let frame = 0; const started = performance.now();
     function animate(time: number) {
       const step = (time - started) / 680;
-      arms[0].rotation.x = Math.sin(step) * .3; arms[1].rotation.x = -Math.sin(step) * .3;
-      legs[0].rotation.x = -Math.sin(step) * .2; legs[1].rotation.x = Math.sin(step) * .2;
+      arms[0]!.rotation.x = Math.sin(step) * .3; arms[1]!.rotation.x = -Math.sin(step) * .3;
+      legs[0]!.rotation.x = -Math.sin(step) * .2; legs[1]!.rotation.x = Math.sin(step) * .2;
       if (!world) person.rotation.y = Math.sin(step / 4) * .2;
       renderer.render(scene, camera);
       frame = requestAnimationFrame(animate);
