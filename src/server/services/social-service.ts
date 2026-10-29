@@ -142,7 +142,7 @@ export async function listConversation(userId: string, recipientId: string, befo
     where: participants,
     ...(beforeId ? { cursor: { id: beforeId }, skip: 1 } : {}),
     orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 100,
-    select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, readAt: true,
+    select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, deliveredAt: true, readAt: true,
       reactions:{select:{emoji:true,actorId:true}} },
   });
   // Only acknowledge messages actually returned by this page. Previously a
@@ -168,7 +168,7 @@ export async function sendMessage(userId: string, payload: unknown) {
     throw new ValidationError("Write a message or include a supported HTTPS media URL.");
   const { recipientId, body, mediaUrl, clientId } = parsed.data;
   await requireFriend(userId, recipientId);
-  const fields = { id: true, senderId: true, recipientId: true, clientId: true, body: true, mediaUrl: true, createdAt: true, readAt: true } as const;
+  const fields = { id: true, senderId: true, recipientId: true, clientId: true, body: true, mediaUrl: true, createdAt: true, deliveredAt: true, readAt: true } as const;
   const matches = (existing: {recipientId: string; body: string; mediaUrl: string | null}) =>
     existing.recipientId === recipientId && existing.body === body && existing.mediaUrl === (mediaUrl ?? null);
   // Return the original server-accepted message if a timeout causes a retry.
@@ -207,4 +207,24 @@ export async function sendMessage(userId: string, payload: unknown) {
   // look unsent and trigger duplicate retries from older clients.
   try { await recordDirectMessage(recipientId); } catch { /* message is persisted */ }
   return message;
+}
+
+/**
+ * An explicit receiver acknowledgement. Fetching an inbox is not delivery:
+ * the client must confirm receipt. Accept only caller-owned incoming IDs.
+ * Unrelated IDs are ignored, and a repeated acknowledgement is idempotent.
+ */
+const deliverySchema = z.object({
+  messageIds: z.array(z.string().min(1).max(80)).min(1).max(100),
+}).strict();
+
+export async function acknowledgeDirectDelivery(userId: string, payload: unknown) {
+  const parsed = deliverySchema.safeParse(payload);
+  if (!parsed.success) throw new ValidationError("Choose 1–100 valid messages.");
+  const ids = [...new Set(parsed.data.messageIds)];
+  const result = await prisma.socialMessage.updateMany({
+    where: { id: { in: ids }, recipientId: userId, deliveredAt: null },
+    data: { deliveredAt: new Date() },
+  });
+  return { acknowledged: result.count };
 }
