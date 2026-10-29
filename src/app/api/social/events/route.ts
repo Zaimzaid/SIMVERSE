@@ -42,7 +42,7 @@ export async function GET(request: Request) {
           if (marker !== lastMarker) {
             lastMarker = marker;
             // Clients use this only as an invalidation signal. No user data.
-            write("event: sync\\ndata: {}\\n\\n".replaceAll("\\n", "\n"));
+            write("event: sync\ndata: {}\n\n");
           }
         } catch {
           // A broken DB connection must close rather than emit stale events.
