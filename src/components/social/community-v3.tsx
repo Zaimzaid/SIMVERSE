@@ -300,11 +300,11 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
         </button>
       </div>
     </header>
-    <div className="grid min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-surface shadow-xl md:min-h-[700px] md:grid-cols-[minmax(270px,345px)_minmax(0,1fr)]">
+    <div className="grid min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-surface shadow-xl lg:min-h-[700px] lg:grid-cols-[minmax(270px,345px)_minmax(0,1fr)]">
       <aside aria-label="Messaging navigation and conversations"
         className={section === "chats" && friend
-          ? "hidden min-w-0 flex-col border-r border-border bg-surface-elevated/40 md:flex"
-          : "flex min-w-0 flex-col border-b border-border bg-surface-elevated/40 md:border-b-0 md:border-r"}>
+          ? "hidden min-w-0 flex-col border-r border-border bg-surface-elevated/40 lg:flex"
+          : "flex min-w-0 flex-col border-b border-border bg-surface-elevated/40 lg:border-b-0 lg:border-r"}>
         <div className="border-b border-border px-4 pb-4 pt-5 sm:px-5">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
@@ -353,7 +353,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               <span className="text-xs text-muted">{filteredConversations.length} shown</span>
             </div>
           </div>
-          <div className="max-h-[58vh] min-h-[220px] flex-1 space-y-1 overflow-y-auto px-2 pb-4 sm:px-3 md:max-h-[65vh]">
+          <div className="max-h-[58vh] min-h-[220px] flex-1 space-y-1 overflow-y-auto px-2 pb-4 sm:px-3 lg:max-h-[65vh]">
             {filteredConversations.map(c =>
               <button key={c.friendId} type="button" aria-current={selected === c.friendId ? "true" : undefined}
                 onClick={() => openChat(c.friendId)}
@@ -381,24 +381,24 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
             </div>}
           </div>
         </div>}
-        {section !== "chats" && <div className="hidden flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center md:flex">
+        {section !== "chats" && <div className="hidden flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center lg:flex">
           <div className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent"><Users className="size-7"/></div>
           <p className="text-sm font-semibold">More ways to connect</p>
           <p className="max-w-[220px] text-xs leading-5 text-secondary">Your friends, groups and invitations are just a tap away.</p>
           <button type="button" onClick={() => selectSection("chats")}
             className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover">Back to chats</button>
         </div>}
-        <div className="hidden items-center gap-2 border-t border-border px-5 py-3 text-xs text-secondary md:flex">
+        <div className="hidden items-center gap-2 border-t border-border px-5 py-3 text-xs text-secondary lg:flex">
           <span className={connection === "live" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-warning"}/>
           {connection === "live" ? "Connected" : connection === "fallback" ? "Reconnecting · refresh is on" : "Connecting"}
         </div>
       </aside>
-      <main aria-label="Messaging workspace" className={section === "chats" && !friend ? "hidden min-w-0 flex-col md:flex" : "flex min-w-0 flex-col"}>
+      <main aria-label="Messaging workspace" className={section === "chats" && !friend ? "hidden min-w-0 flex-col lg:flex" : "flex min-w-0 flex-col"}>
         {section === "chats" && (friend ? <section aria-label="Conversation" className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex min-h-[62vh] min-w-0 flex-1 flex-col md:min-h-[700px]">
+          <div className="flex min-h-[62vh] min-w-0 flex-1 flex-col lg:min-h-[700px]">
             <header className="flex items-center gap-2 border-b border-border bg-surface-elevated/60 px-3 py-4 sm:gap-3 sm:px-6">
               <button type="button" aria-label="Back to recent conversations" title="Back to recent conversations"
-                onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover md:hidden">
+                onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover lg:hidden">
                 <ChevronLeft className="size-5" />
               </button>
               {avatar(friend.displayName, friend.avatarUrl, "size-10")}
@@ -461,7 +461,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               </div>
             </form>
           </div>
-        </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 p-8 text-center md:flex">
+        </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 p-8 text-center lg:flex">
           <div className="mb-6 grid size-24 place-items-center rounded-[1.75rem] border border-accent/20 bg-accent-soft text-accent"><MessageCircle className="size-11" strokeWidth={1.6}/></div>
           <h2 className="text-2xl font-bold tracking-tight">A little hello goes a long way</h2>
           <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">Select a conversation to catch up, or find a new friend in SIMVERSE.</p>
@@ -539,7 +539,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
       </main>
     </div>
     <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest}/>
-    <p className="flex items-center gap-2 px-1 text-xs text-muted md:hidden">
+    <p className="flex items-center gap-2 px-1 text-xs text-muted lg:hidden">
       <span className={connection === "live" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-warning"}/>
       {connection === "live" ? "Connected" : connection === "fallback" ? "Reconnecting; automatic refresh is on" : "Connecting…"}
     </p>
