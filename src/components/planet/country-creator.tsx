@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as PointerEventReact } from "react";
-import { ArrowLeft, Check, Compass, Eye, Globe2, Loader2, PenTool, Plus, RotateCcw, Save, ShieldCheck, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Compass, Eye, Globe2, Loader2, PenTool, Plus, RotateCcw, Save, ShieldCheck, Undo2 } from "lucide-react";
 import { createStarterTerritory, countryOutline, drawTerritory, type CreatorMode } from "@/lib/planet/creator-geometry";
 import { validatePlanetGeometry, type PlanetGeometry, type PlanetPoint } from "@/lib/planet/geometry";
 import type { SignaturePlanetRenderer } from "@/lib/planet/signature-planet-renderer";
