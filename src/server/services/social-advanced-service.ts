@@ -27,6 +27,8 @@ async function active(userId:string,groupId:string) {
   return m;
 }
 async function notify(userId:string,kind:string,title:string,detail:string,href="/social") {
+  const enabled=await prisma.user.findUnique({where:{id:userId},select:{socialAlertsEnabled:true}});
+  if(!enabled?.socialAlertsEnabled)return;
   await prisma.socialNotification.create({data:{userId,kind,title,detail:detail.slice(0,180),href}});
 }
 export async function createSocialGroup(userId:string,payload:unknown) {

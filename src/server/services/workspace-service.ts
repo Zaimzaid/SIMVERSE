@@ -1,4 +1,6 @@
 import type { Workspace, WorkspaceMember } from "@prisma/client";
+import {randomBytes} from "node:crypto";
+import {slugify} from "@/lib/utils";
 import { AuthorizationError, NotFoundError } from "@/lib/errors";
 import {
   can,
@@ -80,7 +82,8 @@ export async function updateWorkspace(
 
   const updated = await prisma.workspace.update({
     where: { id: workspaceId },
-    data: { name: data.name, logoUrl: data.logoUrl ?? null },
+    data: { name: data.name, ...(typeof input === "object" && input !== null && Object.hasOwn(input, "logoUrl")
+      ? { logoUrl: data.logoUrl ?? null } : {}) },
   });
 
   await recordAudit({
@@ -112,4 +115,20 @@ export async function getWorkspaceMembers(
     ...member,
     role: isWorkspaceRole(member.role) ? member.role : "VIEWER",
   }));
+}
+
+/** Create an additional private workspace, with the user as its owner. */
+export async function createAdditionalWorkspace(userId:string,input:unknown) {
+ const parsed=updateWorkspaceSchema.safeParse(input);
+ if(!parsed.success) throw new (await import("@/lib/errors")).ValidationError("Enter a workspace name (2–60 characters).");
+ const total=await prisma.workspace.count({where:{ownerId:userId}});
+ if(total>=10) throw new (await import("@/lib/errors")).ConflictError("You can own up to ten workspaces.");
+ const slug=`${slugify(parsed.data.name)||"workspace"}-${randomBytes(4).toString("hex")}`;
+ const workspace=await prisma.$transaction(async tx=>{
+   const w=await tx.workspace.create({data:{name:parsed.data.name,logoUrl:parsed.data.logoUrl??null,ownerId:userId,slug}});
+   await tx.workspaceMember.create({data:{workspaceId:w.id,userId,role:"OWNER"}});
+   return w;
+ });
+ await recordAudit({action:"workspace.created_additional",actorUserId:userId,workspaceId:workspace.id,entityType:"Workspace",entityId:workspace.id});
+ return workspace;
 }
