@@ -475,6 +475,7 @@ model Workspace {
 
   owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members   WorkspaceMember[]
+  invitations WorkspaceInvitation[]
   auditLogs AuditLog[]
 
   entities             Entity[]
@@ -494,6 +495,22 @@ model Workspace {
 }
 
 /// Membership linking a user to a workspace with a role. Role governs permissions.
+/// Single-use, email-bound team invitation. Only a SHA-256 digest is stored.
+model WorkspaceInvitation {
+  id String @id @default(cuid())
+  workspaceId String
+  email String
+  role String
+  tokenHash String @unique
+  invitedById String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+  @@index([expiresAt])
+}
+
 model WorkspaceMember {
   id          String   @id @default(cuid())
   workspaceId String
