@@ -124,7 +124,11 @@ export type AuditAction =
   | "earth.zone.submitted"
   | "earth.zone.activated"
   | "earth.zone.retired"
-  | "earth.zone.rolled_back";
+  | "earth.zone.rolled_back"
+  | "planet.country.draft_created"
+  | "planet.country.draft_updated"
+  | "planet.country.published"
+  | "planet.country.archived";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
