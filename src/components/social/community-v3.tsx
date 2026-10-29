@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Ban, Bell, Check, ChevronLeft, Clock3, Mail, MessageCircle, Phone,
   RefreshCw, Search, Send, UserPlus, Users, UsersRound, Video, X,
@@ -30,7 +30,7 @@ type Section = "chats" | "friends" | "find" | "requests" | "groups" | "alerts";
 type CallRequest = { peerId: string; mode: "VOICE" | "VIDEO"; nonce: number } | null;
 
 function mergeMessages(previous: Message[], incoming: Message[]): Message[] {
-  const unique = new Map(previous.map(message => [message.id, message]));
+  const unique = new Map<string, Message>(previous.map(message => [message.id, message]));
   for (const message of incoming) unique.set(message.id, message);
   return [...unique.values()].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
@@ -58,6 +58,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [social, setSocial] = useState(initial);
   const [section, setSection] = useState<Section>("chats");
   const [selected, setSelected] = useState<string | null>(null);
+  const selectedRef = useRef<string | null>(null);
   const [inbox, setInbox] = useState<Conversation[]>([]);
   const [unread, setUnread] = useState(0);
   const [groupInvites, setGroupInvites] = useState(0);
@@ -74,6 +75,8 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [callRequest, setCallRequest] = useState<CallRequest>(null);
+
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
   const refreshSocial = useCallback(async () => {
     const r = await apiFetch<SocialState>("/api/social");
@@ -145,6 +148,10 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     const oldestId = messages[0].id;
     const url = `/api/social/messages?peer=${encodeURIComponent(selected)}&before=${encodeURIComponent(oldestId)}`;
     const r = await apiFetch<{ messages: Message[] }>(url);
+    if (selectedRef.current !== selected) {
+      setLoadingOlder(false);
+      return;
+    }
     if (r.data) {
       const older = r.data.messages;
       setMessages(current => mergeMessages(current, older));
