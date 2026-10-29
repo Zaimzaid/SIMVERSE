@@ -2306,6 +2306,10 @@ model FictionalCountryVersion {
   id              String   @id @default(cuid())
   countryId       String
   revision        Int
+  name            String
+  slug            String
+  description     String?
+  color           String
   geometryJson    String
   geometryHash    String
   areaKm2         Float
