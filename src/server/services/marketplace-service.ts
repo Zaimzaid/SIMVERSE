@@ -1,4 +1,5 @@
 import { prisma } from "@/server/db/client";
+import { parseOrThrow } from "@/lib/validation";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { requireMembership } from "@/server/services/workspace-service";
 import {
@@ -8,7 +9,8 @@ import {
 } from "@/lib/marketplace/contracts";
 
 export async function publicCatalog(params: {q?:string;category?:string;page?:number} = {}) {
-  const page = Math.max(1, Math.min(1000, Math.floor(params.page ?? 1)));
+  const rawPage=params.page??1;
+  const page=Number.isFinite(rawPage)?Math.max(1,Math.min(1000,Math.floor(rawPage))):1;
   const q = (params.q ?? "").trim().slice(0,120);
   const category = (params.category ?? "").trim().slice(0,60);
   const where = {
@@ -45,7 +47,7 @@ export async function getMySeller(userId:string,workspaceId:string) {
 
 export async function openSeller(userId:string,workspaceId:string,input:unknown) {
   await requireMembership(userId,workspaceId,"asset.manage");
-  const data = sellerSchema.parse(input);
+  const data = parseOrThrow(sellerSchema,input);
   const old = await getMySeller(userId,workspaceId);
   if (old) throw new ConflictError("You already have a store in this workspace.");
   return prisma.marketSeller.create({data:{...data,ownerUserId:userId,workspaceId}});
@@ -64,7 +66,7 @@ async function ownAsset(userId:string,workspaceId:string,assetId:string) {
 }
 export async function createMarketListing(userId:string,workspaceId:string,input:unknown) {
   const seller = await requireSeller(userId,workspaceId);
-  const data = listingSchema.parse(input);
+  const data = parseOrThrow(listingSchema,input);
   if (data.priceMinor !== 0) throw new ValidationError("Paid listings are not enabled yet.");
   if (data.productKind === "IN_GAME_ITEM") throw new ValidationError("Game-item trading needs a verified inventory runtime.");
   const asset = await ownAsset(userId,workspaceId,data.sourceAssetId);
@@ -83,7 +85,7 @@ export async function sellerListings(userId:string,workspaceId:string) {
 }
 export async function submitMarketListing(userId:string,workspaceId:string,id:string,input:unknown) {
   const seller = await requireSeller(userId,workspaceId);
-  const {action} = reviewActionSchema.parse(input);
+  const {action} = parseOrThrow(reviewActionSchema,input);
   const listing = await prisma.marketListing.findFirst({where:{id,sellerId:seller.id}});
   if (!listing) throw new NotFoundError("Listing not found.");
   if (action==="WITHDRAW") {
@@ -126,7 +128,7 @@ export async function reviewQueue(userId:string) {
 }
 
 export async function acquireFree(userId:string,input:unknown) {
-  const {listingId}=acquisitionSchema.parse(input);
+  const {listingId}=parseOrThrow(acquisitionSchema,input);
   // A transaction prevents an entitlement from being issued for a withdrawn listing.
   return prisma.$transaction(async tx=>{
     const listing=await tx.marketListing.findUnique({where:{id:listingId}});
@@ -153,7 +155,7 @@ export async function myMarketLibrary(userId:string) {
   return entries.map(x=>({...x,listing:byId.get(x.listingId)??null}));
 }
 export async function setWishlist(userId:string,input:unknown) {
-  const {listingId,saved}=wishlistSchema.parse(input);
+  const {listingId,saved}=parseOrThrow(wishlistSchema,input);
   if (saved) {
     await publicListing(listingId);
     return prisma.marketWishlist.upsert({where:{userId_listingId:{userId,listingId}},create:{userId,listingId},update:{}});
@@ -175,7 +177,7 @@ export async function requestPaidCheckout(_userId:string,_input:unknown):Promise
 }
 /** P4: No item transfers until an independently authoritative item inventory exists. */
 export async function proposeTrade(_userId:string,input:unknown):Promise<never> {
-  const data=offerSchema.parse(input);
+  const data=parseOrThrow(offerSchema,input);
   if (!secondaryTradingEnabled()) throw new ConflictError("Player trading is not enabled.");
   const entitlement=await prisma.marketEntitlement.findUnique({where:{id:data.entitlementId}});
   if (!entitlement || !canOfferTransfer(entitlement)) throw new ConflictError("This item cannot be transferred.");
