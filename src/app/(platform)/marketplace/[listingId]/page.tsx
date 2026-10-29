@@ -11,7 +11,7 @@ export default async function MarketProduct({params}:{params:Promise<{listingId:
     <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm text-muted"><ChevronLeft className="size-4"/>Back to Marketplace</Link>
     <div className="grid gap-8 md:grid-cols-2">
       <section className="flex min-h-72 items-center justify-center rounded-3xl border border-border bg-gradient-to-br from-indigo-200/40 via-card to-violet-400/20">
-        <div className="space-y-4 text-center"><Box className="mx-auto size-24 text-muted"/><p className="text-sm text-muted">Preview image not available</p></div>
+        {item.previewUrl?<img src={item.previewUrl} alt={item.title+" preview"} className="h-full w-full rounded-3xl object-contain"/>:<div className="space-y-4 text-center"><Box className="mx-auto size-24 text-muted"/><p className="text-sm text-muted">Preview image not available</p></div>}
       </section>
       <section className="space-y-5">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted"><Sparkles className="size-4"/>{item.category.replaceAll("_"," ")}</p>
