@@ -170,6 +170,63 @@ export async function myWishlist(userId:string) {
   return rows.map(x=>byId.get(x.listingId)).filter((x):x is NonNullable<typeof x>=>Boolean(x));
 }
 
+
+/**
+ * Import a licensed reference into the buyer's own workspace Asset Library.
+ * This is NOT secure binary delivery; the source link may require separate host
+ * access and runtime compatibility remains unverified. Never grants resale.
+ */
+export async function importEntitledAsset(userId:string,workspaceId:string,entitlementId:string) {
+  await requireMembership(userId,workspaceId,"asset.manage");
+  const entry=await prisma.marketEntitlement.findFirst({where:{id:entitlementId,userId,status:"ACTIVE"}});
+  if(!entry)throw new NotFoundError("Owned marketplace item not found.");
+  const existing=await prisma.marketImport.findUnique({where:{entitlementId_workspaceId:{entitlementId,workspaceId}}});
+  if(existing?.status==="COMPLETE"&&existing.importedAssetId) {
+    const {getAsset}=await import("@/server/services/asset-service");
+    return getAsset(userId,workspaceId,existing.importedAssetId);
+  }
+  if(existing)throw new ConflictError("This import is already in progress.");
+  const listing=await prisma.marketListing.findUnique({where:{id:entry.listingId}});
+  const seller=listing?await prisma.marketSeller.findUnique({where:{id:listing.sellerId}}):null;
+  if(!listing||!seller)throw new NotFoundError("Original asset is unavailable.");
+  const source=await prisma.asset.findFirst({where:{id:entry.assetId,workspaceId:seller.workspaceId}});
+  const version=source?await prisma.assetVersion.findFirst({where:{assetId:source.id,version:entry.assetVersion}}):null;
+  if(!source||!version?.externalReference)throw new ConflictError("Original file reference is unavailable.");
+  // Unique reservation prevents simultaneous duplicate imports to the same workspace.
+  try{
+    await prisma.marketImport.create({data:{entitlementId,userId,workspaceId,status:"PENDING"}});
+  }catch{throw new ConflictError("This item is being imported or is already imported.");}
+  try {
+    const read=(json:string|null,fallback:unknown)=>json?JSON.parse(json):fallback;
+    const {createAsset}=await import("@/server/services/asset-service");
+    const imported=await createAsset(userId,workspaceId,{
+      name:listing.title,description:listing.description,type:source.type,status:"DRAFT",
+      tags:read(version.tags,[]),
+      provenance:{kind:"LICENSED",sourceName:seller.displayName,
+        notes:"Imported through a user-owned SIMVERSE Marketplace entitlement; redistribution is not permitted."},
+      licenseInfo:{type:"CUSTOM",name:`Marketplace ${entry.licenseType.toLowerCase()} license`,
+        usageRestrictions:"Use only as allowed by the acquired SIMVERSE Marketplace license. No reselling or redistribution of the original source file."},
+      authorInfo:read(version.authorInfo,undefined),
+      externalReference:version.externalReference,
+      thumbnailReference:version.thumbnailReference??undefined,
+      technicalMetadata:read(version.technicalMetadata,{}),
+      modelSpecification:read(version.modelSpecification,undefined),
+      rigSpecification:read(version.rigSpecification,undefined),
+      animationSpecification:read(version.animationSpecification,undefined),
+      productionChecklist:read(version.productionChecklist,[]),
+      entityAssociations:[],derivedFromAssetIds:[],
+      changeNote:"Licensed marketplace reference import",
+    });
+    await prisma.marketImport.update({where:{entitlementId_workspaceId:{entitlementId,workspaceId}},data:{
+      importedAssetId:imported.id,status:"COMPLETE",
+    }});
+    return imported;
+  }catch(error){
+    await prisma.marketImport.deleteMany({where:{entitlementId,workspaceId,status:"PENDING"}});
+    throw error;
+  }
+}
+
 /** P3: Never accept browser-authoritative payment confirmations or mint paid rights. */
 export async function requestPaidCheckout(_userId:string,_input:unknown):Promise<never> {
   if (!paidCommerceEnabled()) throw new ConflictError("Paid checkout is not available. No payment has been taken.");
