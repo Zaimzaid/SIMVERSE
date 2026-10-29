@@ -162,7 +162,16 @@ export async function myMarketLibrary(userId:string) {
   const ids=entries.map(x=>x.listingId);
   const listings=await prisma.marketListing.findMany({where:{id:{in:ids}}});
   const byId=new Map(listings.map(x=>[x.id,x]));
-  return entries.map(x=>({...x,listing:byId.get(x.listingId)??null}));
+  const versions=await prisma.assetVersion.findMany({
+    where:{OR:entries.map(e=>({assetId:e.assetId,version:e.assetVersion}))},
+    select:{assetId:true,version:true,externalReference:true},
+  });
+  const versionByKey=new Map(versions.map(v=>[v.assetId+":"+v.version,v]));
+  return entries.map(x=>{
+    const ref=versionByKey.get(x.assetId+":"+x.assetVersion)?.externalReference;
+    const modelUrl=ref && (/^\\/api\\/marketplace\\/files\\/[a-f0-9]{32}$/.test(ref) || /\\.glb(?:[?#]|$)/i.test(ref))?ref:null;
+    return {...x,listing:byId.get(x.listingId)??null,modelUrl};
+  });
 }
 export async function setWishlist(userId:string,input:unknown) {
   const {listingId,saved}=parseOrThrow(wishlistSchema,input);
