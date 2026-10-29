@@ -1,6 +1,6 @@
 import {createHmac,randomBytes} from "node:crypto";
 import { z } from "zod";
-import {AuthenticationError,AuthorizationError,ConflictError,NotFoundError,ValidationError} from "@/lib/errors";
+import {AuthenticationError,ConflictError,NotFoundError,ValidationError} from "@/lib/errors";
 import {env} from "@/lib/env";
 import {prisma} from "@/server/db/client";
 import {verifyPassword} from "@/server/auth/password";

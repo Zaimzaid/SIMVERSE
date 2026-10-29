@@ -1,7 +1,7 @@
 import {createHmac,randomBytes} from "node:crypto";
 import {prisma} from "@/server/db/client";
 import {env} from "@/lib/env";
-import {AuthenticationError,ConflictError,NotFoundError} from "@/lib/errors";
+import {ConflictError,NotFoundError} from "@/lib/errors";
 import {recordAudit} from "./audit-service";
 const hash=(token:string)=>createHmac("sha256",env.SESSION_SECRET).update("verify-email:"+token).digest("hex");
 const ttl=24*60*60*1000;

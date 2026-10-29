@@ -1,4 +1,4 @@
-import {ValidationError,AuthorizationError,NotFoundError} from "@/lib/errors";
+import {ValidationError,NotFoundError} from "@/lib/errors";
 import {prisma} from "@/server/db/client";
 import {requireMembership} from "./workspace-service";
 import {recordAudit} from "./audit-service";
