@@ -28,6 +28,13 @@ model User {
   passwordHash String
   avatarUrl    String?
   socialAlertsEnabled Boolean @default(true)
+  twoFactorSecret String?
+  twoFactorPendingSecret String?
+  twoFactorPendingExpiresAt DateTime?
+  twoFactorEnabledAt DateTime?
+  twoFactorRecoveryHashes String?
+  emailVerifiedAt DateTime?
+  emailVerificationRequired Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -63,6 +70,8 @@ model User {
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
   sessions        Session[]
+  loginChallenges TwoFactorChallenge[]
+  emailVerificationTokens EmailVerificationToken[]
   auditLogs       AuditLog[]        @relation("AuditActor")
   createdEntities Entity[]          @relation("EntityCreator")
 
@@ -2030,4 +2039,24 @@ model SocialCallSignal {
   receiver User @relation("CallSignalReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   @@index([receiverId, createdAt])
   @@index([callId,createdAt])
+}
+
+model TwoFactorChallenge {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  attempts Int @default(0)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+model EmailVerificationToken {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
 }
