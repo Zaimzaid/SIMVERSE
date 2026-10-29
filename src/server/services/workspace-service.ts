@@ -3,7 +3,6 @@ import {randomBytes} from "node:crypto";
 import {slugify} from "@/lib/utils";
 import { AuthorizationError, NotFoundError } from "@/lib/errors";
 import {
-  can,
   effectivePermissions,
   isWorkspaceRole,
   type Permission,
