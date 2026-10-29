@@ -2104,3 +2104,11 @@ model MarketTradeOffer {
  @@index([buyerUserId,status])
  @@index([entitlementId,status])
 }
+
+
+model MarketModeratorGrant {
+ id String @id @default(cuid())
+ userId String @unique
+ isActive Boolean @default(false)
+ createdAt DateTime @default(now())
+}
