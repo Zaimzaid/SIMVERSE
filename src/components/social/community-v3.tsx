@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Ban, Bell, Check, ChevronLeft, Clock3, Mail, MessageCircle, Phone,
   RefreshCw, Search, Send, UserPlus, Users, UsersRound, Video, X,
@@ -29,6 +29,13 @@ type Conversation = {
 type Section = "chats" | "friends" | "find" | "requests" | "groups" | "alerts";
 type CallRequest = { peerId: string; mode: "VOICE" | "VIDEO"; nonce: number } | null;
 
+function mergeMessages(previous: Message[], incoming: Message[]): Message[] {
+  const unique = new Map<string, Message>(previous.map(message => [message.id, message]));
+  for (const message of incoming) unique.set(message.id, message);
+  return [...unique.values()].sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+}
+
 function avatar(name: string, src: string | null, size = "size-11") {
   return <span className={`${size} relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-600 to-slate-800 text-sm font-bold text-white`}>
     {src ? (
@@ -51,11 +58,14 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [social, setSocial] = useState(initial);
   const [section, setSection] = useState<Section>("chats");
   const [selected, setSelected] = useState<string | null>(null);
+  const selectedRef = useRef<string | null>(null);
   const [inbox, setInbox] = useState<Conversation[]>([]);
   const [unread, setUnread] = useState(0);
   const [groupInvites, setGroupInvites] = useState(0);
   const [alertUnread, setAlertUnread] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [search, setSearch] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -65,6 +75,8 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [callRequest, setCallRequest] = useState<CallRequest>(null);
+
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
   const refreshSocial = useCallback(async () => {
     const r = await apiFetch<SocialState>("/api/social");
@@ -95,11 +107,18 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   useEffect(() => {
     if (!selected) return;
     let cancelled = false;
+    let firstPage = true;
     const load = async () => {
       const r = await apiFetch<{ messages: Message[] }>(`/api/social/messages?peer=${encodeURIComponent(selected)}`);
       if (cancelled) return;
       if (r.data) {
-        setMessages(r.data.messages);
+        const latest = r.data.messages;
+        // Polling must not discard older pages the player already loaded.
+        setMessages(existing => mergeMessages(existing, latest));
+        if (firstPage) {
+          setHasOlder(latest.length === 100);
+          firstPage = false;
+        }
         void refreshInbox();
       } else if (r.error) setError(r.error.message);
     };
@@ -121,7 +140,27 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   ];
 
   function openChat(peerId: string) {
-    setSection("chats"); setSelected(peerId); setMessages([]); setError(""); setNotice("");
+    setSection("chats"); setSelected(peerId); setMessages([]); setHasOlder(false); setError(""); setNotice("");
+  }
+  async function loadOlder() {
+    if (!selected || loadingOlder || !hasOlder || !messages.length) return;
+    setLoadingOlder(true); setError("");
+    const oldest = messages[0];
+    if (!oldest) { setLoadingOlder(false); return; }
+    const oldestId = oldest.id;
+    const url = `/api/social/messages?peer=${encodeURIComponent(selected)}&before=${encodeURIComponent(oldestId)}`;
+    const r = await apiFetch<{ messages: Message[] }>(url);
+    if (selectedRef.current !== selected) {
+      setLoadingOlder(false);
+      return;
+    }
+    if (r.data) {
+      const older = r.data.messages;
+      setMessages(current => mergeMessages(current, older));
+      setHasOlder(older.length === 100);
+      void refreshInbox();
+    } else if (r.error) setError(r.error.message);
+    setLoadingOlder(false);
   }
   async function lookup(event: React.FormEvent) {
     event.preventDefault(); setError(""); setResults([]); setSearchPerformed(true);
@@ -155,7 +194,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     if (r.error) setError(r.error.message);
     else {
       setBody(""); setMediaUrl("");
-      if (r.data?.message) setMessages(items => [...items, { ...r.data!.message, reactions: [] }]);
+      if (r.data?.message) setMessages(items => mergeMessages(items, [{ ...r.data!.message, reactions: [] }]));
       void refreshInbox();
     }
     setBusy(false);
@@ -167,7 +206,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     if (r.error) setError(r.error.message);
     else if (selected) {
       const response = await apiFetch<{ messages: Message[] }>(`/api/social/messages?peer=${encodeURIComponent(selected)}`);
-      if (response.data) setMessages(response.data.messages);
+      if (response.data) setMessages(current => mergeMessages(current, response.data!.messages));
     }
   }
   const unreadMap = new Map(inbox.map(item => [item.friendId, item.unread]));
@@ -259,6 +298,11 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
               </button>
             </header>
             <div aria-live="polite" className="flex min-h-[340px] max-h-[62vh] flex-1 flex-col gap-3 overflow-y-auto bg-background/30 p-4 sm:p-6">
+              {hasOlder && messages.length > 0 && <button type="button" disabled={loadingOlder}
+                onClick={() => void loadOlder()}
+                className="self-center rounded-lg border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover disabled:opacity-50">
+                {loadingOlder ? "Loading earlier messages…" : "Load earlier messages"}
+              </button>}
               {!messages.length && <p className="m-auto text-center text-sm text-secondary">Start your conversation with {friend.displayName}.</p>}
               {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-start rounded-2xl p-3 text-sm shadow-sm ${msg.senderId === userId ? "self-end rounded-br-sm bg-accent text-accent-foreground" : "rounded-bl-sm border border-border bg-surface"}`}>
                 {msg.body && <p className="whitespace-pre-wrap break-words">{msg.body}</p>}

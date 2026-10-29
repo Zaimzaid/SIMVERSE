@@ -124,20 +124,41 @@ export async function blockPlayer(userId: string, payload: unknown) {
 export async function unblockPlayer(userId: string, targetId: string) {
   await prisma.socialBlock.deleteMany({ where: { blockerId: userId, blockedId: targetId } });
 }
-export async function listConversation(userId: string, recipientId: string) {
+export async function listConversation(userId: string, recipientId: string, beforeId?: string) {
   await requireFriend(userId, recipientId);
+  const participants = { OR: [
+    { senderId: userId, recipientId },
+    { senderId: recipientId, recipientId: userId },
+  ] };
+  if (beforeId) {
+    // Never allow a caller to page using an unrelated private message ID.
+    const anchor = await prisma.socialMessage.findFirst({
+      where: { id: beforeId, ...participants }, select: { id: true },
+    });
+    if (!anchor) throw new NotFoundError("Message not found in this conversation.");
+  }
   const messages = await prisma.socialMessage.findMany({
-    where: { OR: [
-      { senderId: userId, recipientId },
-      { senderId: recipientId, recipientId: userId },
-    ] },
-    orderBy: { createdAt: "desc" }, take: 100,
+    where: participants,
+    ...(beforeId ? { cursor: { id: beforeId }, skip: 1 } : {}),
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 100,
     select: { id: true, body: true, mediaUrl: true, senderId: true, recipientId: true, createdAt: true, readAt: true,
       reactions:{select:{emoji:true,actorId:true}} },
   });
-  await prisma.socialMessage.updateMany({
-    where: { senderId: recipientId, recipientId: userId, readAt: null }, data: { readAt: new Date() },
-  });
+  // Only acknowledge messages actually returned by this page. Previously a
+  // single history fetch marked every older, unseen message as read.
+  const receivedIds = messages
+    .filter(message => message.senderId === recipientId && message.readAt === null)
+    .map(message => message.id);
+  if (receivedIds.length) {
+    const readAt = new Date();
+    await prisma.socialMessage.updateMany({
+      where: { id: { in: receivedIds }, senderId: recipientId, recipientId: userId, readAt: null },
+      data: { readAt },
+    });
+    for (const message of messages) {
+      if (message.senderId === recipientId && message.readAt === null) message.readAt = readAt;
+    }
+  }
   return messages.reverse();
 }
 export async function sendMessage(userId: string, payload: unknown) {

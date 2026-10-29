@@ -40,6 +40,41 @@ describe("consensual social messaging",()=>{
     expect((await listSocial(a.user.id)).friends).toHaveLength(1);
     await expect(requestFriend(b.user.id,{userId:a.user.id})).rejects.toBeInstanceOf(ConflictError);
   });
+  it("marks only the 100 fetched messages as read and preserves older unread history",async()=>{
+    const a=await account("A"),b=await account("B");
+    const invite=await requestFriend(a.user.id,{userId:b.user.id});
+    await respondFriend(b.user.id,invite.id,"ACCEPT");
+    // Seed history directly to bypass the intentional 20-messages/minute send cap.
+    const base=Date.now()-200000;
+    await prisma.socialMessage.createMany({data:Array.from({length:105},(_,i)=>({
+      senderId:b.user.id,recipientId:a.user.id,body:`History ${i}`,
+      createdAt:new Date(base+i*1000),
+    }))});
+    const page=await listConversation(a.user.id,b.user.id);
+    expect(page).toHaveLength(100);
+    expect(page[0]?.body).toBe("History 5");
+    expect(page[99]?.body).toBe("History 104");
+    expect(page.every(message=>message.readAt!==null)).toBe(true);
+    expect(await prisma.socialMessage.count({
+      where:{senderId:b.user.id,recipientId:a.user.id,readAt:null},
+    })).toBe(5);
+    const oldest=page[0];
+    expect(oldest).toBeDefined();
+    if (!oldest) throw new Error("Missing first message on paged history.");
+    const older=await listConversation(a.user.id,b.user.id,oldest.id);
+    expect(older.map(message=>message.body)).toEqual([
+      "History 0","History 1","History 2","History 3","History 4",
+    ]);
+    expect(await prisma.socialMessage.count({
+      where:{senderId:b.user.id,recipientId:a.user.id,readAt:null},
+    })).toBe(0);
+    const c=await account("C");
+    const unrelated=await prisma.socialMessage.create({data:{
+      senderId:c.user.id,recipientId:a.user.id,body:"Private cursor",
+    }});
+    await expect(listConversation(a.user.id,b.user.id,unrelated.id))
+      .rejects.toBeInstanceOf(NotFoundError);
+  });
   it("blocking immediately revokes friend access, not historical message ownership",async()=>{
     const a=await account("A"),b=await account("B");
     const invite=await requestFriend(a.user.id,{userId:b.user.id});
