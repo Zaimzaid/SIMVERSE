@@ -34,10 +34,10 @@ function publicProjection(country: CountryWithVersions) {
   return {
     id: country.id,
     planetId: country.planetId,
-    name: country.name,
-    slug: country.slug,
-    description: country.description,
-    color: country.color,
+    name: v.name,
+    slug: v.slug,
+    description: v.description,
+    color: v.color,
     status: "PUBLISHED" as const,
     publishedRevision: v.revision,
     areaKm2: v.areaKm2,
@@ -138,6 +138,7 @@ export async function createFictionalCountryDraft(userId: string, workspaceId: s
     const version = await tx.fictionalCountryVersion.create({
       data: {
         countryId: country.id, revision: 1,
+        name: input.name, slug, description: input.description, color: input.color,
         geometryJson: JSON.stringify(geometry.geometry),
         geometryHash: createHash("sha256").update(JSON.stringify(geometry.geometry)).digest("hex"),
         areaKm2: geometry.areaKm2, labelLongitude: geometry.label[0],
@@ -182,21 +183,23 @@ export async function updateFictionalCountryDraft(
       });
       if (collision) throw new ConflictError("A country with this name already exists.");
     }
-    let draftVersionId = country.draftVersionId;
-    let revision: number | undefined;
-    if (candidate) {
-      revision = Math.max(0, ...country.versions.map((v) => v.revision)) + 1;
-      const geometryJson = JSON.stringify(candidate.geometry);
-      const version = await tx.fictionalCountryVersion.create({
-        data: {
-          countryId, revision, geometryJson,
-          geometryHash: createHash("sha256").update(geometryJson).digest("hex"),
-          areaKm2: candidate.areaKm2, labelLongitude: candidate.label[0],
-          labelLatitude: candidate.label[1], createdByUserId: userId,
-        },
-      });
-      draftVersionId = version.id;
-    }
+    const currentDraft = draftRevision(country);
+    if (!currentDraft) throw new ConflictError("This country has no editable territory.");
+    const revision = Math.max(0, ...country.versions.map((v) => v.revision)) + 1;
+    const geometryJson = candidate ? JSON.stringify(candidate.geometry) : currentDraft.geometryJson;
+    const version = await tx.fictionalCountryVersion.create({
+      data: {
+        countryId, revision, geometryJson, name: newName, slug: newSlug,
+        description: input.description ?? country.description,
+        color: input.color ?? country.color,
+        geometryHash: createHash("sha256").update(geometryJson).digest("hex"),
+        areaKm2: candidate?.areaKm2 ?? currentDraft.areaKm2,
+        labelLongitude: candidate?.label[0] ?? currentDraft.labelLongitude,
+        labelLatitude: candidate?.label[1] ?? currentDraft.labelLatitude,
+        createdByUserId: userId,
+      },
+    });
+    const draftVersionId = version.id;
     await tx.fictionalCountry.update({
       where: { id: countryId },
       data: {
@@ -209,7 +212,7 @@ export async function updateFictionalCountryDraft(
     await recordAudit({
       action: "planet.country.draft_updated", actorUserId: userId,
       workspaceId, entityType: "FictionalCountry", entityId: countryId,
-      metadata: { revision: revision ?? null, metadataOnly: !candidate },
+      metadata: { revision, metadataOnly: !candidate },
     }, tx);
     const updated = await tx.fictionalCountry.findUniqueOrThrow({
       where: { id: countryId }, include: countryInclude,
