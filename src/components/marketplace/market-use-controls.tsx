@@ -16,11 +16,12 @@ export function MarketUseControls({
   const [worldId,setWorldId]=useState(worlds[0]?.id??"");
   const [pending,setPending]=useState<"entity"|"world"|null>(null);
   const [status,setStatus]=useState("");
+  const [destination,setDestination]=useState<{href:string;label:string}|null>(null);
 
   async function apply(destination:"entity"|"world"){
     const id=destination==="entity"?entityId:worldId;
     if(!id)return;
-    setPending(destination);setStatus("");
+    setPending(destination);setStatus("");setDestination(null);
     try{
       const response=await fetch("/api/marketplace",{
         method:"POST",
@@ -37,8 +38,8 @@ export function MarketUseControls({
         "Model appearance saved. It does not add animations or gameplay behavior.":
         "Asset registered in World definition. Place and configure it in your World editor.");
       router.refresh();
-      // Do not redirect automatically: let the buyer read the confirmation first.
-      void path;
+      // Let the buyer choose when to open the edited destination.
+      setDestination({href:path,label:destination==="entity"?"Open Entity":"Open World"});
     }catch(error){
       setStatus(error instanceof Error?error.message:"Could not add the model.");
     }finally{setPending(null);}
@@ -78,5 +79,6 @@ export function MarketUseControls({
       </div>
     </div>
     {status&&<p role="status" className="text-xs text-muted">{status}</p>}
+    {destination&&<Link href={destination.href} className="inline-block rounded-lg border border-border px-3 py-2 text-xs font-semibold underline underline-offset-2">{destination.label}</Link>}
   </section>;
 }
