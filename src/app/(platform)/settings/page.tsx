@@ -11,13 +11,15 @@ import {NotificationSettings} from "@/components/platform/settings/notification-
 import {getAccountPreferences} from "@/server/services/account-security-service";
 import Link from "next/link";
 import {AccountDataSettings} from "@/components/platform/settings/account-data-settings";
+import {GoogleDriveSettings} from "@/components/platform/settings/google-drive-settings";
+import {googleDriveStatus} from "@/server/services/google-drive-service";
 import {TwoFactorSettings} from "@/components/platform/settings/two-factor-settings";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const { user, workspace, permissions } = await requirePlatformContext();
-  const preferences = await getAccountPreferences(user.id);
+  const [preferences,cloud] = await Promise.all([getAccountPreferences(user.id),googleDriveStatus(user.id)]);
   const canEditWorkspace = permissions.includes("workspace.edit");
 
   return (
@@ -45,12 +47,13 @@ export default async function SettingsPage() {
         <NotificationSettings initialEnabled={preferences.socialAlertsEnabled}/>
         <AccountSecuritySettings />
         <AccountDataSettings />
+        <GoogleDriveSettings configured={cloud.configured} initialConnected={cloud.connected}/>
         <TwoFactorSettings initialEnabled={Boolean(user.twoFactorEnabledAt)}/> 
         <section className="rounded-xl border border-border bg-surface p-5 space-y-3">
           <h2 className="font-semibold text-foreground">Privacy and connected services</h2>
           <p className="text-sm text-secondary">Your public player profile and discoverability are controlled from your player identity settings. The default is private.</p>
           <Link href="/profile" className="text-sm font-medium text-accent underline">Manage player identity and visibility</Link>
-          <p className="text-xs text-muted">External cloud connections are not available in this release. Account deletion requests can be submitted and cancelled above; deletion is not automatic.</p>
+          <p className="text-xs text-muted">Google Drive manual backup is available when the administrator configures OAuth. Other cloud providers are not connected. Account deletion requests can be submitted and cancelled above; deletion is not automatic.</p>
         </section>
       </div>
     </div>
