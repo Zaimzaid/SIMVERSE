@@ -30,13 +30,13 @@ async function checkFilePermission(userId:string,fileId:string) {
   const mod=await prisma.marketModeratorGrant.findUnique({where:{userId}});
   if(mod?.isActive)return item;
   // A buyer must own the exact pinned asset version pointing to this file.
-  const version=await prisma.assetVersion.findFirst({
+  const versions=await prisma.assetVersion.findMany({
     where:{assetId:item.assetId,externalReference:marketPrivateReference(fileId)},
     select:{version:true},
   });
-  if(version){
+  if(versions.length){
     const entitlement=await prisma.marketEntitlement.findFirst({where:{
-      userId,assetId:item.assetId,assetVersion:version.version,status:"ACTIVE",
+      userId,assetId:item.assetId,assetVersion:{in:versions.map(v=>v.version)},status:"ACTIVE",
     }});
     if(entitlement)return item;
   }
