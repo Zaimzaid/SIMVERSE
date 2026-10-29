@@ -84,6 +84,10 @@ export function SignaturePlanetExplorer() {
       })
       .catch((cause: unknown) => {
         if (controller.signal.aborted) return;
+        countryRef.current = [];
+        setCountries([]);
+        setLabels([]);
+        setSelectedId(null);
         setCatalogError(cause instanceof Error ? cause.message : "Country catalog unavailable.");
         setCatalogLoading(false);
       });
@@ -359,8 +363,8 @@ export function SignaturePlanetExplorer() {
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-200"><Globe2 size={15} aria-hidden /> World status</div>
               <span className="rounded-full bg-amber-200/10 px-2 py-1 text-[10px] font-medium text-amber-100">{countries.length ? "Growing world" : "Unallocated"}</span>
             </div>
-            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">{catalogLoading ? "…" : countries.length}</strong><span className="text-sm text-slate-300">countries</span></div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">{catalogLoading ? "Loading published countries…" : countries.length ? "Select any highlighted territory or find a country using search." : "No countries have been published yet. Create the first original territory using the Country Creator."}</p>
+            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">{catalogLoading ? "…" : catalogError ? "—" : countries.length}</strong><span className="text-sm text-slate-300">countries</span></div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">{catalogLoading ? "Loading published countries…" : catalogError ? "Published-country data is temporarily unavailable. Use Retry to check again." : countries.length ? "Select any highlighted territory or find a country using search." : "No countries have been published yet. Create the first original territory using the Country Creator."}</p>
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-sm text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
             <Link href="/planet/create" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2.5 text-sm font-semibold text-cyan-100 hover:border-cyan-200/60 hover:bg-cyan-300/15">
               <Plus size={15} className="mr-2" aria-hidden /> Country Creator (admin)
