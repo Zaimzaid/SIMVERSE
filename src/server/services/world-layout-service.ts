@@ -5,6 +5,7 @@ import { worldAssetAssociationSchema } from "@/lib/worlds/schemas";
 import { prisma } from "@/server/db/client";
 import { requireMembership } from "@/server/services/workspace-service";
 import { getWorld, updateWorld } from "@/server/services/world-service";
+import { parseOrThrow } from "@/lib/validation";
 
 /** A layout entry never includes private source metadata unless the caller may load it. */
 export interface WorldLayoutItem {
@@ -86,7 +87,7 @@ export async function loadWorldLayout(userId:string,workspaceId:string,worldId:s
 /** Changes only placements; all existing World relationships and ownership stay intact. */
 export async function saveWorldLayout(userId:string,workspaceId:string,worldId:string,input:unknown) {
   await requireMembership(userId,workspaceId,"world.manage");
-  const data=saveSchema.parse(input);
+  const data=parseOrThrow(saveSchema,input,"Invalid World placement data.");
   const world=await getWorld(userId,workspaceId,worldId);
   if(world.status==="ARCHIVED") throw new ConflictError("Restore the World before editing its layout.");
   if(world.currentVersion!==data.expectedVersion)
