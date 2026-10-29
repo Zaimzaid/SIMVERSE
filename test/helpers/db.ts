@@ -2,6 +2,17 @@ import { prisma } from "@/server/db/client";
 
 /** Delete all rows in FK-safe order. Used between integration tests. */
 export async function resetDb(): Promise<void> {
+  // Marketplace records have independent identities and must be cleared before
+  // their referenced assets, workspaces and users in every integration test.
+  await prisma.marketTradeOffer.deleteMany();
+  await prisma.marketOrder.deleteMany();
+  await prisma.marketWishlist.deleteMany();
+  await prisma.marketImport.deleteMany();
+  await prisma.marketEntitlement.deleteMany();
+  await prisma.marketListing.deleteMany();
+  await prisma.marketUploadedFile.deleteMany();
+  await prisma.marketSeller.deleteMany();
+  await prisma.marketModeratorGrant.deleteMany();
   await prisma.socialReaction.deleteMany();
   await prisma.socialGroupMessage.deleteMany();
   await prisma.socialGroupMember.deleteMany();
