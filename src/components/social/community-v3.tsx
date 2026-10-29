@@ -265,69 +265,140 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
   }
   const unreadMap = new Map(inbox.map(item => [item.friendId, item.unread]));
 
-  return <div className="min-w-0 space-y-4">
-    {error && <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>}
-    {notice && <div role="status" className="rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm">{notice}</div>}
 
-    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface/95 shadow-xl">
-      {/* One compact section selector, no visible six-button navigation or oversized active indicator. */}
-      <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold text-foreground">Friends &amp; Messages</h1>
-          <p className="text-xs text-secondary">Conversations, friends, calls and notifications</p>
+  const [chatQuery, setChatQuery] = useState("");
+  const [chatFilter, setChatFilter] = useState<"all" | "unread">("all");
+  const filteredConversations = inbox.filter(c => {
+    if (chatFilter === "unread" && !c.unread) return false;
+    const q = chatQuery.trim().toLowerCase();
+    return !q || c.name.toLowerCase().includes(q) || (c.username ?? "").toLowerCase().includes(q);
+  });
+  const primaryTabs = tabs.filter(tab => tab.key === "chats" || tab.key === "friends" ||
+    tab.key === "requests" || tab.key === "groups");
+  function selectSection(next: Section) {
+    setSection(next); setSelected(null); setMessages([]); setError(""); setNotice("");
+  }
+
+  return <div className="min-w-0 space-y-4">
+    {error && <div role="alert" className="rounded-2xl border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-danger">{error}</div>}
+    {notice && <div role="status" className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm">{notice}</div>}
+    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-4 sm:px-6">
+      <div className="min-w-0">
+        <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent"><MessageCircle className="size-4"/> Your community</p>
+        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Friends &amp; Messages</h1>
+        <p className="mt-1 text-sm text-secondary">A simple place to connect, catch up and create together.</p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <button type="button" title="Notifications" aria-label="View notifications" onClick={() => selectSection("alerts")}
+          className="relative grid size-10 place-items-center rounded-xl border border-border text-secondary hover:bg-surface-hover hover:text-foreground">
+          <Bell className="size-5"/>{alertUnread > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground">{alertUnread > 99 ? "99+" : alertUnread}</span>}
+        </button>
+        <button type="button" title="Refresh" aria-label="Refresh messages and community"
+          onClick={() => void Promise.all([refreshSocial(),refreshInbox(),refreshExtras()])}
+          className="grid size-10 place-items-center rounded-xl border border-border text-secondary hover:bg-surface-hover hover:text-foreground">
+          <RefreshCw className="size-5"/>
+        </button>
+      </div>
+    </header>
+    <div className="grid min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-surface shadow-xl md:min-h-[700px] md:grid-cols-[minmax(270px,345px)_minmax(0,1fr)]">
+      <aside aria-label="Messaging navigation and conversations"
+        className={section === "chats" && friend
+          ? "hidden min-w-0 flex-col border-r border-border bg-surface-elevated/40 md:flex"
+          : "flex min-w-0 flex-col border-b border-border bg-surface-elevated/40 md:border-b-0 md:border-r"}>
+        <div className="border-b border-border px-4 pb-4 pt-5 sm:px-5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold tracking-tight">Your inbox</h2>
+              <p className="mt-0.5 text-xs text-secondary">{unread ? unread + " unread messages" : "You're all caught up"}</p>
+            </div>
+            <button type="button" title="Find a player" aria-label="Find a player"
+              onClick={() => selectSection("find")}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-xs font-semibold text-accent-foreground hover:opacity-90">
+              <UserPlus className="size-4"/> Find player
+            </button>
+          </div>
+          <nav aria-label="Messaging sections" className="mt-5 grid grid-cols-4 gap-1 rounded-xl bg-background/70 p-1">
+            {primaryTabs.map(tab => {
+              const Icon = tab.icon;
+              return <button type="button" key={tab.key} aria-pressed={section === tab.key}
+                onClick={() => selectSection(tab.key)}
+                className={section === tab.key
+                  ? "flex min-w-0 flex-col items-center gap-1 rounded-lg bg-surface px-1 py-2.5 text-accent shadow-sm ring-1 ring-border"
+                  : "flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-secondary hover:bg-surface-hover hover:text-foreground"}>
+                <span className="relative"><Icon className="size-4"/>{tab.count > 0 && <span className="absolute -right-2 -top-1 size-2 rounded-full bg-accent"/>}</span>
+                <span className="truncate text-[11px] font-medium">{tab.name}</span>
+                <span className="sr-only">{tab.count ? "(" + tab.count + " pending)" : ""}</span>
+              </button>;
+            })}
+          </nav>
         </div>
-        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
-          <label htmlFor="community-section" className="sr-only">Choose Community section</label>
-          <select id="community-section" value={section}
-            onChange={(event) => {
-              setSection(event.target.value as Section);
-              setSelected(null);
-              setError("");
-              setNotice("");
-            }}
-            className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent sm:w-40 sm:flex-none"
-          >
-            {tabs.map(tab => <option key={tab.key} value={tab.key}>
-              {tab.name}{tab.count > 0 ? ` (${tab.count})` : ""}
-            </option>)}
-          </select>
-          {unread > 0 && <button type="button"
-            aria-label={`${unread} unread chat messages`}
-            title="Unread chats"
-            onClick={() => { setSection("chats"); setSelected(null); }}
-            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
-            <MessageCircle className="size-4" />
-            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{unread > 99 ? "99+" : unread}</span>
-          </button>}
-          {social.incoming.length > 0 && <button type="button"
-            aria-label={`${social.incoming.length} pending friend requests`}
-            title="Friend requests"
-            onClick={() => { setSection("requests"); setSelected(null); }}
-            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
-            <UserPlus className="size-4" />
-            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{social.incoming.length > 99 ? "99+" : social.incoming.length}</span>
-          </button>}
-          {alertUnread > 0 && <button type="button"
-            aria-label={`${alertUnread} unread notifications`}
-            title="Notifications"
-            onClick={() => { setSection("alerts"); setSelected(null); }}
-            className="relative grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:text-accent">
-            <Bell className="size-4" />
-            <span className="absolute -right-1 -top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-tight text-white">{alertUnread > 99 ? "99+" : alertUnread}</span>
-          </button>}
-          <button type="button" aria-label="Refresh community" title="Refresh community"
-            onClick={() => void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()])}
-            className="grid size-9 shrink-0 place-items-center rounded-lg border border-border text-secondary hover:bg-surface-hover hover:text-accent">
-            <RefreshCw className="size-4" />
-          </button>
+        {section === "chats" && <div className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-3 px-4 pb-3 pt-4 sm:px-5">
+            <label className="relative block">
+              <span className="sr-only">Search your conversations</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"/>
+              <input value={chatQuery} onChange={e => setChatQuery(e.target.value)}
+                placeholder="Search your conversations"
+                className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"/>
+            </label>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex gap-1.5" role="group" aria-label="Filter conversations">
+                {(["all","unread"] as const).map(filter =>
+                  <button key={filter} type="button" aria-pressed={chatFilter === filter}
+                    onClick={() => setChatFilter(filter)}
+                    className={chatFilter === filter ? "rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent" : "rounded-full px-3 py-1.5 text-xs text-secondary hover:bg-surface-hover"}>
+                    {filter === "all" ? "All chats" : "Unread"}
+                  </button>)}
+              </div>
+              <span className="text-xs text-muted">{filteredConversations.length} shown</span>
+            </div>
+          </div>
+          <div className="max-h-[58vh] min-h-[220px] flex-1 space-y-1 overflow-y-auto px-2 pb-4 sm:px-3 md:max-h-[65vh]">
+            {filteredConversations.map(c =>
+              <button key={c.friendId} type="button" aria-current={selected === c.friendId ? "true" : undefined}
+                onClick={() => openChat(c.friendId)}
+                className={selected === c.friendId
+                  ? "flex w-full items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-3 py-3 text-left"
+                  : "flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:bg-surface-hover"}>
+                {avatar(c.name,c.avatarUrl)}
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className={c.unread ? "truncate text-sm font-bold" : "truncate text-sm font-semibold"}>{c.name}</span>
+                    {c.latest && <time className="ml-auto shrink-0 text-[10px] text-muted">{timestamp(c.latest.createdAt)}</time>}
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-secondary">{c.latest
+                    ? (c.latest.senderId === userId ? "You: " : "") + c.latest.body
+                    : "Say hello to @" + (c.username ?? "player")}</span>
+                </span>
+                <Counter value={c.unread}/>
+              </button>)}
+            {!filteredConversations.length && <div className="px-4 py-12 text-center">
+              <div className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent"><MessageCircle className="size-6"/></div>
+              <p className="font-semibold">{inbox.length ? "No matching chats" : "Your conversations start here"}</p>
+              <p className="mt-1 text-xs leading-5 text-secondary">{inbox.length ? "Try another name or choose All chats." : "Find a player, become friends, and start chatting."}</p>
+              {!inbox.length && <button type="button" onClick={() => selectSection("find")}
+                className="mt-4 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-accent hover:bg-surface-hover">Find a player</button>}
+            </div>}
+          </div>
+        </div>}
+        {section !== "chats" && <div className="hidden flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center md:flex">
+          <div className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent"><Users className="size-7"/></div>
+          <p className="text-sm font-semibold">More ways to connect</p>
+          <p className="max-w-[220px] text-xs leading-5 text-secondary">Your friends, groups and invitations are just a tap away.</p>
+          <button type="button" onClick={() => selectSection("chats")}
+            className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover">Back to chats</button>
+        </div>}
+        <div className="hidden items-center gap-2 border-t border-border px-5 py-3 text-xs text-secondary md:flex">
+          <span className={connection === "live" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-warning"}/>
+          {connection === "live" ? "Connected" : connection === "fallback" ? "Reconnecting · refresh is on" : "Connecting"}
         </div>
-      </header>
-      <div className="min-w-0 border-t border-border">
-        {section === "chats" && (friend ? <section aria-label="Conversation" className="min-w-0">
-          <div className="flex min-h-[62vh] min-w-0 flex-col">
-            <header className="flex items-center gap-2 border-b border-border p-3 sm:gap-3 sm:p-4">
+      </aside>
+      <main aria-label="Messaging workspace" className={section === "chats" && !friend ? "hidden min-w-0 flex-col md:flex" : "flex min-w-0 flex-col"}>
+        {section === "chats" && (friend ? <section aria-label="Conversation" className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex min-h-[62vh] min-w-0 flex-1 flex-col md:min-h-[700px]">
+            <header className="flex items-center gap-2 border-b border-border bg-surface-elevated/60 px-3 py-4 sm:gap-3 sm:px-6">
               <button type="button" aria-label="Back to recent conversations" title="Back to recent conversations"
-                onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover">
+                onClick={() => setSelected(null)} className="rounded-lg p-2 hover:bg-surface-hover md:hidden">
                 <ChevronLeft className="size-5" />
               </button>
               {avatar(friend.displayName, friend.avatarUrl, "size-10")}
@@ -351,14 +422,14 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
                 <Ban className="size-4" />
               </button>
             </header>
-            <div aria-live="polite" className="flex min-h-[340px] max-h-[62vh] flex-1 flex-col gap-3 overflow-y-auto bg-background/30 p-4 sm:p-6">
+            <div aria-live="polite" className="flex min-h-[370px] max-h-[68vh] flex-1 flex-col gap-4 overflow-y-auto bg-background/40 p-4 sm:p-7">
               {hasOlder && messages.length > 0 && <button type="button" disabled={loadingOlder}
                 onClick={() => void loadOlder()}
                 className="self-center rounded-lg border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover disabled:opacity-50">
                 {loadingOlder ? "Loading earlier messages…" : "Load earlier messages"}
               </button>}
-              {!messages.length && <p className="m-auto text-center text-sm text-secondary">Start your conversation with {friend.displayName}.</p>}
-              {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-start rounded-2xl p-3 text-sm shadow-sm ${msg.senderId === userId ? "self-end rounded-br-sm bg-accent text-accent-foreground" : "rounded-bl-sm border border-border bg-surface"}`}>
+              {!messages.length && <div className="m-auto max-w-sm space-y-3 rounded-2xl border border-border bg-surface p-6 text-center"><MessageCircle className="mx-auto size-8 text-accent"/><h3 className="font-semibold">Say hello to {friend.displayName}</h3><p className="text-sm text-secondary">Your conversation starts here. Send a friendly message to get going.</p></div>}
+              {messages.map(msg => <div key={msg.id} className={`max-w-[88%] self-start rounded-2xl px-4 py-3 text-sm shadow-sm sm:max-w-[75%] ${msg.senderId === userId ? "self-end rounded-br-md bg-accent text-accent-foreground" : "rounded-bl-md border border-border bg-surface-elevated"}`}>
                 {msg.body && <p className="whitespace-pre-wrap break-words">{msg.body}</p>}
                 {msg.mediaUrl && <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs underline">Open shared media</a>}
                 <div className="mt-2 flex flex-wrap items-center gap-1">
@@ -369,52 +440,43 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
                 </div>
               </div>)}
             </div>
-            <form onSubmit={event => void send(event)} className="sticky bottom-0 space-y-2 border-t border-border bg-surface p-3 sm:p-4">
-              <input type="url" aria-label="Optional media link" placeholder="Optional public HTTPS photo/video link"
-                maxLength={2048} value={mediaUrl} onChange={e => setMediaUrl(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs" />
+            <form onSubmit={event => void send(event)} className="sticky bottom-0 space-y-3 border-t border-border bg-surface p-3 sm:px-6 sm:py-4">
+              <details className="rounded-xl border border-border/70 bg-background/50 px-3 py-2">
+                <summary className="cursor-pointer text-xs font-medium text-secondary hover:text-accent">Add photo or video link (optional)</summary>
+                <input type="url" aria-label="Optional media link" placeholder="Paste a public HTTPS photo or video link"
+                  maxLength={2048} value={mediaUrl} onChange={e => setMediaUrl(e.target.value)}
+                  className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent" />
+              </details>
               <div className="flex min-w-0 items-center gap-2">
-                <input aria-label="Write a message" value={body} onChange={e => setBody(e.target.value)}
-                  maxLength={1500} placeholder="Write a message…"
-                  className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent" />
+                <textarea aria-label="Write a message" value={body} onChange={e => setBody(e.target.value)}
+                  maxLength={1500} rows={2} placeholder="Write a message…"
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                      e.preventDefault();
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  className="min-h-12 min-w-0 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
                 <Button disabled={busy || !(body.trim() || mediaUrl.trim())} type="submit"><Send className="size-4" /> Send</Button>
               </div>
             </form>
           </div>
-        </section> : <section aria-label="Recent conversations" className="min-w-0 p-4 sm:p-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold">Recent conversations</h2>
-            <span className="text-xs text-secondary">{inbox.length} {inbox.length === 1 ? "friend" : "friends"}</span>
-          </div>
-          <div className="divide-y divide-border">
-            {inbox.map(c => <button key={c.friendId} type="button" onClick={() => openChat(c.friendId)}
-              className="flex w-full min-w-0 items-center gap-3 rounded-lg px-1 py-4 text-left transition-colors hover:bg-surface-hover sm:px-3">
-              {avatar(c.name, c.avatarUrl)}
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="truncate text-sm font-semibold">{c.name}</span>
-                  {c.latest && <time className="ml-auto shrink-0 text-[11px] text-secondary">{timestamp(c.latest.createdAt)}</time>}
-                </span>
-                <span className="mt-1 block truncate text-xs text-secondary">{c.latest
-                  ? (c.latest.senderId === userId ? "You: " : "") + c.latest.body
-                  : `@${c.username ?? "simverse"} · Say hello`}</span>
-              </span>
-              <Counter value={c.unread} />
-            </button>)}
-            {!inbox.length && <div className="space-y-3 py-10 text-center">
-              <MessageCircle className="mx-auto size-9 text-accent" />
-              <p className="text-sm text-secondary">No conversations yet. Find a player and send a friend request to get started.</p>
-              <Button size="sm" onClick={() => setSection("find")}><Search className="size-4" /> Find Player</Button>
-            </div>}
-          </div>
-        </section>)}
-
-        {section === "friends" && <div className="space-y-3 p-5">
+        </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 p-8 text-center md:flex">
+          <div className="mb-6 grid size-24 place-items-center rounded-[1.75rem] border border-accent/20 bg-accent-soft text-accent"><MessageCircle className="size-11" strokeWidth={1.6}/></div>
+          <h2 className="text-2xl font-bold tracking-tight">A little hello goes a long way</h2>
+          <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">Select a conversation to catch up, or find a new friend in SIMVERSE.</p>
+          <button type="button" onClick={() => selectSection("find")}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90">
+            <UserPlus className="size-4"/> Find a player
+          </button>
+          <p className="mt-8 text-xs text-muted">Private conversations work without loading the 3D world.</p>
+        </div>)}
+        {section === "friends" && <div className="space-y-5 p-5 sm:p-7">
           <h2 className="text-lg font-semibold">Friends ({social.friends.length})</h2>
           <p className="text-sm text-secondary">Choose a friend to open your private conversation.</p>
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-2">
             {social.friends.map(f => <button key={f.id} type="button" onClick={() => openChat(f.other.id)}
-              className="flex items-center gap-3 rounded-xl border border-border p-3 text-left hover:border-accent">
+              className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated/50 p-4 text-left transition-colors hover:border-accent hover:bg-accent-soft">
               {avatar(f.other.displayName, f.other.avatarUrl)}
               <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{f.other.displayName}</span><span className="block truncate text-xs text-secondary">@{f.other.playerIdentity?.username ?? "simverse"}</span></span>
               <Counter value={unreadMap.get(f.other.id) ?? 0} />
@@ -430,7 +492,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
           </div>}
         </div>}
 
-        {section === "find" && <div className="mx-auto max-w-xl space-y-4 p-5">
+        {section === "find" && <div className="mx-auto max-w-2xl space-y-5 p-5 sm:p-8">
           <h2 className="text-lg font-semibold">Find a player</h2>
           <p className="text-sm text-secondary">Search the exact username of a public SIMVERSE player.</p>
           <form onSubmit={event => void lookup(event)} className="flex gap-2">
@@ -449,7 +511,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
           </div>)}
         </div>}
 
-        {section === "requests" && <div className="space-y-4 p-5">
+        {section === "requests" && <div className="space-y-5 p-5 sm:p-7">
           <h2 className="text-lg font-semibold">Friend requests <span className="text-sm text-accent">({social.incoming.length} pending)</span></h2>
           {social.incoming.map(f => <div key={f.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3">
             {avatar(f.other.displayName, f.other.avatarUrl)}
@@ -466,21 +528,20 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
           {!social.outgoing.length && <p className="text-sm text-muted">No sent invitations.</p>}
         </div>}
 
-        {section === "groups" && <div className="p-4 md:p-5">
+        {section === "groups" && <div className="p-4 sm:p-7">
           <div className="mb-4 flex items-center gap-2"><UsersRound className="size-5 text-accent" /><h2 className="text-lg font-semibold">Group messaging</h2><Counter value={groupInvites} /></div>
           <CommunityExtras view="groups" userId={userId} friends={social.friends} />
         </div>}
-        {section === "alerts" && <div className="p-4 md:p-5">
+        {section === "alerts" && <div className="p-4 sm:p-7">
           <div className="mb-4 flex items-center gap-2"><Mail className="size-5 text-accent" /><h2 className="text-lg font-semibold">Notifications</h2><Counter value={alertUnread} /></div>
           <CommunityExtras view="notifications" userId={userId} friends={social.friends} onUnreadChange={setAlertUnread} />
         </div>}
-      </div>
+      </main>
     </div>
-    <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest} />
-    <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" />
-      {connection === "live" ? "Live updates connected (pilot); reconnects automatically." :
-       connection === "fallback" ? "Reconnecting live updates; automatic refresh remains active." :
-       "Connecting to live updates…"}
+    <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest}/>
+    <p className="flex items-center gap-2 px-1 text-xs text-muted md:hidden">
+      <span className={connection === "live" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-warning"}/>
+      {connection === "live" ? "Connected" : connection === "fallback" ? "Reconnecting; automatic refresh is on" : "Connecting…"}
     </p>
   </div>;
 }
