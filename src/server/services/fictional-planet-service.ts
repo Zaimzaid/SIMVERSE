@@ -86,6 +86,18 @@ async function requirePlanetSteward(userId: string, workspaceId: string, publish
   }
 }
 
+/** Used by the server-rendered Country Creator entry page. No authorization bypass. */
+export async function getPlanetCreatorAccess(userId: string, workspaceId: string) {
+  const membership = await requireMembership(userId, workspaceId, "workspace.view");
+  const privileged = membership.role === "OWNER" || membership.role === "ADMIN";
+  if (!privileged) return { canEdit: false, canPublish: false };
+  const grant = await prisma.fictionalPlanetSteward.findUnique({ where: { userId } });
+  return {
+    canEdit: Boolean(grant?.isActive),
+    canPublish: Boolean(grant?.isActive && grant.canPublish),
+  };
+}
+
 export async function listPublicFictionalCountries() {
   const countries = await prisma.fictionalCountry.findMany({
     where: { planetId: PLANET_ID, status: "PUBLISHED", publishedVersionId: { not: null } },
