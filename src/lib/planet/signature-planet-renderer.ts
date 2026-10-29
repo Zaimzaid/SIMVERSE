@@ -3,6 +3,7 @@
 import {
   ACESFilmicToneMapping,
   AdditiveBlending,
+  BackSide,
   AmbientLight,
   BufferGeometry,
   CanvasTexture,
@@ -22,9 +23,8 @@ import {
   SRGBColorSpace,
   TorusGeometry,
   WebGLRenderer,
-  type Material,
-  type Texture,
 } from "three";
+import { planetHomeCameraDistance } from "./visual-contract";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -40,6 +40,7 @@ export class SignaturePlanetRenderer {
   private frameId = 0;
   private lastFrameAt = 0;
   private lastTickAt = 0;
+  private homeDistance = 7.15;
   private playing = false;
   private reducedMotion = false;
   private readonly lowPower: boolean;
@@ -147,7 +148,7 @@ export class SignaturePlanetRenderer {
     const atmosphere = this.track(new ShaderMaterial({
       transparent: true,
       depthWrite: false,
-      side: 1, // BackSide: render the glow around the silhouette.
+      side: BackSide, // Render the glow around the silhouette.
       blending: AdditiveBlending,
       uniforms: {
         glowCyan: { value: new Color("#38dce4") },
@@ -267,6 +268,10 @@ export class SignaturePlanetRenderer {
   resize(width: number, height: number): void {
     if (width <= 0 || height <= 0) return;
     this.camera.aspect = width / height;
+    const homeDistance = planetHomeCameraDistance(this.camera.aspect);
+    const offset = homeDistance - this.homeDistance;
+    this.homeDistance = homeDistance;
+    this.camera.position.z = Math.max(homeDistance * 0.72, Math.min(homeDistance * 1.45, this.camera.position.z + offset));
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
     this.draw();
@@ -279,13 +284,13 @@ export class SignaturePlanetRenderer {
   }
 
   zoom(delta: number): void {
-    this.camera.position.z = Math.max(4.85, Math.min(10, this.camera.position.z + delta));
+    this.camera.position.z = Math.max(this.homeDistance * 0.72, Math.min(this.homeDistance * 1.45, this.camera.position.z + delta));
     this.draw();
   }
 
   reset(): void {
     this.root.rotation.set(-0.13, -0.38, 0);
-    this.camera.position.z = 7.15;
+    this.camera.position.z = this.homeDistance;
     this.camera.lookAt(0, 0, 0);
     this.draw();
   }
