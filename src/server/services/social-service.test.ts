@@ -58,7 +58,10 @@ describe("consensual social messaging",()=>{
     expect(await prisma.socialMessage.count({
       where:{senderId:b.user.id,recipientId:a.user.id,readAt:null},
     })).toBe(5);
-    const older=await listConversation(a.user.id,b.user.id,page[0].id);
+    const oldest=page[0];
+    expect(oldest).toBeDefined();
+    if (!oldest) throw new Error("Missing first message on paged history.");
+    const older=await listConversation(a.user.id,b.user.id,oldest.id);
     expect(older.map(message=>message.body)).toEqual([
       "History 0","History 1","History 2","History 3","History 4",
     ]);
