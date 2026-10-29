@@ -59,6 +59,9 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   const [section, setSection] = useState<Section>("chats");
   const [selected, setSelected] = useState<string | null>(null);
   const selectedRef = useRef<string | null>(null);
+  const chatReloadRef = useRef<(() => void) | null>(null);
+  const pendingSendRef = useRef<{ recipientId: string; body: string; mediaUrl?: string; clientId: string } | null>(null);
+  const [connection, setConnection] = useState<"connecting" | "live" | "fallback">("connecting");
   const [inbox, setInbox] = useState<Conversation[]>([]);
   const [unread, setUnread] = useState(0);
   const [groupInvites, setGroupInvites] = useState(0);
@@ -100,8 +103,33 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     const timer = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()]);
-    }, 5000);
+    }, 15000);
     return () => window.clearInterval(timer);
+  }, [refreshSocial, refreshInbox, refreshExtras]);
+
+  useEffect(() => {
+    if (typeof EventSource === "undefined") {
+      setConnection("fallback");
+      return;
+    }
+    const events = new EventSource("/api/social/events");
+    const onSync = () => {
+      if (document.visibilityState !== "visible") return;
+      void Promise.all([refreshSocial(), refreshInbox(), refreshExtras()]);
+      chatReloadRef.current?.();
+    };
+    events.addEventListener("sync", onSync);
+    events.onopen = () => setConnection("live");
+    events.onerror = () => setConnection("fallback");
+    const onVisible = () => {
+      if (document.visibilityState === "visible") onSync();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      events.removeEventListener("sync", onSync);
+      document.removeEventListener("visibilitychange", onVisible);
+      events.close();
+    };
   }, [refreshSocial, refreshInbox, refreshExtras]);
 
   useEffect(() => {
@@ -122,11 +150,17 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
         void refreshInbox();
       } else if (r.error) setError(r.error.message);
     };
+    chatReloadRef.current = () => { if (document.visibilityState === "visible") void load(); };
     void load();
+    // Safety fallback during SSE outages or constrained hosting.
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
-    }, 4000);
-    return () => { cancelled = true; window.clearInterval(timer); };
+    }, 15000);
+    return () => {
+      cancelled = true;
+      chatReloadRef.current = null;
+      window.clearInterval(timer);
+    };
   }, [selected, refreshInbox]);
 
   const friend = social.friends.find(item => item.other.id === selected)?.other;
@@ -140,7 +174,8 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
   ];
 
   function openChat(peerId: string) {
-    setSection("chats"); setSelected(peerId); setMessages([]); setHasOlder(false); setError(""); setNotice("");
+    setSection("chats"); setSelected(peerId); setMessages([]); setHasOlder(false);
+    pendingSendRef.current = null; setError(""); setNotice("");
   }
   async function loadOlder() {
     if (!selected || loadingOlder || !hasOlder || !messages.length) return;
@@ -188,11 +223,20 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
     event.preventDefault();
     if (!selected || busy || !(body.trim() || mediaUrl.trim())) return;
     setBusy(true); setError("");
+    const current = { recipientId: selected, body: body.trim(), mediaUrl: mediaUrl || undefined };
+    const previous = pendingSendRef.current;
+    const clientId = previous &&
+      previous.recipientId === current.recipientId &&
+      previous.body === current.body && previous.mediaUrl === current.mediaUrl
+      ? previous.clientId : crypto.randomUUID();
+    const payload = { ...current, clientId };
+    pendingSendRef.current = payload;
     const r = await apiFetch<{ message: Message }>("/api/social/messages", {
-      method: "POST", body: JSON.stringify({ recipientId: selected, body, mediaUrl: mediaUrl || undefined }),
+      method: "POST", body: JSON.stringify(payload),
     });
-    if (r.error) setError(r.error.message);
+    if (r.error) setError(r.error.message + " Your message was kept; press Send to retry.");
     else {
+      pendingSendRef.current = null;
       setBody(""); setMediaUrl("");
       if (r.data?.message) setMessages(items => mergeMessages(items, [{ ...r.data!.message, reactions: [] }]));
       void refreshInbox();
@@ -311,6 +355,7 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
                   {(["👍", "❤️", "😂"] as const).map(emoji => <button key={emoji} type="button" aria-label={`React ${emoji}`} onClick={() => void react(msg.id, emoji)}
                     className="rounded-md border border-current/20 px-1.5 py-0.5 text-[11px]">{emoji} {msg.reactions?.filter(r => r.emoji === emoji).length ?? 0}</button>)}
                   <time className="ml-auto text-[10px] opacity-70">{timestamp(msg.createdAt)}</time>
+                  {msg.senderId === userId && <span className="text-[10px] opacity-75">{msg.readAt ? "Read" : "Sent"}</span>}
                 </div>
               </div>)}
             </div>
@@ -422,6 +467,10 @@ export function CommunityV3({ initial, userId }: { initial: SocialState; userId:
       </div>
     </div>
     <PeerCallDock userId={userId} friends={social.friends.map(f => ({id:f.other.id,name:f.other.displayName}))} request={callRequest} />
-    <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" /> Messages refresh every few seconds while this page is open. Live sockets and push notifications are later milestones.</p>
+    <p className="flex items-center gap-2 text-xs text-muted"><Clock3 className="size-3.5" />
+      {connection === "live" ? "Live updates connected (pilot); reconnects automatically." :
+       connection === "fallback" ? "Reconnecting live updates; automatic refresh remains active." :
+       "Connecting to live updates…"}
+    </p>
   </div>;
 }
