@@ -17,7 +17,7 @@ function glb(document:unknown):Uint8Array {
 describe("private marketplace GLB ingestion contract",()=>{
   it("accepts complete self-contained glTF2 binary",()=>{
     expect(inspectMarketGlb(glb({asset:{version:"2.0"},scenes:[{}],nodes:[{},{}]})))
-      .toEqual({byteSize:76,sceneCount:1,nodeCount:2});
+      .toEqual({byteSize:80,sceneCount:1,nodeCount:2});
   });
   it("rejects corrupt header, truncated chunk and mismatched total length",()=>{
     const bytes=glb({asset:{version:"2.0"}});
