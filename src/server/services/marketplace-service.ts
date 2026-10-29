@@ -27,8 +27,11 @@ export async function publicCatalog(params: {q?:string;category?:string;page?:nu
     select:{id:true,slug:true,displayName:true,verified:true},
   });
   const byId = new Map(sellers.map(x=>[x.id,x]));
+  const previews=await prisma.assetVersion.findMany({where:{OR:listings.map(x=>({assetId:x.sourceAssetId,version:x.sourceVersion}))},select:{assetId:true,version:true,thumbnailReference:true}});
+  const thumbByAsset=new Map(previews.map(x=>[x.assetId+":"+x.version,x.thumbnailReference]));
   return {total,page,pageCount:Math.max(1,Math.ceil(total/18)),
-    items:listings.filter(x=>byId.has(x.sellerId)).map(x=>({...x,seller:byId.get(x.sellerId)}))};
+    items:listings.filter(x=>byId.has(x.sellerId)).map(x=>({...x,seller:byId.get(x.sellerId),
+      previewUrl:thumbByAsset.get(x.sourceAssetId+":"+x.sourceVersion)??null}))};
 }
 
 export async function publicListing(id:string) {
@@ -37,7 +40,8 @@ export async function publicListing(id:string) {
   const seller = await prisma.marketSeller.findFirst({where:{id:listing.sellerId,status:"ACTIVE_FREE"},
     select:{id:true,slug:true,displayName:true,bio:true,verified:true}});
   if (!seller) throw new NotFoundError("This item is not available.");
-  return {...listing,seller};
+  const preview=await prisma.assetVersion.findFirst({where:{assetId:listing.sourceAssetId,version:listing.sourceVersion},select:{thumbnailReference:true}});
+  return {...listing,seller,previewUrl:preview?.thumbnailReference??null};
 }
 
 export async function getMySeller(userId:string,workspaceId:string) {
