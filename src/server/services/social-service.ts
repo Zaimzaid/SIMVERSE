@@ -7,6 +7,7 @@ import { mediaUrlSchema, recordFriendInvite, recordFriendAccept, recordDirectMes
 export const nameQuery = z.string().trim().toLowerCase().regex(/^[a-z][a-z0-9_]{2,23}$/);
 export const messageSchema = z.object({
   recipientId: z.string().min(1).max(80),
+  clientId: z.string().uuid().optional(),
   body: z.string().trim().max(1500).default(""),
   mediaUrl: mediaUrlSchema.optional(),
 }).strict();
@@ -165,16 +166,45 @@ export async function sendMessage(userId: string, payload: unknown) {
   const parsed = messageSchema.safeParse(payload);
   if (!parsed.success || (!parsed.data.body && !parsed.data.mediaUrl))
     throw new ValidationError("Write a message or include a supported HTTPS media URL.");
-  const { recipientId, body, mediaUrl } = parsed.data;
+  const { recipientId, body, mediaUrl, clientId } = parsed.data;
   await requireFriend(userId, recipientId);
+  const fields = { id: true, senderId: true, recipientId: true, clientId: true, body: true, mediaUrl: true, createdAt: true, readAt: true } as const;
+  const matches = (existing: {recipientId: string; body: string; mediaUrl: string | null}) =>
+    existing.recipientId === recipientId && existing.body === body && existing.mediaUrl === (mediaUrl ?? null);
+  // Return the original server-accepted message if a timeout causes a retry.
+  // The original key must never be reused for different content or recipients.
+  if (clientId) {
+    const existing = await prisma.socialMessage.findUnique({
+      where: { senderId_clientId: { senderId: userId, clientId } }, select: fields,
+    });
+    if (existing) {
+      if (!matches(existing)) throw new ConflictError("This message request was already used for different content.");
+      return existing;
+    }
+  }
   const count = await prisma.socialMessage.count({
     where: { senderId: userId, createdAt: { gte: new Date(Date.now() - 60000) } },
   });
   if (count >= 20) throw new ValidationError("Message limit reached. Try again shortly.");
-  const message=await prisma.socialMessage.create({
-    data: { senderId: userId, recipientId, body, mediaUrl },
-    select: { id: true, senderId: true, recipientId: true, body: true, mediaUrl: true, createdAt: true, readAt: true },
-  });
-  await recordDirectMessage(recipientId);
+  let message;
+  try {
+    message = await prisma.socialMessage.create({
+      data: { senderId: userId, recipientId, body, mediaUrl, clientId },
+      select: fields,
+    });
+  } catch (error) {
+    // The unique constraint arbitrates simultaneous retries across workers.
+    if (clientId && error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await prisma.socialMessage.findUnique({
+        where: { senderId_clientId: { senderId: userId, clientId } }, select: fields,
+      });
+      if (existing && matches(existing)) return existing;
+      if (existing) throw new ConflictError("This message request was already used for different content.");
+    }
+    throw error;
+  }
+  // Notification is best effort; failures must not make a persisted message
+  // look unsent and trigger duplicate retries from older clients.
+  try { await recordDirectMessage(recipientId); } catch { /* message is persisted */ }
   return message;
 }
