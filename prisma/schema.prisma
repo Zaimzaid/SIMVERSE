@@ -70,6 +70,7 @@ model User {
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
   sessions        Session[]
+  uploadedImages UploadedImage[] @relation("UserUploadedImages")
   loginChallenges TwoFactorChallenge[]
   emailVerificationTokens EmailVerificationToken[]
   auditLogs       AuditLog[]        @relation("AuditActor")
@@ -486,6 +487,7 @@ model Workspace {
   owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members   WorkspaceMember[]
   invitations WorkspaceInvitation[]
+  uploadedImages UploadedImage[] @relation("WorkspaceUploadedImages")
   auditLogs AuditLog[]
 
   entities             Entity[]
@@ -2059,4 +2061,18 @@ model EmailVerificationToken {
   createdAt DateTime @default(now())
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   @@index([userId,expiresAt])
+}
+
+model UploadedImage {
+  id String @id @default(cuid())
+  uploadedById String
+  workspaceId String?
+  purpose String // AVATAR | WORKSPACE_LOGO
+  mediaType String
+  content Bytes
+  createdAt DateTime @default(now())
+  user User @relation("UserUploadedImages", fields:[uploadedById],references:[id],onDelete:Cascade)
+  workspace Workspace? @relation("WorkspaceUploadedImages",fields:[workspaceId],references:[id],onDelete:Cascade)
+  @@index([uploadedById,createdAt])
+  @@index([workspaceId])
 }

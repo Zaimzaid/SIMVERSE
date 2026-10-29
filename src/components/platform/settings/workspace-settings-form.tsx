@@ -8,6 +8,7 @@ import {Field} from "@/components/ui/field";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Avatar} from "@/components/ui/avatar";
+import {ImageUpload} from "./image-upload";
 export function WorkspaceSettingsForm({workspaceId,initialName,initialLogoUrl,canEdit}:{
  workspaceId:string;initialName:string;initialLogoUrl:string;canEdit:boolean;
 }){
@@ -32,7 +33,10 @@ export function WorkspaceSettingsForm({workspaceId,initialName,initialLogoUrl,ca
   <form onSubmit={save}><CardContent className="space-y-4">
    <div className="flex items-center gap-3"><Avatar name={name||"Workspace"} src={logoUrl||null} size="lg"/><p className="text-sm text-secondary">Your workspace identity</p></div>
    <Field label="Workspace name" htmlFor="workspace-name"><Input id="workspace-name" required minLength={2} maxLength={60} disabled={!canEdit} value={name} onChange={e=>setName(e.target.value)}/></Field>
-   <Field label="Logo image URL (optional)" htmlFor="workspace-logo" hint="Use a public HTTPS image URL. Leave blank to remove the existing logo.">
+   {canEdit?<ImageUpload endpoint={`/api/workspaces/${workspaceId}/logo`} label="Upload a workspace logo" onUploaded={url=>{
+     setLogoUrl(url);setSaved(s=>({...s,logoUrl:url}));toast({variant:"success",title:"Workspace logo uploaded"});
+   }}/>:null}
+   <Field label="Logo image URL (optional)" htmlFor="workspace-logo" hint="Upload a file above or paste an image URL. Leave blank to remove the logo.">
     <Input id="workspace-logo" type="url" disabled={!canEdit} value={logoUrl} onChange={e=>setLogoUrl(e.target.value)} placeholder="https://example.com/logo.png"/>
    </Field>
    {error?<p role="alert" className="text-sm text-danger">{error}</p>:null}
