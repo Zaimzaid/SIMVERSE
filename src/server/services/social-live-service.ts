@@ -9,11 +9,16 @@ import { prisma } from "@/server/db/client";
  * of truth. This is bounded database polling, NOT a dedicated push broker.
  */
 export async function socialActivityMarker(userId: string): Promise<string> {
-  const [latestMessage, latestRead, latestAlert, latestFriend] = await Promise.all([
+  const [latestMessage, latestDelivery, latestRead, latestAlert, latestFriend] = await Promise.all([
     prisma.socialMessage.findFirst({
       where: { OR: [{ senderId: userId }, { recipientId: userId }] },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: { id: true },
+    }),
+    prisma.socialMessage.findFirst({
+      where: { senderId: userId, deliveredAt: { not: null } },
+      orderBy: [{ deliveredAt: "desc" }, { id: "desc" }],
+      select: { id: true, deliveredAt: true },
     }),
     prisma.socialMessage.findFirst({
       where: { senderId: userId, readAt: { not: null } },
@@ -32,6 +37,7 @@ export async function socialActivityMarker(userId: string): Promise<string> {
   ]);
   return [
     latestMessage?.id ?? "",
+    latestDelivery?.id ?? "", latestDelivery?.deliveredAt?.getTime() ?? "",
     latestRead?.id ?? "", latestRead?.readAt?.getTime() ?? "",
     latestAlert?.id ?? "",
     latestFriend?.id ?? "", latestFriend?.status ?? "",
