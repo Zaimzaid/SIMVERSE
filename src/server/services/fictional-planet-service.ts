@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import {
   PLANET_ID, createFictionalCountrySchema, editFictionalCountrySchema,
-  fictionalCountryIdSchema, fictionalCountrySlug,
+  fictionalCountryIdSchema, fictionalCountrySlug, planetGeometryInputSchema,
 } from "@/lib/planet/contracts";
 import { PLANET_RADIUS_KM, polygonsOverlap, validatePlanetGeometry, type PlanetGeometry } from "@/lib/planet/geometry";
 import { parseOrThrow } from "@/lib/validation";
@@ -18,7 +18,9 @@ function safeGeometry(value: unknown): ReturnType<typeof validatePlanetGeometry>
   if (JSON.stringify(value ?? null).length > 160_000) {
     throw new ValidationError("Territory geometry exceeds the 160 KB request limit.");
   }
-  return validatePlanetGeometry(value);
+  const result = planetGeometryInputSchema.safeParse(value);
+  if (!result.success) throw new ValidationError("Invalid territory polygon coordinates.");
+  return validatePlanetGeometry(result.data);
 }
 
 function draftRevision(country: CountryWithVersions) {
