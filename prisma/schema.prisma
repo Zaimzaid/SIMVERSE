@@ -2013,3 +2013,94 @@ model SocialCallSignal {
   @@index([receiverId, createdAt])
   @@index([callId,createdAt])
 }
+
+
+ // Universal Marketplace P1–P4: commerce and simulation economies are strictly isolated.
+model MarketSeller {
+ id String @id @default(cuid())
+ ownerUserId String
+ workspaceId String
+ slug String @unique
+ displayName String
+ bio String @default("")
+ status String @default("ACTIVE_FREE")
+ verified Boolean @default(false)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([ownerUserId, workspaceId])
+ @@index([ownerUserId, status])
+}
+model MarketListing {
+ id String @id @default(cuid())
+ sellerId String
+ sourceAssetId String
+ sourceVersion Int
+ title String
+ description String @default("")
+ category String
+ productKind String @default("DIGITAL_ASSET")
+ licenseType String @default("PERSONAL")
+ status String @default("DRAFT")
+ priceMinor Int @default(0)
+ currency String @default("NGN")
+ transferable Boolean @default(false)
+ reviewedById String?
+ reviewedAt DateTime?
+ reviewNote String?
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([sellerId,sourceAssetId,sourceVersion])
+ @@index([status,category,publishedAt])
+ @@index([sellerId,status])
+}
+model MarketEntitlement {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ assetId String
+ assetVersion Int
+ licenseType String
+ source String @default("FREE")
+ transferable Boolean @default(false)
+ status String @default("ACTIVE")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([userId,listingId])
+ @@index([userId,status])
+ @@index([listingId,status])
+}
+model MarketWishlist {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ createdAt DateTime @default(now())
+ @@unique([userId,listingId])
+}
+model MarketOrder {
+ id String @id @default(cuid())
+ userId String
+ listingId String
+ amountMinor Int
+ currency String
+ status String @default("AWAITING_PROVIDER")
+ provider String?
+ providerRef String? @unique
+ idempotencyKey String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId,createdAt])
+ @@index([status,createdAt])
+}
+model MarketTradeOffer {
+ id String @id @default(cuid())
+ entitlementId String
+ sellerUserId String
+ buyerUserId String
+ status String @default("PROPOSED")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([sellerUserId,status])
+ @@index([buyerUserId,status])
+ @@index([entitlementId,status])
+}
