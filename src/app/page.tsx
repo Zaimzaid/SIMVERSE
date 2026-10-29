@@ -109,7 +109,11 @@ export default async function LandingPage() {
                 Enter SIMVERSE
                 <ArrowRight className="size-4" />
               </Link>
-              <a href="#how" className={buttonClasses({ variant: "secondary", size: "lg" })}>
+              <Link href="/planet" className={buttonClasses({ variant: "secondary", size: "lg" })}>
+                <Globe2 className="size-4" />
+                Preview new planet
+              </Link>
+              <a href="#how" className="rounded-lg px-4 py-3 text-sm font-semibold text-secondary underline-offset-4 hover:text-foreground hover:underline">
                 Learn more
               </a>
             </div>
