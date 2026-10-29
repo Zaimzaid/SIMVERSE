@@ -11,8 +11,15 @@ import {
   DirectionalLight,
   Float32BufferAttribute,
   Group,
-  Mesh,
+  Line,
+  LineBasicMaterial,
   MeshBasicMaterial,
+  Raycaster,
+  Vector2,
+  Vector3,
+  DoubleSide,
+  ShapeUtils,
+  Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
   Points,
@@ -26,6 +33,7 @@ import {
 } from "three";
 import { planetHomeCameraDistance } from "./visual-contract";
 import { samplePlanetSurface } from "./surface-field";
+import type { PlanetPoint } from "./geometry";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -37,6 +45,10 @@ export class SignaturePlanetRenderer {
   readonly camera = new PerspectiveCamera(42, 1, 0.1, 120);
   readonly renderer: WebGLRenderer;
   private readonly root = new Group();
+  private readonly previewGroup = new Group();
+  private readonly raycaster = new Raycaster();
+  private readonly pointer = new Vector2();
+  private planetSurface: Mesh | null = null;
   private readonly resources: Array<{ dispose(): void }> = [];
   private frameId = 0;
   private lastFrameAt = 0;
@@ -75,6 +87,7 @@ export class SignaturePlanetRenderer {
     this.createStars();
     this.createPlanet();
     this.createRings();
+    this.root.add(this.previewGroup);
     this.root.rotation.set(-0.13, -0.38, 0);
     this.scene.add(this.root);
     this.resize(canvas.clientWidth, canvas.clientHeight);
@@ -124,7 +137,8 @@ export class SignaturePlanetRenderer {
       emissive: new Color("#0a2948"),
       emissiveIntensity: 0.18,
     }));
-    this.root.add(new Mesh(geometry, material));
+    this.planetSurface = new Mesh(geometry, material);
+    this.root.add(this.planetSurface);
 
     const atmosphere = this.track(new ShaderMaterial({
       transparent: true,
@@ -221,6 +235,122 @@ export class SignaturePlanetRenderer {
       depthWrite: false,
     }));
     this.scene.add(new Points(geometry, material));
+  }
+
+
+  /** Convert a planet-local fictional coordinate into a point on the surface. */
+  private at(longitude: number, latitude: number, radius = 1.563): Vector3 {
+    const lon = longitude * Math.PI / 180;
+    const lat = latitude * Math.PI / 180;
+    return new Vector3(-radius * Math.cos(lat) * Math.cos(lon), radius * Math.sin(lat), radius * Math.cos(lat) * Math.sin(lon));
+  }
+
+  /** Pick the globe, not the decorative rings, and return fictional lon/lat. */
+  pick(clientX: number, clientY: number): PlanetPoint | null {
+    if (!this.planetSurface) return null;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    this.pointer.set(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    this.root.updateMatrixWorld(true);
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    const hit = this.raycaster.intersectObject(this.planetSurface, false)[0];
+    if (!hit) return null;
+    const local = this.root.worldToLocal(hit.point.clone()).normalize();
+    return [Math.atan2(local.z, -local.x) * 180 / Math.PI, Math.asin(Math.max(-1, Math.min(1, local.y))) * 180 / Math.PI];
+  }
+
+  /** Draw a temporary border/transparent fill without mutating any database. */
+  showTerritory(points: readonly PlanetPoint[], closed: boolean, color: string): void {
+    for (const child of [...this.previewGroup.children]) {
+      this.previewGroup.remove(child);
+      const mesh = child as Mesh | Line;
+      mesh.geometry?.dispose();
+      const material = mesh.material as MeshBasicMaterial | LineBasicMaterial | undefined;
+      material?.dispose();
+    }
+    if (!points.length) { this.draw(); return; }
+    const hue = new Color(color);
+    const shapePoints = points.length > 1 && points[0]![0] === points[points.length - 1]![0]
+      && points[0]![1] === points[points.length - 1]![1] ? points.slice(0, -1) : [...points];
+    const linePositions: number[] = [];
+    for (let i = 0; i < shapePoints.length - 1; i++) {
+      const a = shapePoints[i]!, b = shapePoints[i + 1]!;
+      const diff = ((b[0] - a[0] + 540) % 360) - 180;
+      const steps = Math.max(2, Math.ceil(Math.hypot(diff, b[1] - a[1]) / 1.5));
+      for (let j = 0; j < steps; j++) {
+        const p = this.at(a[0] + diff * j / steps, a[1] + (b[1] - a[1]) * j / steps);
+        linePositions.push(p.x, p.y, p.z);
+      }
+    }
+    if (closed && shapePoints.length >= 3) {
+      const a = shapePoints[shapePoints.length - 1]!, b = shapePoints[0]!;
+      const diff = ((b[0] - a[0] + 540) % 360) - 180;
+      const steps = Math.max(2, Math.ceil(Math.hypot(diff, b[1] - a[1]) / 1.5));
+      for (let j = 0; j < steps; j++) {
+        const p = this.at(a[0] + diff * j / steps, a[1] + (b[1] - a[1]) * j / steps);
+        linePositions.push(p.x, p.y, p.z);
+      }
+    }
+    if (linePositions.length >= 6) {
+      const geometry = new BufferGeometry();
+      geometry.setAttribute("position", new Float32BufferAttribute(linePositions, 3));
+      const material = new LineBasicMaterial({ color: hue, transparent: true, opacity: 0.94, depthTest: true });
+      this.previewGroup.add(new Line(geometry, material));
+    }
+    const mark = Math.min(shapePoints.length, 80);
+    for (let i = 0; i < mark; i++) {
+      const marker = new Mesh(new SphereGeometry(0.024, 8, 6), new MeshBasicMaterial({ color: i === mark - 1 ? 0xffffff : hue }));
+      marker.position.copy(this.at(shapePoints[i]![0], shapePoints[i]![1], 1.59));
+      this.previewGroup.add(marker);
+    }
+    // Triangulate in locally-unwrapped longitude/latitude and project the
+    // subdivided triangles onto the sphere so the preview hugs its curvature.
+    if (closed && shapePoints.length >= 3) {
+      const unwrapped: Vector2[] = [];
+      let longitude = shapePoints[0]![0];
+      unwrapped.push(new Vector2(longitude, shapePoints[0]![1]));
+      for (let i = 1; i < shapePoints.length; i++) {
+        let candidate = shapePoints[i]![0];
+        while (candidate - longitude > 180) candidate -= 360;
+        while (candidate - longitude < -180) candidate += 360;
+        longitude = candidate;
+        unwrapped.push(new Vector2(candidate, shapePoints[i]![1]));
+      }
+      const triangles = ShapeUtils.triangulateShape(unwrapped, []);
+      const positions: number[] = [];
+      const subdivide = (a: Vector2, b: Vector2, c: Vector2, depth: number): void => {
+        if (depth === 0) {
+          for (const pt of [a, b, c]) {
+            const v = this.at(pt.x, pt.y, 1.558);
+            positions.push(v.x, v.y, v.z);
+          }
+          return;
+        }
+        const ab = a.clone().add(b).multiplyScalar(0.5);
+        const bc = b.clone().add(c).multiplyScalar(0.5);
+        const ca = c.clone().add(a).multiplyScalar(0.5);
+        subdivide(a, ab, ca, depth - 1);
+        subdivide(ab, b, bc, depth - 1);
+        subdivide(ca, bc, c, depth - 1);
+        subdivide(ab, bc, ca, depth - 1);
+      };
+      for (const triangle of triangles) {
+        const [ai, bi, ci] = triangle;
+        if (ai === undefined || bi === undefined || ci === undefined) continue;
+        const a = unwrapped[ai], b = unwrapped[bi], c = unwrapped[ci];
+        if (a && b && c) subdivide(a, b, c, 2);
+      }
+      if (positions.length) {
+        const geometry = new BufferGeometry();
+        geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+        const material = new MeshBasicMaterial({ color: hue, transparent: true, opacity: 0.34, side: DoubleSide, depthWrite: false });
+        this.previewGroup.add(new Mesh(geometry, material));
+      }
+    }
+    this.draw();
   }
 
   private draw = (): void => {
