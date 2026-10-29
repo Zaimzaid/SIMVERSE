@@ -1911,6 +1911,7 @@ model SocialMessage {
   body String
   mediaUrl String?
   createdAt DateTime @default(now())
+  deliveredAt DateTime?
   readAt DateTime?
   sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User @relation("SocialMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
@@ -1919,6 +1920,7 @@ model SocialMessage {
   @@index([senderId, recipientId, createdAt])
   @@index([recipientId, senderId, createdAt])
   @@index([recipientId, readAt, createdAt])
+  @@index([recipientId, deliveredAt, createdAt])
 }
 
 // Standalone keyframe animation editor. Records are scoped to the author
