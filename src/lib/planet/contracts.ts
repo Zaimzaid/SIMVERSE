@@ -11,6 +11,18 @@ export const createFictionalCountrySchema = z.object({
   geometry: z.unknown(),
 }).strict();
 
+// Size-limited, structurally validated shape before geometric/topological checks.
+const position = z.tuple([
+  z.number().finite().min(-180).max(180),
+  z.number().finite().gt(-89.999).lt(89.999),
+]);
+const ring = z.array(position).min(4).max(600);
+const polygon = z.array(ring).min(1).max(6);
+export const planetGeometryInputSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("Polygon"), coordinates: polygon }).strict(),
+  z.object({ type: z.literal("MultiPolygon"), coordinates: z.array(polygon).min(1).max(8) }).strict(),
+]);
+
 export const editFictionalCountrySchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
   description: z.string().trim().max(1200).optional(),
