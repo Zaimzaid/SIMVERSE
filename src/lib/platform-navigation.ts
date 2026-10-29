@@ -1,5 +1,6 @@
 import {
   Compass, Hammer, House, Layers3, UserRound, WalletCards, MessagesSquare,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
@@ -34,6 +35,10 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   {
     id: "economy", label: "Economy", description: "Businesses and virtual careers",
     icon: WalletCards, routes: ["/economy/lab", "/profile/career", "/profile/work"],
+  },
+  {
+    id: "marketplace", label: "Marketplace", description: "Discover and share creator assets",
+    icon: Store, routes: ["/marketplace"],
   },
   {
     id: "community", label: "Community", description: "Your friends and private conversations",
