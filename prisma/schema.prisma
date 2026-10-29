@@ -2112,3 +2112,17 @@ model MarketModeratorGrant {
  isActive Boolean @default(false)
  createdAt DateTime @default(now())
 }
+
+
+model MarketImport {
+ id String @id @default(cuid())
+ entitlementId String
+ userId String
+ workspaceId String
+ importedAssetId String?
+ status String @default("PENDING")
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([entitlementId,workspaceId])
+ @@index([userId,workspaceId,status])
+}
