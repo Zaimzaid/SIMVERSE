@@ -25,7 +25,7 @@ describe("SIMVERSE welcoming messaging layout", () => {
     expect(html).toContain("Your conversations start here");
     expect(html).toContain("A little hello goes a long way");
     expect(html).toContain("Find a player");
-    expect(html).toContain("md:grid-cols-");
+    expect(html).toContain("lg:grid-cols-");
   });
 
   it("opens deep-linked accepted friends in the chat pane with mobile back navigation", () => {
