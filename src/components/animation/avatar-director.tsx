@@ -29,6 +29,7 @@ export function AvatarDirector({projects:initial,canCreate,canEdit}:{projects:Pr
   const [draft,setDraft]=useState<AnimationDraft>(starter);
   const [time,setTime]=useState(0),[playing,setPlaying]=useState(false);
   const [recording,setRecording]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
+  const [loadingPlayerAvatar,setLoadingPlayerAvatar]=useState(false);
   const canvas=useRef<HTMLCanvasElement>(null);
   const runtime=useRef({draft,time:0,playing:false,recording:false});
   const recorder=useRef<MediaRecorder|null>(null);
@@ -138,6 +139,16 @@ export function AvatarDirector({projects:initial,canCreate,canEdit}:{projects:Pr
       setNotice("3D scene saved to your private workspace.");}
     setBusy(false);
   }
+  async function loadMyPlayerAppearance(){
+    if(loadingPlayerAvatar)return;
+    setLoadingPlayerAvatar(true);setError("");setNotice("");
+    const response=await apiFetch<{appearance:Avatar}>("/api/player-avatar");
+    setLoadingPlayerAvatar(false);
+    if(response.error){setError(response.error.message);return;}
+    if(!response.data?.appearance){setError("Your saved player avatar is unavailable.");return;}
+    setDraft(current=>({...current,scene:{...current.scene,avatar:response.data!.appearance}}));
+    setNotice("Your saved player avatar has been loaded into this scene. Save this animation to keep the appearance here.");
+  }
   function exportWebm(){
     const element=canvas.current;
     if(!element||!("MediaRecorder" in window)||!element.captureStream){setError("Your browser does not support canvas WebM recording.");return;}
@@ -166,6 +177,13 @@ export function AvatarDirector({projects:initial,canCreate,canEdit}:{projects:Pr
     <aside className="rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-semibold">Saved 3D scenes</h2>
       <Button className="mt-3 w-full" size="sm" disabled={!canCreate} onClick={()=>{setProjectId(null);setDraft(starter());runtime.current.time=0;setTime(0);pause()}}>New scene</Button>
+      <Button className="mt-3 w-full" size="sm" variant="secondary"
+        loading={loadingPlayerAvatar} onClick={()=>void loadMyPlayerAppearance()}>
+        Use my player avatar
+      </Button>
+      <Link href="/profile/avatar" className="mt-2 block text-xs text-accent underline">
+        Customize my saved avatar
+      </Link>
       {library.map(p=><button key={p.id} className={`mt-2 block w-full rounded-lg border p-3 text-left text-xs ${projectId===p.id?"border-accent":"border-border"}`}
         onClick={()=>choose(p)}>{p.title}</button>)}
       <Link href="/animation" className="mt-5 block text-xs text-accent underline">Open 2D keyframe editor</Link>

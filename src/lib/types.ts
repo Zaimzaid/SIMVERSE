@@ -2,7 +2,7 @@ import type { User, Workspace, WorkspaceMember } from "@prisma/client";
 import type { Permission, WorkspaceRole } from "@/lib/permissions";
 
 /** A user object safe to send to the client — never includes passwordHash. */
-export type SafeUser = Omit<User, "passwordHash">;
+export type SafeUser = Omit<User, "passwordHash" | "twoFactorSecret" | "twoFactorPendingSecret" | "twoFactorRecoveryHashes">;
 
 /** A workspace member with its associated user (safe fields only). */
 export interface MemberWithUser extends WorkspaceMember {
