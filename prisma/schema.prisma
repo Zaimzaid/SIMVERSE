@@ -1906,6 +1906,8 @@ model SocialMessage {
   id String @id @default(cuid())
   senderId String
   recipientId String
+  // Optional idempotency key for reconnect/retry-safe modern clients.
+  clientId String?
   body String
   mediaUrl String?
   createdAt DateTime @default(now())
@@ -1913,6 +1915,7 @@ model SocialMessage {
   sender User @relation("SocialMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   recipient User @relation("SocialMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   reactions SocialReaction[]
+  @@unique([senderId, clientId])
   @@index([senderId, recipientId, createdAt])
   @@index([recipientId, senderId, createdAt])
   @@index([recipientId, readAt, createdAt])
