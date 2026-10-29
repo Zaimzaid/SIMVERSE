@@ -337,7 +337,9 @@ export class SignaturePlanetRenderer {
         subdivide(ca, bc, c, depth - 1);
         subdivide(ab, bc, ca, depth - 1);
       };
-      for (const [ai, bi, ci] of triangles) {
+      for (const triangle of triangles) {
+        const [ai, bi, ci] = triangle;
+        if (ai === undefined || bi === undefined || ci === undefined) continue;
         const a = unwrapped[ai], b = unwrapped[bi], c = unwrapped[ci];
         if (a && b && c) subdivide(a, b, c, 2);
       }
