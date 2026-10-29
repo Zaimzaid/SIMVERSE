@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Heart, ShoppingBag, LoaderCircle, Send, Store, Plus } from "lucide-react";
+import { Heart, ShoppingBag, LoaderCircle, Send, Store, Plus, Download } from "lucide-react";
 
 async function send(action:string,payload:Record<string,unknown>,id?:string) {
   const response=await fetch("/api/marketplace",{
@@ -12,7 +12,7 @@ async function send(action:string,payload:Record<string,unknown>,id?:string) {
   if(!response.ok) throw new Error(body?.error?.message??"Action failed.");
   return body;
 }
-export function MarketplaceAction({action,id,label}:{action:"acquire-free"|"wishlist"|"submit-listing";id:string;label?:string}) {
+export function MarketplaceAction({action,id,label}:{action:"acquire-free"|"wishlist"|"submit-listing"|"import-entitlement";id:string;label?:string}) {
   const router=useRouter();
   const [working,setWorking]=useState(false);
   const [message,setMessage]=useState("");
@@ -22,7 +22,8 @@ export function MarketplaceAction({action,id,label}:{action:"acquire-free"|"wish
       if(action==="acquire-free") await send(action,{listingId:id});
       if(action==="wishlist") await send(action,{listingId:id,saved:true});
       if(action==="submit-listing") await send(action,{action:"SUBMIT"},id);
-      setMessage(action==="acquire-free"?"Added to your library.":action==="wishlist"?"Saved to wishlist.":"Submitted for independent review.");
+      if(action==="import-entitlement") await send(action,{},id);
+      setMessage(action==="import-entitlement"?"Reference imported to your active workspace Asset Library.":action==="acquire-free"?"Added to your library.":action==="wishlist"?"Saved to wishlist.":"Submitted for independent review.");
       router.refresh();
     }catch(error){setMessage(error instanceof Error?error.message:"Request failed.");}
     finally{setWorking(false);}
@@ -30,8 +31,8 @@ export function MarketplaceAction({action,id,label}:{action:"acquire-free"|"wish
   return <div className="space-y-1">
     <button type="button" disabled={working} onClick={run}
       className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-60">
-      {working?<LoaderCircle className="size-4 animate-spin"/>:action==="wishlist"?<Heart className="size-4"/>:action==="submit-listing"?<Send className="size-4"/>:<ShoppingBag className="size-4"/>}
-      {label??(action==="acquire-free"?"Get free":action==="wishlist"?"Save":"Submit for review")}
+      {working?<LoaderCircle className="size-4 animate-spin"/>:action==="wishlist"?<Heart className="size-4"/>:action==="import-entitlement"?<Download className="size-4"/>:action==="submit-listing"?<Send className="size-4"/>:<ShoppingBag className="size-4"/>}
+      {label??(action==="acquire-free"?"Get free":action==="wishlist"?"Save":action==="import-entitlement"?"Import reference":"Submit for review")}
     </button>
     {message&&<p role="status" className="text-xs text-muted">{message}</p>}
   </div>;
