@@ -1,4 +1,6 @@
 /** Pure sizing contract for the first fictional planet visual proof. */
+export const PLANET_HOME_DESKTOP_DISTANCE = 6.45;
+
 export const SIGNATURE_PLANET_V1 = Object.freeze({
   name: "SIMVERSE Planet",
   radiusKm: 6000,
@@ -15,8 +17,8 @@ export const SIGNATURE_PLANET_V1 = Object.freeze({
  * not on a user agent/browser guess.
  */
 export function planetHomeCameraDistance(aspect: number): number {
-  if (!Number.isFinite(aspect) || aspect <= 0) return 7.15;
+  if (!Number.isFinite(aspect) || aspect <= 0) return PLANET_HOME_DESKTOP_DISTANCE;
   const fov = SIGNATURE_PLANET_V1.verticalFovDegrees * Math.PI / 180;
   const halfWidthAtUnitDistance = Math.tan(fov / 2) * aspect;
-  return Math.max(7.15, SIGNATURE_PLANET_V1.maxVisualRadius / halfWidthAtUnitDistance);
+  return Math.max(PLANET_HOME_DESKTOP_DISTANCE, SIGNATURE_PLANET_V1.maxVisualRadius * 1.08 / halfWidthAtUnitDistance);
 }
