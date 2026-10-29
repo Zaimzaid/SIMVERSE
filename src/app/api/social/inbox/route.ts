@@ -15,9 +15,9 @@ export async function GET() {
     if (!user) throw new AuthenticationError("Sign in first.");
     const social = await listSocial(user.id);
     const accepted = new Set(social.friends.map((friend) => friend.other.id));
-    if (!accepted.size) return dataResponse({ conversations: [], unread: 0 });
+    if (!accepted.size) return dataResponse({ conversations: [], unread: 0, pendingDeliveryIds: [] });
 
-    const [recent, unreadGroups] = await Promise.all([
+    const [recent, unreadGroups, pendingDelivery] = await Promise.all([
       prisma.socialMessage.findMany({
         where: {
           OR: [{ senderId: user.id }, { recipientId: user.id }],
@@ -33,6 +33,14 @@ export async function GET() {
         by: ["senderId"],
         where: { recipientId: user.id, readAt: null },
         _count: { _all: true },
+      }),
+      prisma.socialMessage.findMany({
+        where: {
+          recipientId: user.id, senderId: { in: [...accepted] }, deliveredAt: null,
+        },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        take: 100,
+        select: { id: true },
       }),
     ]);
     const counts = new Map(unreadGroups.map((item) => [item.senderId, item._count._all]));
@@ -65,6 +73,7 @@ export async function GET() {
     return dataResponse({
       conversations,
       unread: conversations.reduce((total, c) => total + c.unread, 0),
+      pendingDeliveryIds: pendingDelivery.map(message => message.id),
     });
   } catch (error) {
     return errorResponse(error);

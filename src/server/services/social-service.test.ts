@@ -5,8 +5,9 @@ import { registerUser } from "./auth-service";
 import { resetDb } from "../../../test/helpers/db";
 import {
   friendshipKey, listConversation, listSocial, requestFriend, respondFriend,
-  searchPublicPlayers, sendMessage, blockPlayer, unblockPlayer,
+  searchPublicPlayers, sendMessage, blockPlayer, unblockPlayer, acknowledgeDirectDelivery,
 } from "./social-service";
+import { socialActivityMarker } from "./social-live-service";
 
 beforeEach(async()=>{ await resetDb(); });
 let n=0;
@@ -74,6 +75,55 @@ describe("consensual social messaging",()=>{
     }});
     await expect(listConversation(a.user.id,b.user.id,unrelated.id))
       .rejects.toBeInstanceOf(NotFoundError);
+  });
+  it("retries the same direct send without duplication and rejects conflicting reuse",async()=>{
+    const a=await account("Sender"),b=await account("Recipient");
+    const invited=await requestFriend(a.user.id,{userId:b.user.id});
+    await respondFriend(b.user.id,invited.id,"ACCEPT");
+    const clientId="07e80fe4-29ba-4641-8226-3e601b1a2311";
+    const first=await sendMessage(a.user.id,{recipientId:b.user.id,body:"One delivery",clientId});
+    const second=await sendMessage(a.user.id,{recipientId:b.user.id,body:"One delivery",clientId});
+    expect(second.id).toBe(first.id);
+    expect(await prisma.socialMessage.count({where:{senderId:a.user.id,clientId}})).toBe(1);
+    expect(await prisma.socialNotification.count({where:{userId:b.user.id,kind:"MESSAGE"}})).toBe(1);
+    await expect(sendMessage(a.user.id,{recipientId:b.user.id,body:"Wrong payload",clientId}))
+      .rejects.toBeInstanceOf(ConflictError);
+    const legacy=await sendMessage(a.user.id,{recipientId:b.user.id,body:"Legacy without ID"});
+    expect(legacy.id).not.toBe(first.id);
+  });
+  it("lets only the recipient confirm delivery and broadcasts the new receipt",async()=>{
+    const sender=await account("Sender"),receiver=await account("Receiver"),outsider=await account("Other");
+    const invite=await requestFriend(sender.user.id,{userId:receiver.user.id});
+    await respondFriend(receiver.user.id,invite.id,"ACCEPT");
+    const msg=await sendMessage(sender.user.id,{recipientId:receiver.user.id,body:"Delivery acknowledgement"});
+    const before=await socialActivityMarker(sender.user.id);
+    expect((await acknowledgeDirectDelivery(sender.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    expect((await acknowledgeDirectDelivery(outsider.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    expect((await acknowledgeDirectDelivery(receiver.user.id,{messageIds:[msg.id]})).acknowledged).toBe(1);
+    expect((await acknowledgeDirectDelivery(receiver.user.id,{messageIds:[msg.id]})).acknowledged).toBe(0);
+    const stored=await prisma.socialMessage.findUnique({where:{id:msg.id},select:{deliveredAt:true,readAt:true}});
+    expect(stored?.deliveredAt).toBeInstanceOf(Date);
+    expect(stored?.readAt).toBeNull();
+    expect(await socialActivityMarker(sender.user.id)).not.toBe(before);
+    await expect(acknowledgeDirectDelivery(receiver.user.id,{messageIds:[]}))
+      .rejects.toBeInstanceOf(ValidationError);
+  });
+  it("generates changing opaque activity markers for new messages and read receipts",async()=>{
+    const a=await account("Sender"),b=await account("Recipient");
+    const initial=await socialActivityMarker(a.user.id);
+    const invited=await requestFriend(a.user.id,{userId:b.user.id});
+    await respondFriend(b.user.id,invited.id,"ACCEPT");
+    const afterFriend=await socialActivityMarker(a.user.id);
+    expect(afterFriend).not.toBe(initial);
+    const msg=await sendMessage(a.user.id,{recipientId:b.user.id,body:"Checking realtime",clientId:"f7686b59-65e4-4e51-9fb3-d82c3a9a02e4"});
+    const afterSend=await socialActivityMarker(a.user.id);
+    expect(afterSend).not.toBe(afterFriend);
+    const beforeRead=await socialActivityMarker(a.user.id);
+    await listConversation(b.user.id,a.user.id);
+    const afterRead=await socialActivityMarker(a.user.id);
+    expect(afterRead).not.toBe(beforeRead);
+    expect(await prisma.socialMessage.findUnique({where:{id:msg.id},select:{readAt:true}}))
+      .toEqual({readAt:expect.any(Date)});
   });
   it("blocking immediately revokes friend access, not historical message ownership",async()=>{
     const a=await account("A"),b=await account("B");
