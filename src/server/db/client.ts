@@ -25,13 +25,25 @@ if (env.NODE_ENV !== "production") {
 }
 
 /** Fields to omit so a User is never returned with its password hash. */
-export const SAFE_USER_OMIT = { passwordHash: true } as const;
+export const SAFE_USER_OMIT = {
+  passwordHash: true,
+  twoFactorSecret: true,
+  twoFactorPendingSecret: true,
+  twoFactorRecoveryHashes: true,
+} as const;
 
 /** Strip the password hash from a fully-loaded user record. */
 export function toSafeUser<T extends { passwordHash: string }>(
   user: T,
-): Omit<T, "passwordHash"> {
-  const { passwordHash, ...safe } = user;
+): Omit<T, "passwordHash" | "twoFactorSecret" | "twoFactorPendingSecret" | "twoFactorRecoveryHashes"> {
+  const { passwordHash, twoFactorSecret, twoFactorPendingSecret, twoFactorRecoveryHashes, ...safe } = user as T & {
+    twoFactorSecret?: string | null;
+    twoFactorPendingSecret?: string | null;
+    twoFactorRecoveryHashes?: string | null;
+  };
   void passwordHash;
+  void twoFactorSecret;
+  void twoFactorPendingSecret;
+  void twoFactorRecoveryHashes;
   return safe;
 }

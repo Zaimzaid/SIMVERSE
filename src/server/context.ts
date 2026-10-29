@@ -2,7 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import {
   isWorkspaceRole,
-  permissionsForRole,
+  effectivePermissions,
   type WorkspaceRole,
 } from "@/lib/permissions";
 import type { PlatformContext, SafeUser } from "@/lib/types";
@@ -52,7 +52,7 @@ export const getPlatformContext = cache(
       workspace: active.workspace,
       membership: active,
       role,
-      permissions: permissionsForRole(role),
+      permissions: effectivePermissions(role,active.deniedPermissions),
       workspaces: memberships.map((m) => m.workspace),
     };
   },

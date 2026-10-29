@@ -12,6 +12,7 @@ export default async function RegisterPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  const next = typeof sp.next === "string" && sp.next.startsWith("/") && !sp.next.startsWith("//") ? sp.next : undefined;
   const rawIntent = typeof sp.earthIntent === "string" ? sp.earthIntent : undefined;
   let earthIntent: string | undefined;
   if (rawIntent) {
@@ -23,6 +24,6 @@ export default async function RegisterPage({
     }
   }
   const user = await getCurrentUser();
-  if (user) redirect(earthIntent ? earthRestoreHref(earthIntent) : "/dashboard");
-  return <RegisterForm earthIntent={earthIntent} />;
+  if (user) redirect(earthIntent ? earthRestoreHref(earthIntent) : next ?? "/dashboard");
+  return <RegisterForm earthIntent={earthIntent} next={next} />;
 }

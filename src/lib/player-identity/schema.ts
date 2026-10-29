@@ -19,6 +19,7 @@ export const usernameInput = z.string().trim().toLowerCase()
 
 const imageUrl = z.union([
   z.literal(""),
+  z.string().regex(/^\/api\/images\/[a-z0-9]{10,40}$/, "Choose a SIMVERSE uploaded image."),
   z.url("Enter a valid image URL.").max(2048)
     .refine((value) => value.startsWith("https://"), "Use an HTTPS image URL."),
 ]).transform((value) => value || null);

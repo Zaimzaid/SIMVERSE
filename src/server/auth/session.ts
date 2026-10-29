@@ -123,3 +123,11 @@ export async function setActiveWorkspaceCookie(workspaceId: string): Promise<voi
     expires: new Date(Date.now() + SESSION_TTL_MS),
   });
 }
+
+/** Current session identity for authenticated account-security operations. */
+export async function getCurrentSessionId():Promise<string|null> {
+ const token=(await cookies()).get(SESSION_COOKIE)?.value;
+ if(!token)return null;
+ const session=await prisma.session.findUnique({where:{tokenHash:hashSessionToken(token)},select:{id:true,expiresAt:true}});
+ return session&&session.expiresAt>new Date()?session.id:null;
+}

@@ -47,10 +47,10 @@ function Counter({ value }: { value: number }) {
   return value > 0 ? <span className="ml-auto grid min-w-6 place-items-center rounded-full bg-cyan-500 px-1.5 py-0.5 text-[11px] font-bold text-slate-950" aria-label={`${value} unread`}>{value > 99 ? "99+" : value}</span> : null;
 }
 
-export function CommunityV3({ initial, userId }: { initial: SocialState; userId: string }) {
+export function CommunityV3({ initial, userId, initialPeerId = null }: { initial: SocialState; userId: string; initialPeerId?: string | null }) {
   const [social, setSocial] = useState(initial);
   const [section, setSection] = useState<Section>("chats");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialPeerId);
   const [inbox, setInbox] = useState<Conversation[]>([]);
   const [unread, setUnread] = useState(0);
   const [groupInvites, setGroupInvites] = useState(0);

@@ -17,6 +17,8 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [challenge, setChallenge] = useState("");
+  const [code, setCode] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -33,7 +35,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
     setErrors({});
     setSubmitting(true);
 
-    const { error } = await apiFetch("/api/auth/login", {
+    const { data, error } = await apiFetch<{twoFactorRequired?:boolean;challenge?:string}>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -45,6 +47,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
       return;
     }
 
+    if(data?.twoFactorRequired && data.challenge){setChallenge(data.challenge);setPassword("");setSubmitting(false);return;}
     const target = earthIntent
       ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
       : next && next.startsWith("/") && !next.startsWith("//")
@@ -54,10 +57,18 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
     router.refresh();
   }
 
+  async function verifySecondFactor(e:React.FormEvent){
+    e.preventDefault();setSubmitting(true);setFormError(null);
+    const {error}=await apiFetch("/api/auth/verify-2fa",{method:"POST",body:JSON.stringify({challenge,code})});
+    setSubmitting(false);
+    if(error){setFormError(error.message);return;}
+    const target=earthIntent?`/earth/restore?intent=${encodeURIComponent(earthIntent)}`:next&&next.startsWith("/")&&!next.startsWith("//")?next:"/dashboard";
+    router.replace(target);router.refresh();
+  }
   return (
     <AuthCard
       title="Welcome back"
-      subtitle="Log in to continue to your workspace."
+      subtitle={challenge?"Enter your authenticator or recovery code.":"Log in to continue to your workspace."}
       footer={
         <>
           New to SIMVERSE?{" "}
@@ -71,7 +82,13 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
       }
     >
       <FormError message={formError} />
-      <form onSubmit={onSubmit} noValidate className="space-y-4">
+      {challenge ? <form onSubmit={verifySecondFactor} className="space-y-4">
+        <Field label="Authenticator or recovery code" htmlFor="two-factor-code">
+         <Input id="two-factor-code" autoFocus required autoComplete="one-time-code" value={code} onChange={e=>setCode(e.target.value)} placeholder="6-digit code or recovery code"/>
+        </Field>
+        <Button loading={submitting} className="w-full" type="submit">Verify and log in</Button>
+        <Button type="button" variant="ghost" className="w-full" onClick={()=>{setChallenge("");setCode("");setFormError(null);}}>Back to password</Button>
+       </form> : <form onSubmit={onSubmit} noValidate className="space-y-4">
         <Field label="Email" htmlFor="email" error={errors.email}>
           <Input
             id="email"
@@ -104,7 +121,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
           {submitting ? "Logging in…" : "Log in"}
           {!submitting ? <ArrowRight className="size-4" /> : null}
         </Button>
-      </form>
+      </form>}
     </AuthCard>
   );
 }
