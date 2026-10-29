@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
-import { isWorkspaceRole, type WorkspaceRole } from "@/lib/permissions";
+import { isWorkspaceRole,parseDeniedPermissions,permissionsForRole,type Permission, type WorkspaceRole } from "@/lib/permissions";
 import { prisma } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
 import { requireMembership } from "./workspace-service";
@@ -134,4 +134,21 @@ export async function listWorkspaceTeamActivity(userId:string,workspaceId:string
   where:{workspaceId},orderBy:{createdAt:"desc"},take:80,
   select:{id:true,action:true,createdAt:true,actor:{select:{displayName:true}}},
  });
+}
+
+export async function updateMemberRestrictions(actorId:string,workspaceId:string,memberId:string,input:unknown){
+ const actor=await manager(actorId,workspaceId);
+ if(actor.role!=="OWNER")throw new AuthorizationError("Only the workspace owner can change individual permission restrictions.");
+ const target=await prisma.workspaceMember.findFirst({where:{id:memberId,workspaceId}});
+ if(!target || !isWorkspaceRole(target.role))throw new NotFoundError("Team member not found.");
+ if(target.role==="OWNER" || target.userId===actorId)throw new AuthorizationError("The owner cannot restrict their own permissions.");
+ const allowed=new Set<Permission>(permissionsForRole(target.role));
+ const schema=z.object({deniedPermissions:z.array(z.string()).max(80)}).strict();
+ const parsed=schema.safeParse(input);
+ if(!parsed.success || parsed.data.deniedPermissions.some(p=>!allowed.has(p as Permission)))
+  throw new ValidationError("Choose only permissions that are included in the member's base role.");
+ const denied=[...new Set(parsed.data.deniedPermissions)] as Permission[];
+ const updated=await prisma.workspaceMember.update({where:{id:target.id},data:{deniedPermissions:JSON.stringify(denied)}});
+ await recordAudit({action:"workspace.member_permissions_changed",actorUserId:actorId,workspaceId,entityType:"WorkspaceMember",entityId:target.id,metadata:{restrictions:denied}});
+ return {id:updated.id,deniedPermissions:parseDeniedPermissions(updated.deniedPermissions)};
 }

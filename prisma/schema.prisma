@@ -528,11 +528,13 @@ model WorkspaceMember {
   workspaceId String
   userId      String
   role        String // WorkspaceRole (OWNER|ADMIN|CREATOR|OPERATOR|EDITOR|ANALYST|VIEWER) — validated in app layer
+  deniedPermissions String @default("[]") // deny-only member overrides
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectAssignments ProjectAssignment[]
 
   @@unique([workspaceId, userId])
   @@index([userId])
@@ -1566,6 +1568,7 @@ model Project {
   entityLinks ProjectEntity[]
   simulations Simulation[]
   tournaments Tournament[]
+  teamAssignments ProjectAssignment[]
 
   // Every index leads with workspaceId so all list/search/sort queries stay tenant-scoped.
   @@index([workspaceId, status])
@@ -2075,4 +2078,18 @@ model UploadedImage {
   workspace Workspace? @relation("WorkspaceUploadedImages",fields:[workspaceId],references:[id],onDelete:Cascade)
   @@index([uploadedById,createdAt])
   @@index([workspaceId])
+}
+
+model ProjectAssignment {
+  id String @id @default(cuid())
+  projectId String
+  membershipId String
+  responsibility String @default("CONTRIBUTOR") // LEAD | CONTRIBUTOR | REVIEWER | OBSERVER
+  notes String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  membership WorkspaceMember @relation(fields:[membershipId],references:[id],onDelete:Cascade)
+  @@unique([projectId,membershipId])
+  @@index([membershipId])
 }

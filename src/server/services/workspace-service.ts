@@ -4,6 +4,7 @@ import {slugify} from "@/lib/utils";
 import { AuthorizationError, NotFoundError } from "@/lib/errors";
 import {
   can,
+  effectivePermissions,
   isWorkspaceRole,
   type Permission,
   type WorkspaceRole,
@@ -39,7 +40,7 @@ export async function requireMembership(
   }
 
   const role = membership.role;
-  if (permission && !can(role, permission)) {
+  if (permission && !effectivePermissions(role, membership.deniedPermissions).includes(permission)) {
     throw new AuthorizationError();
   }
 
