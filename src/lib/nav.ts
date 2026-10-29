@@ -21,6 +21,7 @@ import {
   ClipboardList,
   Users,
   MessagesSquare,
+  Store,
   WandSparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -72,6 +73,12 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Worlds", href: "/worlds", icon: Globe2, permission: "world.view" },
       { label: "Experiences", href: "/experiences", icon: Aperture, permission: "experience.view" },
       { label: "Tournaments", href: "/tournaments", icon: Trophy, permission: "tournament.view" },
+    ],
+  },
+  {
+    label: "Marketplace",
+    items: [
+      { label: "Marketplace", href: "/marketplace", icon: Store },
     ],
   },
   {
