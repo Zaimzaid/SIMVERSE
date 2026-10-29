@@ -128,7 +128,13 @@ export async function moderateMarketListing(userId:string,id:string,approve:bool
 export async function reviewQueue(userId:string) {
   const grant = await prisma.marketModeratorGrant.findUnique({where:{userId}});
   if (!grant?.isActive) throw new AuthorizationError();
-  return prisma.marketListing.findMany({where:{status:"IN_REVIEW"},orderBy:{createdAt:"asc"},take:100});
+  const listings=await prisma.marketListing.findMany({where:{status:"IN_REVIEW"},orderBy:{createdAt:"asc"},take:100});
+  const files=await prisma.assetVersion.findMany({
+    where:{OR:listings.map(l=>({assetId:l.sourceAssetId,version:l.sourceVersion}))},
+    select:{assetId:true,version:true,externalReference:true,thumbnailReference:true,provenance:true},
+  });
+  const fileMap=new Map(files.map(f=>[f.assetId+":"+f.version,f]));
+  return listings.map(l=>({...l,source:fileMap.get(l.sourceAssetId+":"+l.sourceVersion)??null}));
 }
 
 export async function acquireFree(userId:string,input:unknown) {
