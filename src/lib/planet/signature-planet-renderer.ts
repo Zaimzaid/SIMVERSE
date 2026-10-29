@@ -20,7 +20,6 @@ import {
   DoubleSide,
   ShapeUtils,
   Mesh,
-  MeshBasicMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
   Points,
