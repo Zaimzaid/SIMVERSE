@@ -121,6 +121,7 @@ model PlayerIdentity {
   creatorName    String?
   biography      String   @default("")
   bannerUrl      String?
+  avatarAppearanceJson String?
   profileVisibility String @default("PRIVATE") // PRIVATE | PUBLIC; app validated
   experienceMode String   @default("BOTH")      // PLAYER | CREATOR | BOTH
   homeCountryId  String?
