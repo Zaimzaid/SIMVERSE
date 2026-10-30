@@ -7,22 +7,29 @@ import { prisma } from "@/server/db/client";
 import { getSessionUser } from "@/server/auth/session";
 import { friendshipKey } from "@/server/services/social-service";
 import { getPublicCreatorPortfolio } from "@/server/services/profile-portfolio-service";
-import { getPublicPlayerProfile } from "@/server/services/player-identity-service";
+import { getPublicPlayerProfile, getViewablePlayerProfile } from "@/server/services/player-identity-service";
 import { PublicProfileFriendActions } from "@/components/player/public-profile-friend-actions";
 
 type Props = { params: Promise<{ username: string }> };
 
+// Session-aware, never cached across public and friend-only viewers.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
-  const player = await getPublicPlayerProfile(username);
-  return { title: player ? "@" + player.username + " | SIMVERSE" : "Player not found | SIMVERSE",
-    robots: { index: Boolean(player), follow: Boolean(player) } };
+  const viewer = await getSessionUser();
+  const player = await getViewablePlayerProfile(username, viewer?.id ?? null);
+  const publiclyListed = Boolean(player && await getPublicPlayerProfile(username));
+  return {
+    title: player ? "@" + player.username + " | SIMVERSE" : "Player profile | SIMVERSE",
+    robots: { index: publiclyListed, follow: publiclyListed },
+  };
 }
 export default async function PublicPlayerPage({ params }: Props) {
   const { username } = await params;
-  const player = await getPublicPlayerProfile(username);
-  if (!player) notFound();
   const viewer = await getSessionUser();
+  const player = await getViewablePlayerProfile(username, viewer?.id ?? null);
+  if (!player) notFound();
   const own = viewer?.id === player.userId;
   let relation: { kind: "NONE" | "INCOMING" | "OUTGOING" | "FRIENDS" | "BLOCKED"; requestId: string | null } = { kind: "NONE", requestId: null };
   if (viewer && !own) {
@@ -70,7 +77,7 @@ export default async function PublicPlayerPage({ params }: Props) {
             </Link>)}</div> : <p className="mt-3 text-sm text-secondary">No publicly shared creations yet.</p>}
         </section>
         <p className="flex items-start gap-2 rounded-xl border border-border bg-background p-3 text-xs text-muted">
-          <Shield className="size-4 shrink-0 text-accent"/> SIMVERSE public player profile. Virtual identities are fictional and are not government credentials.
+          <Shield className="size-4 shrink-0 text-accent"/> Player profile. Private profiles are accessible only to accepted friends. Virtual identities are fictional and are not government credentials.
         </p>
       </div>
     </article>

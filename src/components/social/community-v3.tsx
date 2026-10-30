@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   Ban, Bell, Check, ChevronLeft, Mail, MessageCircle, Phone,
   RefreshCw, Search, Send, UserPlus, Users, UsersRound, Video, X,
@@ -410,6 +411,9 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               <div className="min-w-0 flex-1">
                 <h2 className="truncate font-semibold">{friend.displayName}</h2>
                 <p className="truncate text-xs text-secondary">@{friend.playerIdentity?.username ?? "simverse"}</p>
+                {friend.playerIdentity?.username && <Link
+                  href={"/u/" + encodeURIComponent(friend.playerIdentity.username)}
+                  className="mt-1 inline-block text-xs font-semibold text-accent hover:underline">View profile</Link>}
               </div>
               <button type="button" aria-label={`Voice call ${friend.displayName}`} title="Voice call"
                 onClick={() => setCallRequest({peerId: friend.id, mode: "VOICE", nonce: Date.now()})}
@@ -495,12 +499,23 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
             ? "Choose a friend to pick up your conversation."
             : "Good conversations start with one connection."}</p>
           <div className="grid gap-3 lg:grid-cols-2">
-            {social.friends.map(f => <button key={f.id} type="button" onClick={() => openChat(f.other.id)}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated/50 p-4 text-left transition-colors hover:border-accent hover:bg-accent-soft">
-              {avatar(f.other.displayName, f.other.avatarUrl)}
-              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{f.other.displayName}</span><span className="block truncate text-xs text-secondary">@{f.other.playerIdentity?.username ?? "simverse"}</span></span>
-              <Counter value={unreadMap.get(f.other.id) ?? 0} />
-            </button>)}
+            {social.friends.map(f => <div key={f.id}
+              className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface-elevated/50 p-3 transition-colors hover:border-accent">
+              <button type="button" onClick={() => openChat(f.other.id)}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1 text-left hover:bg-accent-soft">
+                {avatar(f.other.displayName, f.other.avatarUrl)}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{f.other.displayName}</span>
+                  <span className="block truncate text-xs text-secondary">@{f.other.playerIdentity?.username ?? "simverse"}</span>
+                </span>
+                <Counter value={unreadMap.get(f.other.id) ?? 0} />
+              </button>
+              {f.other.playerIdentity?.username && <Link
+                href={"/u/" + encodeURIComponent(f.other.playerIdentity.username)}
+                className="shrink-0 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-accent hover:bg-accent-soft">
+                View profile
+              </Link>}
+            </div>)}
           </div>
           {!social.friends.length && <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-border bg-surface-elevated/45 px-5 py-9 text-center sm:px-8 sm:py-12">
             <div className="mb-5 grid size-16 place-items-center rounded-2xl border border-accent/20 bg-accent-soft text-accent"><Users className="size-8"/></div>

@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, BriefcaseBusiness, Clapperboard, FileBadge2, IdCard, Plane,
   Settings2, Shield, Sparkles, UserRound, Users } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
 import { requireUser } from "@/server/context";
 import { getMyPlayerIdentity, listPlayerHomeCountries } from "@/server/services/player-identity-service";
 import { getMyCreatorPortfolio } from "@/server/services/profile-portfolio-service";
 import { listSocial } from "@/server/services/social-service";
-import { PlayerIdentityForm } from "@/components/player/player-identity-form";
+import { ProfileIdentityPanel } from "@/components/player/profile-identity-panel";
 
 export const metadata: Metadata = { title: "My Profile | SIMVERSE" };
 const sections = [
@@ -32,25 +31,7 @@ export default async function MyProfilePage() {
   ];
   const completed = steps.filter((step) => step.done).length;
   return <div className="mx-auto max-w-6xl space-y-7">
-    <section className="overflow-hidden rounded-3xl border border-border bg-surface">
-      <div className="relative h-36 bg-gradient-to-br from-[#13283e] via-[#087988] to-[#1a4f65] sm:h-52">
-        {identity.bannerUrl && <img src={identity.bannerUrl} alt="" className="size-full object-cover"/>}
-      </div>
-      <div className="flex flex-wrap items-center gap-4 px-5 py-5 sm:px-8">
-        <Avatar name={identity.displayName} src={identity.avatarUrl} size="lg" className="ring-4 ring-surface"/>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent">My SIMVERSE profile</p>
-          <h1 className="truncate text-2xl font-semibold sm:text-3xl">{identity.displayName}</h1>
-          <p className="text-sm text-secondary">{identity.username ? "@" + identity.username : "Choose your username to get started"}</p>
-          {identity.biography && <p className="mt-1 max-w-xl text-sm text-secondary">{identity.biography}</p>}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="#identity" className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white">Edit profile</Link>
-          {identity.username && identity.profileVisibility === "PUBLIC" && <Link href={"/u/" + identity.username}
-            className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium">View as visitor</Link>}
-        </div>
-      </div>
-    </section>
+    <ProfileIdentityPanel initial={identity} countries={countries}/>
     <section aria-label="Profile overview" className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Your friends</p><p className="mt-1 text-2xl font-semibold">{social.friends.length}</p><Link href="/social" className="mt-2 block text-xs text-accent">Open community →</Link></div>
       <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Creations in your active workspace</p><p className="mt-1 text-2xl font-semibold">{portfolio.items.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">My creations →</Link></div>
@@ -65,7 +46,7 @@ export default async function MyProfilePage() {
           <span aria-hidden className={step.done ? "text-emerald-500" : "text-muted"}>{step.done ? "✓" : "○"}</span>{step.label}</div>)}
       </div>
       <p className="mt-3 text-xs text-secondary">Your profile is private by default. You can keep it private and still complete all steps.</p>
-      <Link href="#identity" className="mt-3 inline-block text-sm font-semibold text-accent">Continue setup →</Link>
+      {completed < steps.length && <Link href="#identity" className="mt-3 inline-block text-sm font-semibold text-accent">Open my profile →</Link>}
     </section>
     <section aria-labelledby="profile-sections">
       <h2 id="profile-sections" className="mb-3 text-xl font-semibold">Your SIMVERSE</h2>
@@ -77,11 +58,6 @@ export default async function MyProfilePage() {
           </Link>)}
       </div>
       <Link href="/profile/travel" className="mt-3 inline-flex items-center gap-2 text-sm text-accent"><Plane className="size-4"/> Travel and immigration</Link>
-    </section>
-    <section id="identity" className="scroll-mt-6 space-y-4" aria-labelledby="identity-title">
-      <div><h2 id="identity-title" className="text-xl font-semibold">Edit My Identity</h2>
-        <p className="mt-1 text-sm text-secondary">Keep your name, photo, privacy and virtual-world identity in one place.</p></div>
-      <PlayerIdentityForm initial={identity} countries={countries}/>
     </section>
     <p className="flex items-center gap-2 text-xs text-secondary"><Shield className="size-4"/>Your private email, SIMVERSE identity number and virtual document records do not appear on public profiles.</p>
   </div>;
