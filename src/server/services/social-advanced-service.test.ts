@@ -5,7 +5,8 @@ import {registerUser} from "./auth-service";
 import {resetDb} from "../../../test/helpers/db";
 import {requestFriend,respondFriend,sendMessage,blockPlayer} from "./social-service";
 import {createSocialGroup,listSocialGroups,respondGroupInvite,groupMessages,sendGroupMessage,
-  reactToMessage,notifications,readNotifications,sendCallSignal,receiveCallSignals} from "./social-advanced-service";
+  reactToMessage,notifications,readNotifications,sendCallSignal,receiveCallSignals,
+  inviteSocialGroupMembers,listSocialGroupMembers} from "./social-advanced-service";
 beforeEach(async()=>await resetDb());
 let n=0;
 async function member(){
@@ -33,6 +34,57 @@ describe("SIMVERSE social expansion",()=>{
     expect((await reactToMessage(a,{kind:"GROUP",messageId:msg.id,emoji:"❤️"})).active).toBe(true);
     expect((await reactToMessage(a,{kind:"GROUP",messageId:msg.id,emoji:"❤️"})).active).toBe(false);
     await expect(reactToMessage(stranger,{kind:"GROUP",messageId:msg.id,emoji:"👍"})).rejects.toBeInstanceOf(NotFoundError);
+  });
+  it("lets only an active group owner invite accepted friends, without duplicates",async()=>{
+    const owner=await member(),first=await member(),second=await member(),stranger=await member();
+    await befriend(owner,first);await befriend(owner,second);
+    const group=await createSocialGroup(owner,{title:"Creators Club",invitees:[first]});
+    await expect(listSocialGroupMembers(first,group.id)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(inviteSocialGroupMembers(first,group.id,{invitees:[second]}))
+      .rejects.toBeInstanceOf(NotFoundError);
+    await expect(inviteSocialGroupMembers(owner,group.id,{invitees:[stranger]}))
+      .rejects.toBeInstanceOf(AuthorizationError);
+    await expect(inviteSocialGroupMembers(owner,group.id,{invitees:[first]}))
+      .rejects.toThrow();
+    const added=await inviteSocialGroupMembers(owner,group.id,{invitees:[second]});
+    expect(added.invited).toBe(1);
+    expect((await listSocialGroups(second))[0]?.status).toBe("INVITED");
+    await expect(listSocialGroupMembers(second,group.id)).rejects.toBeInstanceOf(NotFoundError);
+    await respondGroupInvite(second,group.id,"ACCEPT");
+    const roster=await listSocialGroupMembers(second,group.id);
+    expect(roster.map(item=>item.userId)).toEqual(expect.arrayContaining([owner,first,second]));
+    expect(roster.find(item=>item.userId===second)?.status).toBe("ACTIVE");
+    await expect(inviteSocialGroupMembers(owner,group.id,{invitees:[second]}))
+      .rejects.toThrow();
+    await expect(listSocialGroupMembers(stranger,group.id)).rejects.toBeInstanceOf(NotFoundError);
+  });
+  it("paginates group history and rejects unrelated or hidden cursors",async()=>{
+    const owner=await member(),joined=await member(),other=await member();
+    await befriend(owner,joined);
+    const group=await createSocialGroup(owner,{title:"History Team",invitees:[joined]});
+    await respondGroupInvite(joined,group.id,"ACCEPT");
+    const start=Date.now()-200000;
+    await prisma.socialGroupMessage.createMany({data:Array.from({length:105},(_,i)=>({
+      groupId:group.id,senderId:owner,body:`Group ${i}`,
+      createdAt:new Date(start+i*1000),
+    }))});
+    const first=await groupMessages(joined,group.id);
+    expect(first).toHaveLength(100);
+    expect(first[0]?.body).toBe("Group 5");
+    expect(first[99]?.body).toBe("Group 104");
+    const second=await groupMessages(joined,group.id,first[0]!.id);
+    expect(second.map(m=>m.body)).toEqual(["Group 0","Group 1","Group 2","Group 3","Group 4"]);
+    const unrelated=await prisma.socialGroupMessage.create({data:{
+      groupId:group.id,senderId:other,body:"Hidden cursor",
+    }});
+    await expect(groupMessages(joined,group.id,"missing-id")).rejects.toBeInstanceOf(NotFoundError);
+    await expect(groupMessages(other,group.id)).rejects.toBeInstanceOf(NotFoundError);
+    const separate=await createSocialGroup(owner,{title:"Separate Group",invitees:[joined]});
+    const foreign=await prisma.socialGroupMessage.create({data:{
+      groupId:separate.id,senderId:owner,body:"Private to another group",
+    }});
+    await expect(groupMessages(joined,group.id,foreign.id)).rejects.toBeInstanceOf(NotFoundError);
+    expect(unrelated.id).toBeTruthy();
   });
   it("validates HTTPS media links and separates direct message reactions",async()=>{
     const a=await member(),b=await member(),outsider=await member();
