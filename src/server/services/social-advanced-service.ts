@@ -47,6 +47,42 @@ export async function createSocialGroup(userId:string,payload:unknown) {
   for(const peer of invitees) await notify(peer,"GROUP_INVITE","Group invitation",`You were invited to ${title}`);
   return group;
 }
+/**
+ * Only the group's owner can invite additional accepted friends.
+ * Existing members cannot be invited twice. Never expose private group
+ * information to people who are not active members.
+ */
+export async function inviteSocialGroupMembers(userId:string,groupId:string,payload:unknown) {
+  const parsed=z.object({invitees:z.array(z.string().min(1).max(80)).min(1).max(10)}).strict().safeParse(payload);
+  if(!parsed.success)throw new ValidationError("Select 1–10 friends to invite.");
+  const invitees=parsed.data.invitees;
+  if(new Set(invitees).size!==invitees.length || invitees.includes(userId))
+    throw new ValidationError("Select distinct friends other than yourself.");
+  const group=await prisma.socialGroup.findUnique({
+    where:{id:groupId},select:{ownerId:true,title:true},
+  });
+  if(!group || group.ownerId!==userId)throw new NotFoundError("Group not found or you cannot invite members.");
+  await active(userId,groupId);
+  const existing=await prisma.socialGroupMember.findMany({where:{groupId},select:{userId:true}});
+  const existingIds=new Set(existing.map(member=>member.userId));
+  if(existing.length+invitees.length>11)throw new ValidationError("A group supports up to 11 members, including its owner.");
+  if(invitees.some(id=>existingIds.has(id)))throw new ConflictError("One or more players already belong to this group or have an invitation.");
+  for(const peer of invitees) {
+    if(!await connected(userId,peer))
+      throw new AuthorizationError("Only accepted, unblocked friends can be invited.");
+  }
+  // All authorization and member-count checks run before any member is added.
+  await prisma.socialGroupMember.createMany({
+    data:invitees.map(id=>({groupId,userId:id,role:"MEMBER",status:"INVITED"})),
+  });
+  await prisma.socialGroup.update({where:{id:groupId},data:{updatedAt:new Date()}});
+  for(const peer of invitees) {
+    try { await notify(peer,"GROUP_INVITE","Group invitation",`You were invited to ${group.title}`); }
+    catch { /* a notification outage must not undo a valid invitation */ }
+  }
+  return {invited:invitees.length};
+}
+
 export async function listSocialGroups(userId:string) {
   const memberships=await prisma.socialGroupMember.findMany({
     where:{userId},include:{group:{select:{id:true,title:true,ownerId:true,updatedAt:true,_count:{select:{members:true}}}}},
@@ -54,6 +90,16 @@ export async function listSocialGroups(userId:string) {
   });
   return memberships.map(m=>({...m.group,role:m.role,status:m.status}));
 }
+/** Group roster is visible only after accepting membership. */
+export async function listSocialGroupMembers(userId:string,groupId:string) {
+  await active(userId,groupId);
+  return prisma.socialGroupMember.findMany({
+    where:{groupId},
+    orderBy:[{role:"asc"},{createdAt:"asc"}],
+    select:{userId:true,role:true,status:true,user:{select:{displayName:true}}},
+  });
+}
+
 export async function respondGroupInvite(userId:string,groupId:string,action:"ACCEPT"|"LEAVE") {
   const membership=await prisma.socialGroupMember.findUnique({where:{groupId_userId:{groupId,userId}}});
   if(!membership)throw new NotFoundError("Invitation not found.");
@@ -69,14 +115,23 @@ export async function respondGroupInvite(userId:string,groupId:string,action:"AC
     where:{groupId_userId:{groupId,userId}},data:{status:"ACTIVE",joinedAt:new Date()},
   });
 }
-export async function groupMessages(userId:string,groupId:string) {
+export async function groupMessages(userId:string,groupId:string,beforeId?:string) {
   await active(userId,groupId);
   const blocks=await prisma.socialBlock.findMany({
     where:{OR:[{blockerId:userId},{blockedId:userId}]},select:{blockerId:true,blockedId:true},
   });
   const blocked=new Set(blocks.map(b=>b.blockerId===userId?b.blockedId:b.blockerId));
+  const visible={groupId,senderId:{notIn:[...blocked]}};
+  if(beforeId) {
+    const anchor=await prisma.socialGroupMessage.findFirst({
+      where:{id:beforeId,...visible},select:{id:true},
+    });
+    if(!anchor)throw new NotFoundError("Message not found in this group.");
+  }
   const rows=await prisma.socialGroupMessage.findMany({
-    where:{groupId,senderId:{notIn:[...blocked]}},orderBy:{createdAt:"desc"},take:100,
+    where:visible,
+    ...(beforeId?{cursor:{id:beforeId},skip:1}:{}),
+    orderBy:[{createdAt:"desc"},{id:"desc"}],take:100,
     select:{id:true,groupId:true,senderId:true,body:true,mediaUrl:true,createdAt:true,
       sender:{select:{displayName:true}},reactions:{select:{emoji:true,actorId:true}}},
   });
@@ -99,7 +154,12 @@ export async function sendGroupMessage(userId:string,payload:unknown) {
   const peers=await prisma.socialGroupMember.findMany({
     where:{groupId,status:"ACTIVE",userId:{not:userId}},select:{userId:true},
   });
-  for(const p of peers) await notify(p.userId,"GROUP_MESSAGE","New group message","A group you joined has a new message.");
+  // Delivery of an alert is optional; a notification failure must never make
+  // an already-persisted group message appear unsent to its author.
+  for(const p of peers) {
+    try { await notify(p.userId,"GROUP_MESSAGE","New group message","A group you joined has a new message."); }
+    catch { /* message has already been persisted */ }
+  }
   return message;
 }
 export async function reactToMessage(userId:string,payload:unknown) {
