@@ -8,6 +8,7 @@ import {
 import { apiFetch } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { CommunityExtras } from "./community-extras";
+import { CommunityGroups } from "./community-groups";
 import { PeerCallDock } from "./peer-call-dock";
 
 type Player = { id: string; displayName: string; avatarUrl: string | null; playerIdentity: { username: string | null } | null };
@@ -564,7 +565,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
 
         {section === "groups" && <div className="p-4 sm:p-7">
           <div className="mb-4 flex items-center gap-2"><UsersRound className="size-5 text-accent" /><h2 className="text-lg font-semibold">Group messaging</h2><Counter value={groupInvites} /></div>
-          <CommunityExtras view="groups" userId={userId} friends={social.friends} />
+          <CommunityGroups userId={userId} friends={social.friends} />
         </div>}
         {section === "alerts" && <div className="p-4 sm:p-7">
           <div className="mb-4 flex items-center gap-2"><Mail className="size-5 text-accent" /><h2 className="text-lg font-semibold">Notifications</h2><Counter value={alertUnread} /></div>
