@@ -528,7 +528,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
 
         {section === "find" && <div className="mx-auto max-w-2xl space-y-5 p-5 sm:p-8">
           <h2 className="text-lg font-semibold">Find a player</h2>
-          <p className="text-sm text-secondary">Search the exact username of a public SIMVERSE player.</p>
+          <p className="text-sm text-secondary">Enter an exact public SIMVERSE username to connect. If you don’t know it, ask the player to share their username first.</p>
           <form onSubmit={event => void lookup(event)} className="flex gap-2">
             <input aria-label="Search public username" value={search} onChange={e => { setSearch(e.target.value); setSearchPerformed(false); }}
               placeholder="Enter username" className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm" />
@@ -553,7 +553,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
             <Button size="sm" disabled={busy} onClick={() => void friendAction("PATCH", "/api/social/friends", {id:f.id,action:"ACCEPT"}, "Friend request accepted.")}><Check className="size-4" /> Accept</Button>
             <Button size="sm" variant="secondary" disabled={busy} onClick={() => void friendAction("PATCH", "/api/social/friends", {id:f.id,action:"REMOVE"}, "Request declined.")}><X className="size-4" /> Decline</Button>
           </div>)}
-          {!social.incoming.length && <p className="text-sm text-muted">No new requests.</p>}
+          {!social.incoming.length && <p className="rounded-xl border border-border bg-surface-elevated/40 px-4 py-5 text-sm leading-6 text-secondary">No new invitations yet. When someone sends you a friend request, you can accept it here.</p>}
           <h3 className="border-t border-border pt-4 text-sm font-semibold">Sent invitations</h3>
           {social.outgoing.map(f => <div key={f.id} className="flex items-center justify-between rounded-xl border border-border p-3">
             <span className="text-sm">{f.other.displayName} <span className="text-muted">· Pending</span></span>
