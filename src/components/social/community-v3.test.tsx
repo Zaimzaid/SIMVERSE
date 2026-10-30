@@ -22,9 +22,13 @@ describe("SIMVERSE welcoming messaging layout", () => {
     expect(html).toContain('placeholder="Search your conversations"');
     expect(html).toContain("All chats");
     expect(html).toContain("Unread");
-    expect(html).toContain("Your conversations start here");
-    expect(html).toContain("A little hello goes a long way");
+    expect(html).toContain("Ready for your first chat?");
+    expect(html).toContain("Welcome to your SIMVERSE community");
+    expect(html).toContain("Find your first friend");
+    expect(html).toContain("Send a request");
+    expect(html).toContain("Start chatting");
     expect(html).toContain("Find a player");
+    expect(html).toContain("min-h-12");
     expect(html).toContain("lg:grid-cols-");
   });
 
