@@ -30,12 +30,13 @@ export interface EditablePlayerIdentity {
 interface Props {
   initial: EditablePlayerIdentity;
   countries: Array<{ id: string; name: string; isoAlpha2: string | null }>;
+  onSaved?: (identity: EditablePlayerIdentity) => void;
 }
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-accent";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-secondary";
 
-export function PlayerIdentityForm({ initial, countries }: Props) {
+export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [identity, setIdentity] = useState(initial);
@@ -76,7 +77,10 @@ export function PlayerIdentityForm({ initial, countries }: Props) {
       toast({ variant: "error", title: "Profile not updated", description: error.message });
       return;
     }
-    if (data?.identity) setIdentity(data.identity);
+    if (data?.identity) {
+      setIdentity(data.identity);
+      onSaved?.(data.identity);
+    }
     setErrors({});
     router.refresh();
     toast({ variant: "success", title: "Player profile saved", description: "Identity and visibility settings updated." });

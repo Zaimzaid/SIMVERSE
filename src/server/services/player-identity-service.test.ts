@@ -6,9 +6,11 @@ import {
   ensurePlayerIdentity,
   getMyPlayerIdentity,
   getPublicPlayerProfile,
+  getViewablePlayerProfile,
   updateMyPlayerIdentity,
 } from "./player-identity-service";
 import { resetDb } from "../../../test/helpers/db";
+import { requestFriend, respondFriend, blockPlayer, unblockPlayer } from "./social-service";
 
 beforeEach(async () => { await resetDb(); });
 
@@ -91,4 +93,42 @@ describe("Phase 1 player identity persistence and privacy", () => {
     const action = await prisma.auditLog.findFirst({ where: { actorUserId: user.id, action: "user.player_identity_updated" } });
     expect(action).not.toBeNull();
   });
+  it("permits accepted friends to view a private profile without exposing sensitive identity fields", async () => {
+    const a = (await registerUser(registration("private-a@example.com"))).user;
+    const b = (await registerUser(registration("private-b@example.com"))).user;
+    const outsider = (await registerUser(registration("private-outsider@example.com"))).user;
+
+    await updateMyPlayerIdentity(a.id, update("hidden_friend", "PUBLIC"));
+    await updateMyPlayerIdentity(b.id, update("friend_viewer", "PUBLIC"));
+    const pending = await requestFriend(b.id, { userId: a.id });
+    await updateMyPlayerIdentity(a.id, update("hidden_friend", "PRIVATE"));
+
+    expect(await getPublicPlayerProfile("hidden_friend")).toBeNull();
+    expect(await getViewablePlayerProfile("hidden_friend", b.id)).toBeNull();
+    expect(await getViewablePlayerProfile("hidden_friend", outsider.id)).toBeNull();
+
+    await respondFriend(a.id, pending.id, "ACCEPT");
+    const friendView = await getViewablePlayerProfile("hidden_friend", b.id);
+    expect(friendView).toMatchObject({ username: "hidden_friend", biography: "Explorer and virtual creator" });
+    expect(friendView).not.toHaveProperty("email");
+    expect(friendView).not.toHaveProperty("simverseId");
+    expect(friendView).not.toHaveProperty("citizenships");
+    expect(await getViewablePlayerProfile("hidden_friend", a.id)).not.toBeNull();
+    expect(await getViewablePlayerProfile("hidden_friend", outsider.id)).toBeNull();
+
+    await blockPlayer(a.id, { userId: b.id });
+    expect(await getViewablePlayerProfile("hidden_friend", b.id)).toBeNull();
+    await unblockPlayer(a.id, b.id);
+    // Blocking revokes friendship; simply unblocking must not restore private access.
+    expect(await getViewablePlayerProfile("hidden_friend", b.id)).toBeNull();
+  });
+  it("does not disclose a PUBLIC profile to a signed-in player who has been blocked", async () => {
+    const a = (await registerUser(registration("public-owner@example.com"))).user;
+    const b = (await registerUser(registration("blocked-viewer@example.com"))).user;
+    await updateMyPlayerIdentity(a.id, update("public_owner", "PUBLIC"));
+    expect(await getViewablePlayerProfile("public_owner", b.id)).not.toBeNull();
+    await blockPlayer(a.id, { userId: b.id });
+    expect(await getViewablePlayerProfile("public_owner", b.id)).toBeNull();
+  });
+
 });

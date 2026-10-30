@@ -116,8 +116,11 @@ export async function updateMyPlayerIdentity(userId: string, payload: unknown) {
   return getMyPlayerIdentity(userId);
 }
 
-/** Anonymous-friendly view: no email, identity number, citizenship files or account roles. */
-export async function getPublicPlayerProfile(rawUsername: string) {
+/** Return only profile-safe fields. Private profiles are visible to their
+ * owner or accepted friends, never to pending invitations or strangers.
+ * Blocks take precedence over friendships and public visibility.
+ */
+export async function getViewablePlayerProfile(rawUsername: string, viewerUserId: string | null = null) {
   const username = rawUsername.toLowerCase();
   if (!/^[a-z][a-z0-9_]{2,23}$/.test(username)) return null;
   const profile = await prisma.playerIdentity.findUnique({
@@ -127,7 +130,26 @@ export async function getPublicPlayerProfile(rawUsername: string) {
       homeCountry: { select: { name: true } },
     },
   });
-  if (!profile || profile.profileVisibility !== "PUBLIC") return null;
+  if (!profile) return null;
+  const owner = viewerUserId === profile.userId;
+  if (viewerUserId && !owner) {
+    const blocked = await prisma.socialBlock.findFirst({
+      where: { OR: [
+        { blockerId: viewerUserId, blockedId: profile.userId },
+        { blockerId: profile.userId, blockedId: viewerUserId },
+      ] },
+      select: { id: true },
+    });
+    if (blocked) return null;
+  }
+  if (profile.profileVisibility !== "PUBLIC" && !owner) {
+    if (!viewerUserId) return null;
+    const pairKey = [viewerUserId, profile.userId].sort().join(":");
+    const friendship = await prisma.socialFriendship.findUnique({
+      where: { pairKey }, select: { status: true },
+    });
+    if (friendship?.status !== "ACCEPTED") return null;
+  }
   return {
     username: profile.username!,
     userId: profile.userId,
@@ -140,4 +162,10 @@ export async function getPublicPlayerProfile(rawUsername: string) {
     virtualHomeCountry: profile.homeCountry?.name ?? null,
     joinedAt: profile.user.createdAt,
   };
+}
+
+
+/** Anonymous/public discovery must never reveal private friend-only profiles. */
+export async function getPublicPlayerProfile(rawUsername: string) {
+  return getViewablePlayerProfile(rawUsername, null);
 }
