@@ -154,7 +154,12 @@ export async function sendGroupMessage(userId:string,payload:unknown) {
   const peers=await prisma.socialGroupMember.findMany({
     where:{groupId,status:"ACTIVE",userId:{not:userId}},select:{userId:true},
   });
-  for(const p of peers) await notify(p.userId,"GROUP_MESSAGE","New group message","A group you joined has a new message.");
+  // Delivery of an alert is optional; a notification failure must never make
+  // an already-persisted group message appear unsent to its author.
+  for(const p of peers) {
+    try { await notify(p.userId,"GROUP_MESSAGE","New group message","A group you joined has a new message."); }
+    catch { /* message has already been persisted */ }
+  }
   return message;
 }
 export async function reactToMessage(userId:string,payload:unknown) {
