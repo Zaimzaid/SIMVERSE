@@ -22,7 +22,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "discover", label: "Explore", description: "Discover worlds and places",
-    icon: Compass, routes: ["/earth/geography", "/worlds", "/entities", "/experiences"],
+    icon: Compass, routes: ["/planet", "/worlds", "/entities", "/experiences"],
   },
   {
     id: "build", label: "Build", description: "Create and manage content",

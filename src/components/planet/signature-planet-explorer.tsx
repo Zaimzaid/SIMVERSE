@@ -157,7 +157,7 @@ export function SignaturePlanetExplorer() {
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0 h-full w-full cursor-grab touch-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-cyan-200"
-        aria-label="Interactive empty SIMVERSE planet. Use arrow keys to rotate and plus or minus keys to zoom."
+        aria-label="Interactive fictional SIMVERSE planet with five continents and ten founding countries. Use arrow keys to rotate and plus or minus keys to zoom."
         role="img"
         tabIndex={0}
         onPointerDown={onPointerDown}
@@ -181,15 +181,15 @@ export function SignaturePlanetExplorer() {
         </div>
         <div className="flex items-center gap-2 rounded-full border border-cyan-300/25 bg-[#061b32]/85 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-cyan-100 backdrop-blur">
           <span className="size-1.5 rounded-full bg-cyan-300" aria-hidden />
-          Orbital planet · Visual proof
+          Orbital planet · 10 founding countries
         </div>
       </header>
 
       <main className="pointer-events-none relative z-10 flex flex-1 flex-col justify-between gap-6 px-4 pb-6 pt-8 sm:px-8 sm:pb-8">
         <div className="max-w-sm">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">A universe waiting to be created</p>
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">Your world.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">No borders yet.</span></h1>
-          <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">An original planet, ready for the countries and stories we create.</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">Five continents · Ten countries</p>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">SIMVERSE.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">Explore the planet.</span></h1>
+          <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">Drag to orbit around our fictional world. Countries appear on the globe; open the country directory to explore capitals and Aven districts.</p>
         </div>
 
         {!ready && (
@@ -200,20 +200,20 @@ export function SignaturePlanetExplorer() {
                 <p className="font-semibold text-white">3D preview unavailable</p>
                 <p className="mt-2 text-sm text-slate-300">{error}</p>
                 <button type="button" className="mt-4 rounded-xl border border-cyan-200/40 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-white/10" onClick={() => { setError(""); setRetry((v) => v + 1); }}>Retry 3D view</button>
-                <p className="mt-3 text-xs text-slate-400">The fictional planet is currently empty. No countries have been published.</p>
+                <p className="mt-3 text-xs text-slate-400">The interactive globe is unavailable; use the country directory instead.</p>
               </>
             ) : <p className="text-sm text-slate-200">Preparing your orbital planet…</p>}
           </div>
         )}
 
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="pointer-events-auto self-end max-w-sm rounded-xl border border-cyan-300/25 bg-[#06162a]/90 p-4 text-sm shadow-xl backdrop-blur-md"><p className="font-semibold text-cyan-100">Countries · 10</p><p className="mt-2 text-xs leading-relaxed text-slate-300">Valdora · Novara · Arandia · Dravonia · Marovia · Solandia · Vestria · Altavia · Eldoria · Terranova</p><Link href="/planet/atlas" className="mt-3 inline-block rounded-lg bg-cyan-300 px-4 py-2 text-xs font-bold text-slate-950">Explore countries, capitals & Aven districts →</Link></div><div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div className="pointer-events-auto max-w-xs rounded-[22px] border border-white/15 bg-[#06162a]/90 p-4 shadow-xl backdrop-blur-md sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-6">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-200"><Globe2 size={15} aria-hidden /> World status</div>
-              <span className="rounded-full bg-amber-200/10 px-2 py-1 text-[10px] font-medium text-amber-100">Unallocated</span>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-200"><Globe2 size={15} aria-hidden /> World atlas</div>
+              <span className="rounded-full bg-amber-200/10 px-2 py-1 text-[10px] font-medium text-amber-100">Concept geography</span>
             </div>
-            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">countries</span></div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages.</p>
+            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">10</strong><span className="text-sm text-slate-300">countries</span></div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">Five founding continents. The country outlines and positions are illustrative, not final surveyed borders.</p>
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
@@ -237,8 +237,8 @@ export function SignaturePlanetExplorer() {
         <aside className="pointer-events-auto absolute bottom-16 right-4 z-20 max-w-[min(21rem,calc(100%-2rem))] rounded-2xl border border-cyan-200/20 bg-[#06182c]/95 p-5 text-sm text-slate-200 shadow-2xl backdrop-blur">
           <div className="mb-2 flex items-center gap-2 font-semibold text-white"><Check size={16} className="text-cyan-300" aria-hidden /> How to explore</div>
           <p className="leading-relaxed">Drag a finger or mouse to rotate. Pinch, scroll or use the + and − controls to zoom. Focus the globe and use arrow keys to rotate. Reset anytime.</p>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">This is Stage 1: a visual proof, not yet a country editor or living-world simulator. No countries are seeded.</p>
-          <Link href="/earth" className="mt-3 inline-block text-xs text-cyan-200 underline underline-offset-4 hover:text-white">Open existing legacy Earth explorer</Link>
+          <p className="mt-3 text-xs leading-relaxed text-slate-400">This is a fictional orbital map. Detailed country, capital and district browsing is available in the atlas.</p>
+          <Link href="/planet/atlas" className="mt-3 inline-block text-xs text-cyan-200 underline underline-offset-4 hover:text-white">Open country and district atlas</Link>
         </aside>
       )}
     </div>
