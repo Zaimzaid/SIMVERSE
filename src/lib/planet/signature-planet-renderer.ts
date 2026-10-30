@@ -127,6 +127,49 @@ export class SignaturePlanetRenderer {
       }
       context.stroke();
     }
+    // Fictional continent silhouettes and country names are painted onto the globe texture.
+    // Coordinates are schematic, not geodetic or real-world boundaries.
+    const continents = [
+      { name: "Aurelia", x: 160, y: 130, rx: 125, ry: 70, color: "#4c9d82", countries: [["Valdora", 115, 132], ["Novara", 205, 100]] },
+      { name: "Ardessa", x: 245, y: 335, rx: 145, ry: 95, color: "#87a75e", countries: [["Arandia", 195, 310], ["Dravonia", 295, 367]] },
+      { name: "Meridia", x: 485, y: 235, rx: 130, ry: 85, color: "#bfa46d", countries: [["Marovia", 445, 218], ["Solandia", 530, 264]] },
+      { name: "Vespera", x: 745, y: 125, rx: 120, ry: 75, color: "#7597b9", countries: [["Vestria", 706, 109], ["Altavia", 793, 151]] },
+      { name: "Eldara", x: 790, y: 362, rx: 155, ry: 92, color: "#a18bb8", countries: [["Eldoria", 732, 338], ["Terranova", 850, 389]] },
+    ] as const;
+    for (const region of continents) {
+      context.beginPath();
+      for (let i = 0; i <= 48; i++) {
+        const angle = i / 48 * Math.PI * 2;
+        const jitter = 1 + 0.09 * Math.sin(i * 2.7 + region.x);
+        const px = region.x + Math.cos(angle) * region.rx * jitter;
+        const py = region.y + Math.sin(angle) * region.ry * jitter;
+        if (i === 0) context.moveTo(px, py); else context.lineTo(px, py);
+      }
+      context.closePath();
+      context.globalAlpha = 1;
+      context.fillStyle = region.color;
+      context.fill();
+      context.lineWidth = 2;
+      context.strokeStyle = "#d7eee0";
+      context.stroke();
+      context.textAlign = "center";
+      context.font = "bold 21px sans-serif";
+      context.strokeStyle = "#123249";
+      context.lineWidth = 4;
+      context.strokeText(region.name, region.x, region.y - 22);
+      context.fillStyle = "#ffffff";
+      context.fillText(region.name, region.x, region.y - 22);
+      for (const [name, x, y] of region.countries) {
+        context.beginPath();
+        context.arc(x, y, 5, 0, Math.PI * 2);
+        context.fillStyle = "#ffda76";
+        context.fill();
+        context.font = "bold 16px sans-serif";
+        context.strokeText(name, x, y + 22);
+        context.fillStyle = "#ffffff";
+        context.fillText(name, x, y + 22);
+      }
+    }
     const texture = this.track(new CanvasTexture(canvas));
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = Math.min(this.renderer.capabilities.getMaxAnisotropy(), 4);
