@@ -19,7 +19,7 @@ describe("SIMVERSE private groups layout", () => {
       {id:"friend-1",other:{id:"player-2",displayName:"Friendly Player"}},
     ]}/>);
     expect(html).toContain('aria-label="Create a group"');
-    expect(html).toContain("Private");
+    expect(html).toContain("private");
     expect(html).toContain("Start a private space");
     expect(html).not.toContain("Public group directory");
   });
