@@ -286,7 +286,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
       <div className="min-w-0">
         <p className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent"><MessageCircle className="size-4"/> Your community</p>
         <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Friends &amp; Messages</h1>
-        <p className="mt-1 text-sm text-secondary">A simple place to connect, catch up and create together.</p>
+        <p className="mt-1 text-sm leading-6 text-secondary">Catch up with friends, meet players and stay connected—right here.</p>
       </div>
       <div className="flex shrink-0 gap-2">
         <button type="button" title="Notifications" aria-label="View notifications" onClick={() => selectSection("alerts")}
@@ -308,8 +308,13 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
         <div className="border-b border-border px-4 pb-4 pt-5 sm:px-5">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="text-base font-semibold tracking-tight">Your inbox</h2>
-              <p className="mt-0.5 text-xs text-secondary">{unread ? unread + " unread messages" : "You're all caught up"}</p>
+              <h2 className="text-lg font-semibold tracking-tight">{section === "chats" ? "Your inbox" : section === "friends" ? "Your connections" : section === "find" ? "Discover players" : section === "requests" ? "Friend requests" : section === "groups" ? "Your groups" : "Activity"}</h2>
+              <p className="mt-1 text-sm leading-5 text-secondary">{section === "chats"
+                ? (unread ? unread + " unread messages" : "You're all caught up")
+                : section === "friends" ? (social.friends.length ? social.friends.length + " friends" : "Make your first connection")
+                : section === "requests" ? (social.incoming.length ? social.incoming.length + " invitations to review" : "Manage your invitations")
+                : section === "groups" ? "Create and join conversations"
+                : section === "find" ? "Connect with new people" : "Your latest updates"}</p>
             </div>
             <button type="button" title="Find a player" aria-label="Find a player"
               onClick={() => selectSection("find")}
@@ -323,10 +328,10 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               return <button type="button" key={tab.key} aria-pressed={section === tab.key}
                 onClick={() => selectSection(tab.key)}
                 className={section === tab.key
-                  ? "flex min-w-0 flex-col items-center gap-1 rounded-lg bg-surface px-1 py-2.5 text-accent shadow-sm ring-1 ring-border"
-                  : "flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-secondary hover:bg-surface-hover hover:text-foreground"}>
+                  ? "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg bg-surface px-1 py-2.5 text-accent shadow-sm ring-1 ring-border"
+                  : "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2.5 text-secondary hover:bg-surface-hover hover:text-foreground"}>
                 <span className="relative"><Icon className="size-4"/>{tab.count > 0 && <span className="absolute -right-2 -top-1 size-2 rounded-full bg-accent"/>}</span>
-                <span className="truncate text-[11px] font-medium">{tab.name}</span>
+                <span className="truncate text-xs font-semibold">{tab.name}</span>
                 <span className="sr-only">{tab.count ? "(" + tab.count + " pending)" : ""}</span>
               </button>;
             })}
@@ -350,7 +355,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
                     {filter === "all" ? "All chats" : "Unread"}
                   </button>)}
               </div>
-              <span className="text-xs text-muted">{filteredConversations.length} shown</span>
+              <span className="text-xs text-secondary">{filteredConversations.length} shown</span>
             </div>
           </div>
           <div className="max-h-[58vh] min-h-[220px] flex-1 space-y-1 overflow-y-auto px-2 pb-4 sm:px-3 lg:max-h-[65vh]">
@@ -372,21 +377,21 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
                 </span>
                 <Counter value={c.unread}/>
               </button>)}
-            {!filteredConversations.length && <div className="px-4 py-12 text-center">
-              <div className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent"><MessageCircle className="size-6"/></div>
-              <p className="font-semibold">{inbox.length ? "No matching chats" : "Your conversations start here"}</p>
-              <p className="mt-1 text-xs leading-5 text-secondary">{inbox.length ? "Try another name or choose All chats." : "Find a player, become friends, and start chatting."}</p>
+            {!filteredConversations.length && <div className="mx-2 my-3 rounded-2xl border border-border bg-surface px-4 py-8 text-center">
+              <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent"><MessageCircle className="size-7"/></div>
+              <p className="text-base font-semibold">{inbox.length ? "No matching chats" : "Ready for your first chat?"}</p>
+              <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-secondary">{inbox.length ? "Try a different name or switch to All chats." : "Find a player, send a friend request and say hello once they accept."}</p>
               {!inbox.length && <button type="button" onClick={() => selectSection("find")}
-                className="mt-4 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-accent hover:bg-surface-hover">Find a player</button>}
+                className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent/30 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent hover:bg-surface-hover lg:hidden"><UserPlus className="size-4"/> Find a player</button>}
             </div>}
           </div>
         </div>}
-        {section !== "chats" && <div className="hidden flex-1 flex-col items-center justify-center gap-3 px-5 py-10 text-center lg:flex">
-          <div className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent"><Users className="size-7"/></div>
-          <p className="text-sm font-semibold">More ways to connect</p>
-          <p className="max-w-[220px] text-xs leading-5 text-secondary">Your friends, groups and invitations are just a tap away.</p>
+        {section !== "chats" && <div className="hidden flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center lg:flex">
+          <div className="grid size-16 place-items-center rounded-2xl border border-accent/20 bg-accent-soft text-accent"><Users className="size-8"/></div>
+          <p className="text-base font-semibold">Your community is here</p>
+          <p className="max-w-[240px] text-sm leading-6 text-secondary">Open a section to see friends, invitations or group conversations.</p>
           <button type="button" onClick={() => selectSection("chats")}
-            className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-accent hover:bg-surface-hover">Back to chats</button>
+            className="min-h-11 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-accent hover:bg-surface-hover">Back to chats</button>
         </div>}
         <div className="hidden items-center gap-2 border-t border-border px-5 py-3 text-xs text-secondary lg:flex">
           <span className={connection === "live" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-warning"}/>
@@ -461,19 +466,34 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               </div>
             </form>
           </div>
-        </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 p-8 text-center lg:flex">
-          <div className="mb-6 grid size-24 place-items-center rounded-[1.75rem] border border-accent/20 bg-accent-soft text-accent"><MessageCircle className="size-11" strokeWidth={1.6}/></div>
-          <h2 className="text-2xl font-bold tracking-tight">A little hello goes a long way</h2>
-          <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">Select a conversation to catch up, or find a new friend in SIMVERSE.</p>
-          <button type="button" onClick={() => selectSection("find")}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90">
-            <UserPlus className="size-4"/> Find a player
-          </button>
-          <p className="mt-8 text-xs text-muted">Private conversations work without loading the 3D world.</p>
+        </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 px-6 py-14 text-center lg:flex">
+          <div className="mb-7 grid size-24 place-items-center rounded-[1.75rem] border border-accent/20 bg-accent-soft text-accent shadow-sm"><MessageCircle className="size-11" strokeWidth={1.6}/></div>
+          <h2 className="max-w-lg text-2xl font-bold tracking-tight xl:text-3xl">{social.friends.length ? "Pick up where you left off" : "Welcome to your SIMVERSE community"}</h2>
+          <p className="mt-4 max-w-md text-base leading-7 text-secondary">{social.friends.length
+            ? "Choose a conversation on the left to catch up with your friends."
+            : "Get to know other players, build friendships and start conversations at your own pace."}</p>
+          {!social.friends.length && <div className="mt-8 grid w-full max-w-lg grid-cols-3 gap-3 text-left">
+            {[
+              { step: "01", label: "Find a player" },
+              { step: "02", label: "Send a request" },
+              { step: "03", label: "Start chatting" },
+            ].map(item => <div key={item.step} className="rounded-xl border border-border bg-surface-elevated/50 px-3 py-4">
+              <span className="text-xs font-bold text-accent">{item.step}</span>
+              <p className="mt-2 text-sm font-medium leading-5">{item.label}</p>
+            </div>)}
+          </div>}
+          {!social.friends.length && <button type="button" onClick={() => selectSection("find")}
+            className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90">
+            <UserPlus className="size-4"/> Find your first friend
+          </button>}
+          {social.friends.length > 0 && <p className="mt-8 text-sm text-muted">Your conversations are ready when you are.</p>}
+          <p className="mt-8 text-xs text-muted">Messaging works without loading the 3D world.</p>
         </div>)}
         {section === "friends" && <div className="space-y-5 p-5 sm:p-7">
-          <h2 className="text-lg font-semibold">Friends ({social.friends.length})</h2>
-          <p className="text-sm text-secondary">Choose a friend to open your private conversation.</p>
+          <h2 className="text-xl font-semibold">Friends ({social.friends.length})</h2>
+          <p className="text-sm leading-6 text-secondary">{social.friends.length
+            ? "Choose a friend to pick up your conversation."
+            : "Good conversations start with one connection."}</p>
           <div className="grid gap-3 lg:grid-cols-2">
             {social.friends.map(f => <button key={f.id} type="button" onClick={() => openChat(f.other.id)}
               className="flex items-center gap-3 rounded-2xl border border-border bg-surface-elevated/50 p-4 text-left transition-colors hover:border-accent hover:bg-accent-soft">
@@ -482,7 +502,21 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               <Counter value={unreadMap.get(f.other.id) ?? 0} />
             </button>)}
           </div>
-          {!social.friends.length && <p className="text-sm text-muted">You haven't added any friends yet.</p>}
+          {!social.friends.length && <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-border bg-surface-elevated/45 px-5 py-9 text-center sm:px-8 sm:py-12">
+            <div className="mb-5 grid size-16 place-items-center rounded-2xl border border-accent/20 bg-accent-soft text-accent"><Users className="size-8"/></div>
+            <h3 className="text-xl font-semibold">Meet your first SIMVERSE friend</h3>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">Search for someone by their public username, send a request and start messaging when they accept.</p>
+            <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
+              <button type="button" onClick={() => selectSection("find")}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90">
+                <UserPlus className="size-4"/> Find a player
+              </button>
+              {social.incoming.length > 0 && <button type="button" onClick={() => selectSection("requests")}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-5 py-3 text-sm font-semibold hover:bg-surface-hover">
+                <Mail className="size-4"/> View {social.incoming.length} pending {social.incoming.length === 1 ? "request" : "requests"}
+              </button>}
+            </div>
+          </div>}
           {social.blocked.length > 0 && <div className="space-y-2 border-t border-border pt-4">
             <h3 className="font-semibold">Blocked players</h3>
             {social.blocked.map(p => <div key={p.id} className="flex items-center justify-between rounded-xl border border-border p-3">
