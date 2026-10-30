@@ -54,7 +54,8 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
 
   const activeGroup = groups.find(group => group.id === selected && group.status === "ACTIVE");
   const visibleGroups = groups.filter(group => group.title.toLowerCase().includes(query.trim().toLowerCase()));
-  const pending = groups.filter(group => group.status === "INVITED");
+  const pendingInvites = groups.filter(group => group.status === "INVITED");
+  const pending = visibleGroups.filter(group => group.status === "INVITED");
   const joined = visibleGroups.filter(group => group.status === "ACTIVE");
   const availableFriends = friends.filter(friend =>
     friend.other.id !== userId && !members.some(member => member.userId === friend.other.id));
@@ -137,6 +138,7 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
     setShowMembers(false);
     setShowCreate(false);
     setShowInvite(false);
+    resetComposer();
     setError("");
     setNotice("");
     const response = await loadHistory(id);
@@ -281,7 +283,7 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-base font-semibold">Your groups</h3>
-              <p className="mt-1 text-xs text-secondary">{groups.filter(g => g.status === "ACTIVE").length} joined · {pending.length} invitations</p>
+              <p className="mt-1 text-xs text-secondary">{groups.filter(g => g.status === "ACTIVE").length} joined · {pendingInvites.length} invitations</p>
             </div>
             <button type="button" onClick={() => { setShowCreate(value => !value); setInvitees([]); }}
               aria-expanded={showCreate} aria-label="Create a group"
