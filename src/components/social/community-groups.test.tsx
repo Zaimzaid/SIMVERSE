@@ -20,7 +20,7 @@ describe("SIMVERSE private groups layout", () => {
     ]}/>);
     expect(html).toContain('aria-label="Create a group"');
     expect(html).toContain("private");
-    expect(html).toContain("Start a private space");
+    expect(html).toContain("Create a private group");
     expect(html).not.toContain("Public group directory");
   });
 });
