@@ -35,6 +35,7 @@ export default function AvenMvpPage() {
         <div className="mt-8 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100" role="status">
           Development preview: “Preview” means a location is listed here for exploration of the MVP scope; it does not mean its gameplay or interior has been built. “Coming later” means excluded from MVP 1.0.
         </div>
+        <Link href="/aven/scene" className="mt-6 inline-flex rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-slate-950 hover:bg-cyan-400">Explore Aven 3D prototype →</Link>
         <div className="mt-8 flex flex-wrap gap-2" aria-label="Filter venues by zone">
           {zones.map((item) => <button key={item} type="button" onClick={() => setZone(item)} aria-pressed={zone === item} className={`rounded-full border px-4 py-2 text-sm transition ${zone === item ? "border-cyan-300 bg-cyan-400/20 text-cyan-100" : "border-slate-700 text-slate-300 hover:border-slate-400"}`}>{item}</button>)}
         </div>
