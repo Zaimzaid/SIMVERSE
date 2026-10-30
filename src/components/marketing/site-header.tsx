@@ -14,8 +14,8 @@ export function SiteHeader({ authed }: { authed: boolean }) {
           <Link href="/#platform" className="transition-colors hover:text-foreground">
             Platform
           </Link>
-          <Link href="/earth" className="text-accent transition-colors hover:text-accent-hover">
-            Explore Earth
+          <Link href="/planet" className="text-accent transition-colors hover:text-accent-hover">
+            Explore SIMVERSE
           </Link>
           <Link href="/#products" className="transition-colors hover:text-foreground">
             Products
@@ -27,12 +27,12 @@ export function SiteHeader({ authed }: { authed: boolean }) {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/earth"
-            aria-label="Explore Earth"
+            href="/planet"
+            aria-label="Explore SIMVERSE"
             className={`${buttonClasses({ variant: "ghost", size: "sm" })} md:hidden`}
           >
             <Globe2 className="size-4" />
-            <span className="hidden sm:inline">Explore Earth</span>
+            <span className="hidden sm:inline">Explore SIMVERSE</span>
           </Link>
           {authed ? (
             <Link href="/dashboard" className={buttonClasses({ variant: "primary", size: "sm" })}>
