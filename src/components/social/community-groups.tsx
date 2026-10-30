@@ -61,8 +61,16 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
 
   const loadGroups = useCallback(async () => {
     const response = await apiFetch<{ groups: Group[] }>("/api/social/groups");
-    if (response.data) setGroups(response.data.groups);
-    else if (response.error) setError(response.error.message);
+    if (response.data) {
+      setGroups(response.data.groups);
+      const current = selectedRef.current;
+      if (current && !response.data.groups.some(group => group.id === current && group.status === "ACTIVE")) {
+        selectedRef.current = null;
+        setSelected(null);
+        setMessages([]);
+        setMembers([]);
+      }
+    } else if (response.error) setError(response.error.message);
     setLoadingGroups(false);
   }, []);
 
@@ -175,8 +183,8 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
     else {
       await loadGroups();
       if (action === "ACCEPT") {
-        setNotice("You joined the group.");
         await openGroup(groupId);
+        setNotice("You joined the group.");
       } else {
         if (selectedRef.current === groupId) backToGroups();
         setNotice("Invitation declined or group left.");
