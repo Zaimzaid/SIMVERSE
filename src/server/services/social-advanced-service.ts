@@ -90,6 +90,16 @@ export async function listSocialGroups(userId:string) {
   });
   return memberships.map(m=>({...m.group,role:m.role,status:m.status}));
 }
+/** Group roster is visible only after accepting membership. */
+export async function listSocialGroupMembers(userId:string,groupId:string) {
+  await active(userId,groupId);
+  return prisma.socialGroupMember.findMany({
+    where:{groupId},
+    orderBy:[{role:"asc"},{createdAt:"asc"}],
+    select:{userId:true,role:true,status:true,user:{select:{displayName:true}}},
+  });
+}
+
 export async function respondGroupInvite(userId:string,groupId:string,action:"ACCEPT"|"LEAVE") {
   const membership=await prisma.socialGroupMember.findUnique({where:{groupId_userId:{groupId,userId}}});
   if(!membership)throw new NotFoundError("Invitation not found.");
