@@ -5,6 +5,11 @@ import { useState } from "react";
 import { ArrowRight, Compass, Flag, Layers3 } from "lucide-react";
 import { CONCEPT_COUNTRY_BOUNDARIES, countryBoundaryPath } from "@/lib/planet/concept-country-boundaries";
 import {
+  CONCEPT_BIOMES, CONCEPT_BIOME_COLORS, CONCEPT_ISLANDS, CONCEPT_LAKES,
+  CONCEPT_MOUNTAINS, CONCEPT_RESOURCE_SITES, CONCEPT_RIVERS,
+  CONCEPT_TERRAIN_STATUS, conceptIslandPath, conceptLinePath,
+} from "@/lib/planet/concept-terrain";
+import {
   CONCEPT_CONTINENTS, CONCEPT_COUNTRY_SITES,
   CONCEPT_MAP_STATUS, conceptContinentPath, conceptMapPoint, conceptSiteName,
 } from "@/lib/planet/concept-geography";
@@ -12,6 +17,8 @@ import {
 export function ConceptMapExplorer() {
   const [selected, setSelected] = useState(CONCEPT_COUNTRY_SITES[0]!.slug);
   const [showBoundarySketches, setShowBoundarySketches] = useState(true);
+  const [showTerrain, setShowTerrain] = useState(true);
+  const [showResources, setShowResources] = useState(false);
   const site = CONCEPT_COUNTRY_SITES.find((candidate) => candidate.slug === selected)!;
   const continent = CONCEPT_CONTINENTS.find((entry) => entry.id === site.continentId)!;
   const name = conceptSiteName(site);
@@ -30,6 +37,16 @@ export function ConceptMapExplorer() {
               aria-pressed={showBoundarySketches}
               className="rounded-full border border-cyan-200/40 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-200/20">
               {showBoundarySketches ? "Hide draft borders" : "Show draft borders"}
+            </button>
+            <button type="button" onClick={() => setShowTerrain((current) => !current)}
+              aria-pressed={showTerrain}
+              className="rounded-full border border-cyan-200/40 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-200/20">
+              {showTerrain ? "Hide terrain" : "Show terrain"}
+            </button>
+            <button type="button" onClick={() => setShowResources((current) => !current)}
+              aria-pressed={showResources}
+              className="rounded-full border border-amber-200/40 bg-amber-200/10 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-200/20">
+              {showResources ? "Hide study sites" : "Show study sites"}
             </button>
             <span className="rounded-full border border-amber-200/25 bg-amber-300/10 px-3 py-1 text-xs font-medium text-amber-100">
               {CONCEPT_MAP_STATUS.replaceAll("_", " ").toLowerCase()}
@@ -65,6 +82,11 @@ export function ConceptMapExplorer() {
                 strokeLinejoin="round"
               />
             ))}
+            {CONCEPT_ISLANDS.map((island) => (
+              <path key={island.id} d={conceptIslandPath(island)}
+                fill={CONCEPT_CONTINENTS.find((land) => land.id === island.continentId)?.color ?? "#93b4bd"}
+                fillOpacity={0.82} stroke="#c8e6e7" strokeWidth={1.25} strokeLinejoin="round" />
+            ))}
             {showBoundarySketches && CONCEPT_COUNTRY_BOUNDARIES.map((country) => (
               <path
                 key={country.slug}
@@ -76,6 +98,44 @@ export function ConceptMapExplorer() {
                 strokeLinejoin="round"
               />
             ))}
+            {showTerrain && (
+              <g aria-label="Unapproved natural terrain sketch" pointerEvents="none">
+                {CONCEPT_BIOMES.map((patch) => {
+                  const [x, y] = conceptMapPoint(patch.center);
+                  return <ellipse key={patch.id} cx={x} cy={y}
+                    rx={patch.longitudeRadius * (1000 / 360)}
+                    ry={patch.latitudeRadius * (500 / 180)}
+                    fill={CONCEPT_BIOME_COLORS[patch.biome]} fillOpacity={0.34}
+                    stroke={CONCEPT_BIOME_COLORS[patch.biome]} strokeOpacity={0.55} strokeWidth={1.4} />;
+                })}
+                {CONCEPT_MOUNTAINS.map((ridge) => (
+                  <g key={ridge.id}>
+                    <path d={conceptLinePath(ridge.points)} fill="none" stroke="#192d33" strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.75} />
+                    <path d={conceptLinePath(ridge.points)} fill="none" stroke="#e9d5b1" strokeWidth={2.4} strokeLinejoin="round" strokeLinecap="round" />
+                  </g>
+                ))}
+                {CONCEPT_RIVERS.map((river) => (
+                  <path key={river.id} d={conceptLinePath(river.points)}
+                    fill="none" stroke="#69ddff" strokeWidth={3.8}
+                    strokeLinejoin="round" strokeLinecap="round" />
+                ))}
+                {CONCEPT_LAKES.map((lake) => {
+                  const [x,y] = conceptMapPoint(lake.center);
+                  return <ellipse key={lake.id} cx={x} cy={y}
+                    rx={lake.longitudeRadius * (1000 / 360)}
+                    ry={lake.latitudeRadius * (500 / 180)}
+                    fill="#47c4e1" stroke="#cefaff" strokeWidth={1.4} />;
+                })}
+              </g>
+            )}
+            {showResources && CONCEPT_RESOURCE_SITES.map((resource) => {
+              const [x,y] = conceptMapPoint(resource.center);
+              return <g key={resource.id} pointerEvents="none">
+                <circle cx={x} cy={y} r={8.5} fill="#112e43" stroke="#ffe4a0" strokeWidth={1.8} />
+                <text x={x} y={y + 3} textAnchor="middle" fill="#ffebaf"
+                  fontSize={8} fontWeight={700}>{resource.resource.slice(0,2)}</text>
+              </g>;
+            })}
             {CONCEPT_COUNTRY_SITES.map((candidate) => {
               const [x, y] = conceptMapPoint(candidate.center);
               const active = candidate.slug === selected;
@@ -94,7 +154,8 @@ export function ConceptMapExplorer() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-4 py-3 text-xs text-slate-300 sm:px-6">
           <span>Five proposed landmasses · Original fictional geometry</span>
-          <span>{showBoundarySketches ? "Colored shapes = unapproved country boundary sketches" : "Country dots = candidate locations"}</span>
+          <span>Islands, waterways and resource surveys are proposals only</span>
+                    <span>{showBoundarySketches ? "Colored shapes = unapproved country boundary sketches" : "Country dots = candidate locations"}</span>
         </div>
       </div>
 
@@ -144,6 +205,19 @@ export function ConceptMapExplorer() {
             <div><dt className="text-xs text-slate-400">Size class</dt><dd className="mt-1 font-semibold">{boundary.size.toLowerCase()}</dd></div>
           </dl>
           <p className="mt-3 text-xs leading-relaxed text-amber-100">Area is measured on the fictional planet from an unapproved polygon. It is not an official national size.</p>
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-100">Continental terrain study</p>
+            <p className="mt-2 text-xs leading-5 text-slate-300">
+              {CONCEPT_RIVERS.find((feature) => feature.continentId === site.continentId)?.name ?? "Rivers under review"}
+              {" · "}
+              {CONCEPT_MOUNTAINS.find((feature) => feature.continentId === site.continentId)?.name ?? "Highlands under review"}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-amber-100">
+              {CONCEPT_RESOURCE_SITES.filter((feature) => feature.continentId === site.continentId).length} resource study markers on this continent.
+              These are not assigned to {name} or any other country.
+            </p>
+            <p className="mt-2 text-[11px] text-slate-400">{CONCEPT_TERRAIN_STATUS.replaceAll("_"," ").toLowerCase()}</p>
+          </div>
           <Link href={`/planet/planning/${site.slug}`}
             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline-offset-4 hover:underline">
             View administrative plan <ArrowRight className="size-4" aria-hidden />
