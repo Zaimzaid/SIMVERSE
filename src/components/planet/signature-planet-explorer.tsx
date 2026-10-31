@@ -214,6 +214,7 @@ export function SignaturePlanetExplorer() {
             </div>
             <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">countries</span></div>
             <p className="mt-2 text-xs leading-relaxed text-slate-400">No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages.</p>
+            <Link href="/planet/planning" className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Explore the proposed 10-country plan <Compass size={14} aria-hidden /></Link>
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
