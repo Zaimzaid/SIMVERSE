@@ -26,6 +26,7 @@ import {
 } from "three";
 import { planetHomeCameraDistance } from "./visual-contract";
 import { CONCEPT_CONTINENTS } from "./concept-geography";
+import { CONCEPT_COUNTRY_BOUNDARIES } from "./concept-country-boundaries";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -147,6 +148,26 @@ export class SignaturePlanetRenderer {
         context.fill();
         context.strokeStyle = "#b0d9df";
         context.lineWidth = 2;
+        context.stroke();
+      }
+      // Draw separately-reviewed candidate country outlines ONLY inside
+      // this opt-in concept texture; the public globe remains unallocated.
+      context.globalAlpha = 0.74;
+      for (const country of CONCEPT_COUNTRY_BOUNDARIES) {
+        if (country.geometry.type !== "Polygon") continue;
+        const ring = country.geometry.coordinates[0]!;
+        context.beginPath();
+        ring.forEach(([lon, lat], index) => {
+          const x = (lon + 180) / 360 * canvas.width;
+          const y = (90 - lat) / 180 * canvas.height;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.closePath();
+        context.fillStyle = country.color;
+        context.fill();
+        context.strokeStyle = "#f5fbff";
+        context.lineWidth = 1.75;
         context.stroke();
       }
       context.globalAlpha = 1;
