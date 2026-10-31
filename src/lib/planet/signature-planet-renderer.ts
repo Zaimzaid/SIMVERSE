@@ -25,6 +25,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { planetHomeCameraDistance } from "./visual-contract";
+import { CONCEPT_CONTINENTS } from "./concept-geography";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -45,7 +46,7 @@ export class SignaturePlanetRenderer {
   private reducedMotion = false;
   private readonly lowPower: boolean;
 
-  constructor(canvas: HTMLCanvasElement, reducedMotion: boolean) {
+  constructor(canvas: HTMLCanvasElement, reducedMotion: boolean, private readonly conceptPreview = false) {
     this.lowPower = window.matchMedia("(max-width: 640px)").matches;
     this.reducedMotion = reducedMotion;
     this.renderer = new WebGLRenderer({
@@ -126,6 +127,29 @@ export class SignaturePlanetRenderer {
         else context.lineTo(x, currentY);
       }
       context.stroke();
+    }
+    if (this.conceptPreview) {
+      // Optional conceptual continent texture only. The default public
+      // /planet remains unallocated until steward-authorized publication.
+      context.globalAlpha = 0.88;
+      for (const continent of CONCEPT_CONTINENTS) {
+        if (continent.geometry.type !== "Polygon") continue;
+        const ring = continent.geometry.coordinates[0]!;
+        context.beginPath();
+        ring.forEach(([lon, lat], index) => {
+          const x = (lon + 180) / 360 * canvas.width;
+          const y = (90 - lat) / 180 * canvas.height;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.closePath();
+        context.fillStyle = continent.color;
+        context.fill();
+        context.strokeStyle = "#b0d9df";
+        context.lineWidth = 2;
+        context.stroke();
+      }
+      context.globalAlpha = 1;
     }
     const texture = this.track(new CanvasTexture(canvas));
     texture.colorSpace = SRGBColorSpace;
