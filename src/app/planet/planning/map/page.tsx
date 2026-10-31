@@ -30,6 +30,10 @@ export default function ConceptPlanetMapPage() {
             Your review of this geography should come before any steward-authorized publication.
           </p>
         </header>
+        <Link href="/planet/planning/globe"
+          className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/30 bg-[#12304b] px-5 py-3 text-sm font-semibold text-cyan-100 hover:border-cyan-200/70">
+          See these proposed continents on the rotating globe
+        </Link>
         <ConceptMapExplorer />
         <p className="flex items-start gap-3 rounded-xl border border-cyan-200/15 bg-[#0b223b] p-5 text-sm text-slate-300">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-cyan-200" aria-hidden />
