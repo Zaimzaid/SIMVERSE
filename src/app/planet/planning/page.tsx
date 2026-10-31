@@ -52,6 +52,23 @@ export default function FoundingGeographyPlanPage() {
           ))}
         </section>
 
+        <section aria-label="Continent concept previews" className="mt-8 grid gap-3 sm:grid-cols-2">
+          <Link href="/planet/planning/map" className="group flex items-center justify-between rounded-2xl border border-cyan-200/25 bg-[#0a2039] p-5 text-cyan-100 hover:border-cyan-200/60">
+            <div>
+              <h2 className="font-semibold">View five-continent concept map</h2>
+              <p className="mt-1 text-xs text-slate-300">Original landmasses and ten suggested country positions</p>
+            </div>
+            <ArrowRight className="size-5" aria-hidden />
+          </Link>
+          <Link href="/planet/planning/globe" className="group flex items-center justify-between rounded-2xl border border-cyan-200/25 bg-[#0a2039] p-5 text-cyan-100 hover:border-cyan-200/60">
+            <div>
+              <h2 className="font-semibold">Preview the concept on the 3D globe</h2>
+              <p className="mt-1 text-xs text-slate-300">Unapproved coastlines on a reversible globe preview</p>
+            </div>
+            <ArrowRight className="size-5" aria-hidden />
+          </Link>
+        </section>
+
         <section aria-labelledby="planned-nations-heading" className="mt-12">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
             <div>
