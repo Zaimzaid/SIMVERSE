@@ -15,6 +15,32 @@ function closedRing(...points: PlanetPoint[]): PlanetPoint[] {
   return [...points, points[0]!];
 }
 
+/**
+ * Subdivide broad sketch coastlines with low-amplitude deterministic bends.
+ * Keeps the original landmarks and endpoint closure; no Earth data or
+ * unbounded randomness. This remains concept geometry, not surveyed land.
+ */
+function refineConceptCoastline(seed: number, input: PlanetPoint[]): PlanetPoint[] {
+  let ring = input.slice(0, -1);
+  for (let level = 0; level < 2; level++) {
+    const next: PlanetPoint[] = [];
+    for (let index = 0; index < ring.length; index++) {
+      const a = ring[index]!;
+      const b = ring[(index + 1) % ring.length]!;
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const sample = Math.sin((seed + 1) * 12.9898 + (index + 1) * 78.233 + (level + 1) * 39.346);
+      const bend = Math.sin(sample * 43758.5453) * (level === 0 ? 0.06 : 0.075);
+      next.push(a, [
+        Number(((a[0] + b[0]) / 2 - dy * bend).toFixed(6)),
+        Number(((a[1] + b[1]) / 2 + dx * bend).toFixed(6)),
+      ]);
+    }
+    ring = next;
+  }
+  return [...ring, ring[0]!];
+}
+
 export interface ConceptContinent {
   readonly id: string;
   readonly label: string;
@@ -25,41 +51,41 @@ export interface ConceptContinent {
 export const CONCEPT_CONTINENTS: readonly ConceptContinent[] = [
   {
     id: "continent-01", label: "Continent I", color: "#559f9d",
-    geometry: { type: "Polygon", coordinates: [closedRing(
+    geometry: { type: "Polygon", coordinates: [refineConceptCoastline(0, closedRing(
       [-160, 29], [-166, 43], [-153, 59], [-136, 66], [-120, 61],
       [-109, 70], [-86, 61], [-84, 44], [-94, 33], [-89, 23],
       [-112, 12], [-130, 19], [-150, 15],
-    )] },
+    ))] },
   },
   {
     id: "continent-02", label: "Continent II", color: "#c0a36e",
-    geometry: { type: "Polygon", coordinates: [closedRing(
+    geometry: { type: "Polygon", coordinates: [refineConceptCoastline(1, closedRing(
       [-137, -19], [-129, -7], [-103, -15], [-84, -22], [-65, -18],
       [-51, -30], [-70, -45], [-91, -55], [-111, -64],
       [-126, -49], [-123, -34],
-    )] },
+    ))] },
   },
   {
     id: "continent-03", label: "Continent III", color: "#8297c6",
-    geometry: { type: "Polygon", coordinates: [closedRing(
+    geometry: { type: "Polygon", coordinates: [refineConceptCoastline(2, closedRing(
       [-39, 28], [-45, 51], [-31, 67], [-12, 57], [7, 64],
       [30, 51], [37, 36], [23, 16], [13, 8], [-9, 19], [-29, 10],
-    )] },
+    ))] },
   },
   {
     id: "continent-04", label: "Continent IV", color: "#8fba85",
-    geometry: { type: "Polygon", coordinates: [closedRing(
+    geometry: { type: "Polygon", coordinates: [refineConceptCoastline(3, closedRing(
       [46, -15], [39, -5], [56, 7], [73, 0], [93, 6],
       [113, -8], [131, -25], [112, -34], [97, -55],
       [79, -47], [65, -62], [51, -47],
-    )] },
+    ))] },
   },
   {
     id: "continent-05", label: "Continent V", color: "#b89ac6",
-    geometry: { type: "Polygon", coordinates: [closedRing(
+    geometry: { type: "Polygon", coordinates: [refineConceptCoastline(4, closedRing(
       [103, 24], [112, 42], [127, 61], [147, 72], [171, 59],
       [163, 44], [171, 25], [152, 17], [136, 22], [120, 14],
-    )] },
+    ))] },
   },
 ];
 
