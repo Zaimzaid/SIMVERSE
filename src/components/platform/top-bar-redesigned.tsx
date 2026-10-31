@@ -34,7 +34,7 @@ export function TopBar({
   const [query, setQuery] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const areas = useMemo(() => visibleAreas(permissions), [permissions]);
+  const areas = useMemo(() => visibleAreas(permissions, "citizen"), [permissions]);
   const area = areaForPath(pathname);
   const canCreate = permissions.includes("project.create");
 
@@ -144,13 +144,6 @@ export function TopBar({
           </button>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 md:ml-auto">
-            {canCreate && (
-              <Link href="/create" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-accent px-3 text-xs font-semibold text-accent-foreground hover:bg-accent-hover">
-                <Plus className="size-4" aria-hidden />
-                <span className="hidden sm:inline">Create</span>
-                <span className="sr-only sm:hidden">Create</span>
-              </Link>
-            )}
             <button type="button" onClick={toggleTheme}
               aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
               title={theme === "dark" ? "Light theme" : "Dark theme"}
@@ -175,6 +168,7 @@ export function TopBar({
               <Link href="/profile"><DropdownItem><UserRound className="size-4" /> My player profile</DropdownItem></Link>
               <Link href="/settings"><DropdownItem><SettingsIcon className="size-4" /> Settings</DropdownItem></Link>
               <Link href="/dashboard"><DropdownItem><LayoutDashboard className="size-4" /> Dashboard</DropdownItem></Link>
+              {canCreate && <Link href="/create"><DropdownItem><Plus className="size-4" /> Creator tools (advanced)</DropdownItem></Link>}
               <DropdownSeparator />
               <DropdownItem destructive onClick={() => void handleLogout()}
                 className={cn(loggingOut && "pointer-events-none opacity-60")}>
