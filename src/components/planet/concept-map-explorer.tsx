@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Compass, Flag, Layers3 } from "lucide-react";
+import { CONCEPT_COUNTRY_BOUNDARIES, countryBoundaryPath } from "@/lib/planet/concept-country-boundaries";
 import {
   CONCEPT_CONTINENTS, CONCEPT_COUNTRY_SITES,
   CONCEPT_MAP_STATUS, conceptContinentPath, conceptMapPoint, conceptSiteName,
@@ -10,9 +11,11 @@ import {
 
 export function ConceptMapExplorer() {
   const [selected, setSelected] = useState(CONCEPT_COUNTRY_SITES[0]!.slug);
+  const [showBoundarySketches, setShowBoundarySketches] = useState(true);
   const site = CONCEPT_COUNTRY_SITES.find((candidate) => candidate.slug === selected)!;
   const continent = CONCEPT_CONTINENTS.find((entry) => entry.id === site.continentId)!;
   const name = conceptSiteName(site);
+  const boundary = CONCEPT_COUNTRY_BOUNDARIES.find((item) => item.slug === selected)!;
 
   return (
     <div className="space-y-4">
@@ -21,9 +24,17 @@ export function ConceptMapExplorer() {
           <div className="flex items-center gap-2 text-sm font-semibold text-cyan-100">
             <Compass className="size-4" aria-hidden /> Planet-local concept atlas
           </div>
-          <span className="rounded-full border border-amber-200/25 bg-amber-300/10 px-3 py-1 text-xs font-medium text-amber-100">
-            {CONCEPT_MAP_STATUS.replaceAll("_", " ").toLowerCase()}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button"
+              onClick={() => setShowBoundarySketches((current) => !current)}
+              aria-pressed={showBoundarySketches}
+              className="rounded-full border border-cyan-200/40 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold text-cyan-100 hover:bg-cyan-200/20">
+              {showBoundarySketches ? "Hide draft borders" : "Show draft borders"}
+            </button>
+            <span className="rounded-full border border-amber-200/25 bg-amber-300/10 px-3 py-1 text-xs font-medium text-amber-100">
+              {CONCEPT_MAP_STATUS.replaceAll("_", " ").toLowerCase()}
+            </span>
+          </div>
         </div>
         <div className="p-2 sm:p-4">
           <svg
@@ -54,6 +65,17 @@ export function ConceptMapExplorer() {
                 strokeLinejoin="round"
               />
             ))}
+            {showBoundarySketches && CONCEPT_COUNTRY_BOUNDARIES.map((country) => (
+              <path
+                key={country.slug}
+                d={countryBoundaryPath(country)}
+                fill={country.color}
+                fillOpacity={country.slug === selected ? 0.86 : 0.58}
+                stroke={country.slug === selected ? "#ffffff" : "#d1e5ef"}
+                strokeWidth={country.slug === selected ? 3 : 1.4}
+                strokeLinejoin="round"
+              />
+            ))}
             {CONCEPT_COUNTRY_SITES.map((candidate) => {
               const [x, y] = conceptMapPoint(candidate.center);
               const active = candidate.slug === selected;
@@ -72,7 +94,7 @@ export function ConceptMapExplorer() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-4 py-3 text-xs text-slate-300 sm:px-6">
           <span>Five proposed landmasses · Original fictional geometry</span>
-          <span>Country dots = possible sites, not sovereign borders</span>
+          <span>{showBoundarySketches ? "Colored shapes = unapproved country boundary sketches" : "Country dots = candidate locations"}</span>
         </div>
       </div>
 
@@ -114,10 +136,14 @@ export function ConceptMapExplorer() {
             {continent.label} — proposed siting only
           </p>
           <p className="mt-3 text-xs leading-6 text-slate-400">
-            The dot does not define a national boundary, capital, state, resources,
-            ownership or a playable world. The country still needs original
-            reviewed border geometry and official publication.
+            {showBoundarySketches ? "The colored outline is a reversible design sketch, not a published border or land claim." : "The location marker is exploratory and not a national boundary."}
+            Neither view creates a capital, state, resource allocation, ownership or a playable world.
           </p>
+          <dl className="mt-4 grid grid-cols-2 gap-2 border-y border-white/10 py-4">
+            <div><dt className="text-xs text-slate-400">Draft area</dt><dd className="mt-1 font-semibold tabular-nums">{Math.round(boundary.areaKm2).toLocaleString("en-US")} km²</dd></div>
+            <div><dt className="text-xs text-slate-400">Size class</dt><dd className="mt-1 font-semibold">{boundary.size.toLowerCase()}</dd></div>
+          </dl>
+          <p className="mt-3 text-xs leading-relaxed text-amber-100">Area is measured on the fictional planet from an unapproved polygon. It is not an official national size.</p>
           <Link href={`/planet/planning/${site.slug}`}
             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline-offset-4 hover:underline">
             View administrative plan <ArrowRight className="size-4" aria-hidden />
