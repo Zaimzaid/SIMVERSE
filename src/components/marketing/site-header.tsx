@@ -12,13 +12,13 @@ export function SiteHeader({ authed }: { authed: boolean }) {
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-secondary md:flex">
           <Link href="/#platform" className="transition-colors hover:text-foreground">
-            Platform
+            Our world
           </Link>
-          <Link href="/earth" className="text-accent transition-colors hover:text-accent-hover">
-            Explore Earth
+          <Link href="/planet" className="text-accent transition-colors hover:text-accent-hover">
+            Planet preview
           </Link>
           <Link href="/#products" className="transition-colors hover:text-foreground">
-            Products
+            What exists
           </Link>
           <Link href="/#how" className="transition-colors hover:text-foreground">
             How it works
@@ -27,12 +27,12 @@ export function SiteHeader({ authed }: { authed: boolean }) {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/earth"
-            aria-label="Explore Earth"
+            href="/planet"
+            aria-label="Preview planet"
             className={`${buttonClasses({ variant: "ghost", size: "sm" })} md:hidden`}
           >
             <Globe2 className="size-4" />
-            <span className="hidden sm:inline">Explore Earth</span>
+            <span className="hidden sm:inline">Planet preview</span>
           </Link>
           {authed ? (
             <Link href="/dashboard" className={buttonClasses({ variant: "primary", size: "sm" })}>
