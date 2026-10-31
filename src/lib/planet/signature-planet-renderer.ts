@@ -27,6 +27,10 @@ import {
 import { planetHomeCameraDistance } from "./visual-contract";
 import { CONCEPT_CONTINENTS } from "./concept-geography";
 import { CONCEPT_COUNTRY_BOUNDARIES } from "./concept-country-boundaries";
+import {
+  CONCEPT_BIOMES, CONCEPT_BIOME_COLORS, CONCEPT_ISLANDS, CONCEPT_LAKES,
+  CONCEPT_MOUNTAINS, CONCEPT_RESOURCE_SITES, CONCEPT_RIVERS,
+} from "./concept-terrain";
 
 /**
  * Signature Orbital Planet visual proof (Stage 1).
@@ -150,6 +154,41 @@ export class SignaturePlanetRenderer {
         context.lineWidth = 2;
         context.stroke();
       }
+      // Offshore island clusters share their assigned continent's draft color,
+      // but carry no country, sovereignty or parcel assignment.
+      context.globalAlpha = 0.87;
+      for (const island of CONCEPT_ISLANDS) {
+        if (island.geometry.type !== "Polygon") continue;
+        const ring = island.geometry.coordinates[0]!;
+        const color = CONCEPT_CONTINENTS.find((land) => land.id === island.continentId)?.color ?? "#a1bdc4";
+        context.beginPath();
+        ring.forEach(([lon, lat], index) => {
+          const x = (lon + 180) / 360 * canvas.width;
+          const y = (90 - lat) / 180 * canvas.height;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.closePath();
+        context.fillStyle = color;
+        context.fill();
+        context.strokeStyle = "#d9f5fa";
+        context.lineWidth = 1.4;
+        context.stroke();
+      }
+      // Biomes are purely schematic color washes, not geographic classifications.
+      context.globalAlpha = 0.28;
+      for (const patch of CONCEPT_BIOMES) {
+        context.beginPath();
+        context.ellipse(
+          (patch.center[0] + 180) / 360 * canvas.width,
+          (90 - patch.center[1]) / 180 * canvas.height,
+          patch.longitudeRadius / 360 * canvas.width,
+          patch.latitudeRadius / 180 * canvas.height,
+          0, 0, Math.PI * 2,
+        );
+        context.fillStyle = CONCEPT_BIOME_COLORS[patch.biome];
+        context.fill();
+      }
       // Draw separately-reviewed candidate country outlines ONLY inside
       // this opt-in concept texture; the public globe remains unallocated.
       context.globalAlpha = 0.74;
@@ -169,6 +208,49 @@ export class SignaturePlanetRenderer {
         context.strokeStyle = "#f5fbff";
         context.lineWidth = 1.75;
         context.stroke();
+      }
+      // Scenic mountain and water overlays are drawn last for legibility.
+      const drawLine = (points: readonly [number, number][], color: string, width: number) => {
+        context.beginPath();
+        points.forEach(([lon, lat], index) => {
+          const x = (lon + 180) / 360 * canvas.width;
+          const y = (90 - lat) / 180 * canvas.height;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.strokeStyle = color;
+        context.lineWidth = width;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.stroke();
+      };
+      context.globalAlpha = 0.93;
+      for (const ridge of CONCEPT_MOUNTAINS) {
+        drawLine(ridge.points, "#162a32", 7);
+        drawLine(ridge.points, "#e7d6b6", 2.1);
+      }
+      for (const river of CONCEPT_RIVERS) drawLine(river.points, "#67e3ff", 3.1);
+      for (const lake of CONCEPT_LAKES) {
+        context.beginPath();
+        context.ellipse(
+          (lake.center[0] + 180) / 360 * canvas.width,
+          (90 - lake.center[1]) / 180 * canvas.height,
+          lake.longitudeRadius / 360 * canvas.width,
+          lake.latitudeRadius / 180 * canvas.height,
+          0, 0, Math.PI * 2,
+        );
+        context.fillStyle = "#41c0e0";
+        context.fill();
+      }
+      for (const site of CONCEPT_RESOURCE_SITES) {
+        context.beginPath();
+        context.arc(
+          (site.center[0] + 180) / 360 * canvas.width,
+          (90 - site.center[1]) / 180 * canvas.height,
+          3.6, 0, Math.PI * 2,
+        );
+        context.fillStyle = "#ffe7a6";
+        context.fill();
       }
       context.globalAlpha = 1;
     }
