@@ -8,18 +8,18 @@ export function SiteFooter() {
           <div>
             <Logo size="md" />
             <p className="mt-3 max-w-sm text-sm text-secondary">
-              Simulate anything. Build worlds, create entities, run simulations,
-              and turn outcomes into stories.
+              Build Your Civilization. Explore the fictional planet, connect with citizens,
+              and help shape the future of SIMVERSE communities.
             </p>
           </div>
           <div className="text-sm text-muted">
             <p className="font-medium text-secondary">Platform preview</p>
-            <p className="mt-1">Products and simulations are in active development.</p>
+            <p className="mt-1">The citizen-led civilization experience is in active development.</p>
           </div>
         </div>
         <div className="mt-8 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-xs text-muted sm:flex-row sm:items-center">
           <p>© {new Date().getFullYear()} SIMVERSE. All rights reserved.</p>
-          <p>One platform. Infinite worlds.</p>
+          <p>Build Your Civilization.</p>
         </div>
       </div>
     </footer>
