@@ -34,6 +34,12 @@ export default async function DistrictAssemblyPage() {
           className="mt-4 inline-block text-sm font-semibold text-accent hover:underline">
           View my nationality and district status
         </Link>
+        <div className="mt-4">
+          <Link href="/profile/civilization/assembly/preview"
+            className="inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-accent">
+            View a clearly labeled assembly design preview
+          </Link>
+        </div>
       </section>}
   </main>;
 }
