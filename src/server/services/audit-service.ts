@@ -10,6 +10,8 @@ export type AuditAction =
   | "user.profile_updated"
   | "user.player_identity_updated"
   | "user.founding_nation_interest_updated"
+  | "user.founding_citizenship_draft_saved"
+  | "user.founding_citizenship_draft_deleted"
   | "user.player_avatar_updated"
   | "player.document.applied"
   | "player.document.reviewed"
