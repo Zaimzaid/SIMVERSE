@@ -1,142 +1,76 @@
 import Link from "next/link";
-import {
-  ArrowRight, Compass, Flag, Globe2, MessageCircle,
-  ShieldCheck, Sparkles, Trophy, Users,
-} from "lucide-react";
+import type { Metadata } from "next";
+import { ArrowRight, Globe2, Sparkles } from "lucide-react";
 import { getCurrentUser } from "@/server/context";
+import { Logo } from "@/components/brand/logo";
 import { buttonClasses } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { SiteHeader } from "@/components/marketing/site-header";
-import { SiteFooter } from "@/components/marketing/site-footer";
+import { CivilizationGlimpse } from "@/components/marketing/civilization-glimpse";
 
-const JOURNEY = [
-  {
-    icon: Flag,
-    title: "Become a citizen",
-    detail: "Choose your fictional nationality and join a district community when it opens.",
-  },
-  {
-    icon: Users,
-    title: "Join your district",
-    detail: "Discuss the future of an initially undeveloped place with other citizens.",
-  },
-  {
-    icon: Trophy,
-    title: "Play and participate",
-    detail: "Enjoy challenges and future competitions as your community grows.",
-  },
-  {
-    icon: MessageCircle,
-    title: "Build your civilization",
-    detail: "Propose, discuss and help prioritize developments delivered by the SIMVERSE team.",
-  },
-] as const;
+export const metadata: Metadata = {
+  title: "SIMVERSE — Build Your Civilization",
+  description: "Discover SIMVERSE: a fictional world where people will connect, share ideas and shape the future of their communities. Early preview.",
+};
 
 export default async function LandingPage() {
   const user = await getCurrentUser();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader authed={Boolean(user)} />
-      <main className="flex-1">
-        <section className="simverse-public-hero relative isolate overflow-hidden">
-          <div className="pointer-events-none absolute inset-0" aria-hidden="true" />
-          <div className="absolute inset-0 grid-overlay opacity-10" aria-hidden="true" />
-          <div className="relative mx-auto w-full max-w-5xl px-4 py-24 text-center sm:px-6 sm:py-32 lg:py-40">
-            <Badge variant="accent" className="mx-auto mb-8">
-              <Sparkles className="size-3" /> A new virtual society is taking shape
-            </Badge>
-            <p className="text-gradient font-display text-4xl font-bold uppercase tracking-[0.3em] sm:text-6xl lg:text-7xl">
-              SIMVERSE
-            </p>
-            <h1 className="mt-8 font-display text-4xl font-bold leading-[1.05] text-foreground sm:text-6xl">
-              Build Your Civilization
-            </h1>
-            <p className="hero-description mx-auto mt-5 max-w-2xl text-lg">
-              Explore a fictional planet, connect with people and take part in the future of
-              communities that will develop from undeveloped land.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href={user ? "/dashboard" : "/register"}
-                className={buttonClasses({ variant: "primary", size: "lg" })}>
-                {user ? "Enter your dashboard" : "Explore SIMVERSE"}
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link href="/planet" className={buttonClasses({ variant: "secondary", size: "lg" })}>
-                <Globe2 className="size-4" /> Planet preview
-              </Link>
-            </div>
-            <p className="mt-8 text-xs font-medium text-muted">
-              Early development preview — fictional countries, district construction and Vascoin
-              are not yet live features.
-            </p>
-          </div>
-        </section>
+      <SiteHeader authed={Boolean(user)} simple />
 
-        <section id="platform" className="border-t border-border bg-surface/30">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <Badge variant="outline" className="mx-auto mb-4"><Globe2 className="size-3" /> Our vision</Badge>
-              <h2 className="font-display text-3xl font-semibold text-foreground">
-                A world whose future is shaped by its citizens
-              </h2>
-              <p className="mt-3 text-secondary">
-                SIMVERSE plans to establish ten fictional founding countries and district communities.
-                Citizens will influence what gets built and where, while SIMVERSE reviews and implements
-                feasible projects. The world will grow through games, participation and collaboration.
+      <main id="main-content" className="flex flex-1 flex-col">
+        <section className="simverse-landing-hero relative isolate flex flex-1 items-center overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 grid-overlay opacity-20" aria-hidden="true" />
+
+          <div className="relative mx-auto grid w-full max-w-7xl items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.08fr)_minmax(330px,0.92fr)] lg:gap-14 lg:px-8 lg:py-24">
+            <div className="max-w-2xl">
+              <span className="hero-eyebrow inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent-soft/70 px-3 py-1.5 text-xs font-semibold tracking-wide text-accent">
+                <Sparkles className="size-3.5" aria-hidden="true" /> A new virtual world is taking shape
+              </span>
+
+              <h1 className="mt-6 font-display text-5xl font-bold leading-[1.06] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+                Build your <span className="text-gradient">civilization.</span>
+              </h1>
+
+              <p className="mt-6 max-w-xl text-base leading-8 text-secondary sm:text-lg">
+                Explore a new world. Meet people. And help shape the communities
+                we&apos;ll build together.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link href={user ? "/dashboard" : "/register"}
+                  className={buttonClasses({ variant: "primary", size: "lg", className: "min-h-12 px-6" })}>
+                  {user ? "Go to my dashboard" : "Join SIMVERSE"}
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+                <Link href="/planet"
+                  className={buttonClasses({ variant: "secondary", size: "lg", className: "min-h-12 border-border-strong bg-background/85 px-6" })}>
+                  <Globe2 className="size-4" aria-hidden="true" />
+                  Explore the planet
+                </Link>
+              </div>
+
+              <p className="mt-7 max-w-lg border-l-2 border-accent/40 pl-3 text-sm leading-6 text-secondary">
+                Early access preview. The fictional planet is a visual prototype;
+                live districts, citizen-built structures and Vascoin are still in development.
               </p>
             </div>
-          </div>
-        </section>
 
-        <section id="how" className="border-t border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <Badge variant="outline" className="mx-auto mb-4"><Compass className="size-3" /> Proposed citizen experience</Badge>
-              <h2 className="font-display text-3xl font-semibold text-foreground">How it will work</h2>
-            </div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {JOURNEY.map((step, index) => (
-                <article key={step.title} className="rounded-2xl border border-border bg-surface p-6">
-                  <span className="inline-flex size-11 items-center justify-center rounded-xl border border-border bg-background/50 text-accent">
-                    <step.icon className="size-5" aria-hidden />
-                  </span>
-                  <p className="mt-4 text-xs font-semibold text-muted">STEP {index + 1} · PLANNED</p>
-                  <h3 className="mt-1 font-semibold text-foreground">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-secondary">{step.detail}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="products" className="border-t border-border bg-surface/30">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
-            <h2 className="font-display text-3xl font-semibold text-foreground">What's available today?</h2>
-            <p className="mt-3 max-w-3xl text-secondary">
-              The current development build contains account and profile features,
-              social messaging, existing simulation tools and a visual prototype of
-              the fictional planet. A playable district economy and citizen-built world
-              are still in development.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/planet" className={buttonClasses({ variant: "secondary", size: "lg" })}>
-                <Globe2 className="size-4" /> View globe prototype
-              </Link>
-              <Link href={user ? "/social" : "/register"}
-                className={buttonClasses({ variant: "secondary", size: "lg" })}>
-                <Users className="size-4" /> {user ? "Open community" : "Join the preview"}
-              </Link>
-            </div>
-            <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-muted">
-              <ShieldCheck className="size-4 shrink-0" aria-hidden />
-              This is not a live claim of published fictional countries, virtual land rights,
-              citizen-led construction or spendable Vascoin.
-            </p>
+            <CivilizationGlimpse />
           </div>
         </section>
       </main>
-      <SiteFooter />
+
+      <footer className="border-t border-border bg-background/95">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-3 px-4 py-5 text-sm text-secondary sm:flex-row sm:items-center sm:px-6 lg:px-8">
+          <Logo size="sm" />
+          <p>© {new Date().getFullYear()} SIMVERSE · A world shaped together.</p>
+          <Link href="/planet" className="font-semibold text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent">
+            Preview the planet
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
