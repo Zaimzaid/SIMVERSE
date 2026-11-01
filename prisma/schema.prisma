@@ -65,6 +65,7 @@ model User {
   foundingResidence FoundingDistrictResidence?
   foundingMoves FoundingDistrictMove[]
   foundingVisit FoundingVisit?
+  vascoinAccount VascoinAccount?
   assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
   assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
   assemblyVotes DistrictAssemblyVote[]
@@ -320,6 +321,7 @@ model FoundingDistrict {
   assemblyProposals DistrictAssemblyProposal[]
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
+  vascoinTreasury VascoinAccount?
   @@unique([countryId, slug])
   @@index([countryId, status])
 }
@@ -447,6 +449,51 @@ model DistrictAssemblyReport {
   reviewer User? @relation("AssemblyReportReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   @@unique([proposalId, commentId, reporterUserId])
   @@index([proposalId, status])
+}
+
+// Phase 6: isolated NONREDEEMABLE virtual VC; never SVC, GFC, fiat, crypto
+// or a claim on future buildings. This policy cannot be toggled through a
+// public API. Issuance/contributions both fail closed in new installations.
+model VascoinPolicy {
+  id String @id
+  dailyClaimsEnabled Boolean @default(false)
+  contributionsEnabled Boolean @default(false)
+  totalIssued Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VascoinAccount {
+  id String @id @default(cuid())
+  kind String // ISSUANCE | CITIZEN | DISTRICT
+  ownerUserId String? @unique
+  districtId String? @unique
+  balance Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner User? @relation(fields: [ownerUserId], references: [id], onDelete: Restrict)
+  district FoundingDistrict? @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  debits VascoinJournal[] @relation("VascoinDebit")
+  credits VascoinJournal[] @relation("VascoinCredit")
+  @@index([kind])
+}
+
+model VascoinJournal {
+  id String @id @default(cuid())
+  eventKey String @unique
+  kind String // DAILY_CLAIM | DISTRICT_CONTRIBUTION
+  amount Int
+  debitAccountId String
+  creditAccountId String
+  actorUserId String
+  districtId String?
+  createdAt DateTime @default(now())
+  debitAccount VascoinAccount @relation("VascoinDebit", fields: [debitAccountId], references: [id], onDelete: Restrict)
+  creditAccount VascoinAccount @relation("VascoinCredit", fields: [creditAccountId], references: [id], onDelete: Restrict)
+  @@index([actorUserId, createdAt])
+  @@index([districtId, createdAt])
+  @@index([debitAccountId, createdAt])
+  @@index([creditAccountId, createdAt])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
