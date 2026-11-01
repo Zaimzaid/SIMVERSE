@@ -6,10 +6,11 @@ import { Logo } from "@/components/brand/logo";
 import { buttonClasses } from "@/components/ui/button";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { CivilizationGlimpse } from "@/components/marketing/civilization-glimpse";
+import { BRAND_NAME, BRAND_TAGLINE, BRAND_DESCRIPTION, BRAND_PREVIEW_NOTICE } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "SIMVERSE — Build Your Civilization",
-  description: "Discover SIMVERSE: a fictional world where people will connect, share ideas and shape the future of their communities. Early preview.",
+  title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
+  description: BRAND_DESCRIPTION,
 };
 
 export default async function LandingPage() {
@@ -41,7 +42,7 @@ export default async function LandingPage() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link href={user ? "/dashboard" : "/register"}
                   className={buttonClasses({ variant: "primary", size: "lg", className: "min-h-12 px-6" })}>
-                  {user ? "Go to my dashboard" : "Join SIMVERSE"}
+                  {user ? "Go to my dashboard" : "Join KAVANDRO"}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
                 <Link href="/planet"
@@ -52,8 +53,7 @@ export default async function LandingPage() {
               </div>
 
               <p className="mt-7 max-w-lg border-l-2 border-accent/40 pl-3 text-sm leading-6 text-secondary">
-                Early access preview. The fictional planet is a visual prototype;
-                live districts, citizen-built structures and Vascoin are still in development.
+                {BRAND_PREVIEW_NOTICE}
               </p>
             </div>
 
@@ -65,7 +65,7 @@ export default async function LandingPage() {
       <footer className="border-t border-border bg-background/95">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-3 px-4 py-5 text-sm text-secondary sm:flex-row sm:items-center sm:px-6 lg:px-8">
           <Logo size="sm" />
-          <p>© {new Date().getFullYear()} SIMVERSE · A world shaped together.</p>
+          <p>© {new Date().getFullYear()} {BRAND_NAME} · A world shaped together.</p>
           <Link href="/planet" className="font-semibold text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent">
             Preview the planet
           </Link>
