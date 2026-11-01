@@ -52,6 +52,9 @@ export async function resetDb(): Promise<void> {
   await prisma.districtAssemblyReport.deleteMany();
   await prisma.districtAssemblyVote.deleteMany();
   await prisma.districtAssemblyComment.deleteMany();
+  await prisma.foundingDevelopmentUpdate.deleteMany();
+  await prisma.foundingDevelopmentCase.deleteMany();
+  await prisma.foundingDevelopmentStaffGrant.deleteMany();
   await prisma.districtAssemblyProposal.deleteMany();
   await prisma.districtAssemblyNotice.deleteMany();
   await prisma.districtAssemblyModeratorGrant.deleteMany();
