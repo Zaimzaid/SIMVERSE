@@ -310,7 +310,7 @@ export async function resolveDistrictReport(userId: string, payload: unknown) {
 export async function getDistrictModerationQueue(userId: string, districtId: string) {
   parseOrThrow(districtIdSchema, districtId);
   await moderator(userId, districtId);
-  const [proposals, comments, reports] = await Promise.all([
+  const [proposals, comments, reports, openProposals] = await Promise.all([
     prisma.districtAssemblyProposal.findMany({
       where: { districtId, status: "PENDING_MODERATION" }, take: 40,
       select: { id: true, title: true, description: true, category: true, createdAt: true } }),
@@ -320,6 +320,19 @@ export async function getDistrictModerationQueue(userId: string, districtId: str
     prisma.districtAssemblyReport.findMany({
       where: { proposal: { districtId }, status: "OPEN" }, take: 40,
       select: { id: true, reason: true, proposalId: true, commentId: true, createdAt: true } }),
+    prisma.districtAssemblyProposal.findMany({
+      where: { districtId, status: "OPEN" }, take: 40,
+      select: {
+        id: true, title: true,
+        votes: { select: { choice: true } },
+      },
+    }),
   ]);
-  return { proposals, comments, reports, canApproveConstruction: false, canSpendDistrictFunds: false };
+  return { proposals, comments, reports,
+    openProposals: openProposals.map((p) => ({
+      id: p.id, title: p.title,
+      support: p.votes.filter((v) => v.choice === "SUPPORT").length,
+      oppose: p.votes.filter((v) => v.choice === "OPPOSE").length,
+    })),
+    canApproveConstruction: false, canSpendDistrictFunds: false };
 }
