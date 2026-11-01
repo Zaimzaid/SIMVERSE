@@ -8,9 +8,9 @@ import { prisma } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
 
 type Db = Prisma.TransactionClient;
-type ApplicationStatus = "PENDING_REVIEW" | "DENIED" | "WITHDRAWN";
+type ApplicationStatus = "PENDING_REVIEW" | "DENIED" | "WITHDRAWN" | "APPROVED";
 const validStatus = (status: string): ApplicationStatus =>
-  status === "DENIED" || status === "WITHDRAWN" ? status : "PENDING_REVIEW";
+  status === "DENIED" || status === "WITHDRAWN" || status === "APPROVED" ? status : "PENDING_REVIEW";
 
 async function publishedFoundingCountry(slug: string, db: Db | typeof prisma) {
   if (!foundingNationName(slug)) return null;
@@ -84,7 +84,7 @@ export async function getMyFoundingApplicationReadiness(userId: string) {
       reviewedAt: result.previous.reviewedAt,
       reviewNote: result.previous.reviewNote,
     } : null,
-    note: "Founding nationality is never automatically issued. Only published countries with independently opened intake can receive applications. This version has no approval or issuance operation.",
+    note: "Country applications require independent intake. Primary nationality is only issued after two country-scoped reviewers and a separately enabled issuance policy; travel and residence are separate.",
   };
 }
 
