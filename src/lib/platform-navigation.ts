@@ -46,7 +46,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "identity", label: "My Life", description: "Your player identity and documents",
-    icon: UserRound, routes: ["/profile", "/profile/documents", "/profile/travel"],
+    icon: UserRound, routes: ["/profile", "/profile/civilization", "/profile/documents", "/profile/travel"],
   },
 ] as const;
 
@@ -70,7 +70,7 @@ export function visibleAreaItems(area: PlatformArea, permissions: readonly Permi
 export type NavigationSurface = "all" | "citizen";
 export const CITIZEN_ROUTES = new Set([
   "/dashboard", "/settings", "/planet", "/social",
-  "/profile", "/profile/documents", "/profile/travel",
+  "/profile", "/profile/civilization", "/profile/documents", "/profile/travel",
   "/anything-wars",
 ]);
 
