@@ -19,6 +19,13 @@ export default async function DashboardPage() {
 
   const places = [
     {
+      label: "My founding journey",
+      detail: "Set up your public identity and save a founding-country preference without claiming automatic citizenship.",
+      href: "/welcome",
+      icon: Sparkles,
+      marker: "Get started",
+    },
+    {
       label: "Preview the planet",
       detail: "Explore the new fictional globe prototype. Countries are not yet published.",
       href: "/planet",
