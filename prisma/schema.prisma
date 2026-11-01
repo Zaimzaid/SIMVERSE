@@ -55,6 +55,7 @@ model User {
 
   economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
+  foundingCitizenInterest FoundingCitizenInterest?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
   virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
@@ -164,6 +165,22 @@ model PlayerCitizenship {
 
   @@unique([playerIdentityId, countryPlaceId])
   @@index([countryPlaceId, status])
+}
+
+// Phase 3 Build Your Civilization — country preference and optional future
+// district interest only. Neither column is an approved citizenship or legal
+// residence. This table is independent of the legacy EarthGeo citizenship FK.
+model FoundingCitizenInterest {
+  userId               String   @id
+  preferredNationSlug  String?
+  proposedPilotInterest Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([preferredNationSlug])
+  @@index([proposedPilotInterest])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
