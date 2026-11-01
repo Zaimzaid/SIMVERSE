@@ -45,6 +45,7 @@ export async function resetDb(): Promise<void> {
   await prisma.playerDocumentApplication.deleteMany();
   await prisma.playerDocumentReviewer.deleteMany();
   await prisma.playerCitizenship.deleteMany();
+  await prisma.foundingCitizenInterest.deleteMany();
   await prisma.playerIdentity.deleteMany();
   // Earth Phase 4 global stewardship and immutable zone history. The stable
   // zone points at its active version, so clear that projection before deleting
