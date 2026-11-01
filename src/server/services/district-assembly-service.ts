@@ -66,6 +66,22 @@ export async function listMyAssemblyDistricts(userId: string) {
   }
 }
 
+export async function listMyModeratedDistricts(userId: string) {
+  const grants = await prisma.districtAssemblyModeratorGrant.findMany({
+    where: {
+      userId, isActive: true,
+      district: {
+        status: "ACTIVE", verifiedGeoVersionId: { not: null },
+        activatedAt: { not: null },
+        country: { planetId: PLANET_ID, status: "PUBLISHED", publishedVersionId: { not: null } },
+      },
+    },
+    select: { district: { select: { id: true, name: true } } },
+    take: 30,
+  });
+  return { districts: grants.map((grant) => grant.district) };
+}
+
 export async function getDistrictAssembly(userId: string, districtId: string) {
   parseOrThrow(districtIdSchema, districtId);
   const { district } = await resident(userId, districtId);
