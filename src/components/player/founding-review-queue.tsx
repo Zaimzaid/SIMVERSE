@@ -37,10 +37,28 @@ export function FoundingReviewQueue({ applications }: { applications: ReviewItem
     router.refresh();
   }
 
+  async function endorse(applicationId: string) {
+    setBusyId(applicationId);
+    setFeedback(null);
+    const result = await apiFetch<{ citizenshipGranted: boolean; endorsements: number }>(
+      "/api/civilization/reviewer/endorse", {
+        method: "POST", body: JSON.stringify({ applicationId }),
+      },
+    );
+    setBusyId(null);
+    if (result.error) {
+      setFeedback(result.error.message);
+      return;
+    }
+    setFeedback(result.data?.citizenshipGranted
+      ? "Two independent endorsements completed: a primary fictional nationality was issued."
+      : "Your independent endorsement was recorded. No citizenship was issued yet.");
+    router.refresh();
+  }
+
   return <section className="space-y-4">
     <p className="text-sm leading-7 text-secondary">
-      This restricted Phase 3B pilot permits review and denial only. Approval,
-      citizenship issuance and reviewer-grant administration are not available.
+      This restricted review queue allows denial or an independent endorsement. Two\n      different authorized reviewers plus a separately enabled issuance policy are\n      required before primary citizenship can be issued. Reviewer grants cannot be created here.
       Applicant statements are private and visible only to authorized country reviewers.
     </p>
     {applications.length === 0
@@ -64,6 +82,11 @@ export function FoundingReviewQueue({ applications }: { applications: ReviewItem
               className="mt-2 w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground"
               placeholder="Give the applicant clear reasons..."/>
           </div>
+          <button type="button" disabled={busyId !== null}
+            onClick={() => endorse(app.id)}
+            className="min-h-11 rounded-xl border border-border px-5 py-3 text-sm font-semibold text-foreground hover:bg-background disabled:opacity-50">
+            {busyId === app.id ? "Recording…" : "Endorse (requires independent second reviewer)"}
+          </button>
           <button type="button" disabled={busyId !== null}
             onClick={() => deny(app.id)}
             className="min-h-11 rounded-xl border border-border px-5 py-3 text-sm font-semibold text-foreground hover:bg-background disabled:opacity-50">
