@@ -11,6 +11,7 @@ import { ProfileIdentityPanel } from "@/components/player/profile-identity-panel
 export const metadata: Metadata = { title: "My Profile | SIMVERSE" };
 const sections = [
   { label: "My Identity", detail: "Who you are and what others can see", href: "#identity", icon: IdCard },
+  { label: "My Civilization", detail: "Founding country preference and district interest", href: "/profile/civilization", icon: Shield },
   { label: "My Avatar", detail: "Customize your saved 3D character", href: "/profile/avatar", icon: UserRound },
   { label: "My Community", detail: "Friends, messages and invitations", href: "/social", icon: Users },
   { label: "My Economy", detail: "Career, credits, companies and jobs", href: "/profile/career", icon: BriefcaseBusiness },
