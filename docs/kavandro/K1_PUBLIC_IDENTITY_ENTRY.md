@@ -1,6 +1,6 @@
 # KAVANDRO K1 — Public Identity and Citizen Entry
 
-**Status:** K1 slice 1 implemented on `feature/kavandro-k1-brand-entry`, awaiting CI, manual browser QA and merge review.
+**Status:** K1 public branding and guided onboarding implemented on `feature/kavandro-k1-brand-entry`, awaiting CI, manual browser QA and merge review.
 
 ## Applied
 
@@ -10,6 +10,9 @@
 - Default app branding in `.env.example` and environment parser updated (existing private `.env` files are **not** edited).
 - Citizen dashboard welcome and initial civilization screen identify KAVANDRO.
 - Root document metadata describes the civic product, not a creator-first simulation product.
+- New signed-in `/welcome` journey reads saved username and founding-country preference; no citizenship writes.
+- New registrations (without a saved destination/legacy Earth intent) continue to `/welcome`; existing redirected flows are preserved.
+- Dashboard includes an accessible `My founding journey` entry.
 
 ## Intentionally preserved
 
@@ -29,8 +32,7 @@
 
 ## K1 follow-up slices
 
-- Verified first-run citizen onboarding based on **saved preferred nation and pilot interest**, not automatically issued citizenship.
-- Clean entry from public landing to saved nation preference `/profile/civilization`; show unavailable countries as unavailable.
+- Polish first-run citizen experience after testing /welcome and registration redirects on mobile and verified-email flows.
 - Explicit accepted identity and country/district application policy; legal approval for permanent branding before public promotion.
 
 **Safety:** no real database migration, deployment or source deletion in this slice.
