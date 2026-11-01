@@ -36,25 +36,25 @@ export default async function MyCivilizationPage() {
       <section aria-label="Current identity and residence status" className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-surface p-5">
           <Flag className="size-5 text-accent" aria-hidden />
-          <p className="mt-3 text-xs text-secondary">Preferred founding nation</p>
+          <p className="mt-3 text-sm text-secondary">Preferred founding nation</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {interest.preferredNationName ?? "Not selected"}
           </p>
-          <p className="mt-1 text-xs text-secondary">Personal preference only</p>
+          <p className="mt-1 text-sm text-secondary">Personal preference only</p>
         </div>
         <div className="rounded-2xl border border-border bg-surface p-5">
           <Users className="size-5 text-accent" aria-hidden />
-          <p className="mt-3 text-xs text-secondary">Proposed pilot interest</p>
+          <p className="mt-3 text-sm text-secondary">Proposed pilot interest</p>
           <p className="mt-1 text-lg font-semibold text-foreground">
             {interest.proposedPilotInterest ? "Interested" : "Not registered"}
           </p>
-          <p className="mt-1 text-xs text-secondary">No active district assigned</p>
+          <p className="mt-1 text-sm text-secondary">No active district assigned</p>
         </div>
         <div className="rounded-2xl border border-border bg-surface p-5">
           <MapPin className="size-5 text-accent" aria-hidden />
-          <p className="mt-3 text-xs text-secondary">Current residence</p>
+          <p className="mt-3 text-sm text-secondary">Current residence</p>
           <p className="mt-1 text-lg font-semibold text-foreground">Unassigned</p>
-          <p className="mt-1 text-xs text-secondary">Residence starts after geography approval</p>
+          <p className="mt-1 text-sm text-secondary">Residence starts after geography approval</p>
         </div>
       </section>
 
@@ -78,9 +78,11 @@ export default async function MyCivilizationPage() {
           Your existing SIMVERSE identity remains permanent. Official fictional
           citizenship requires its own reviewed process, while residence requires
           an active, approved district. A preferred nationality or pilot interest
-          is neither of those things. Your profile is private by default.
+          is neither of those things. Your current profile visibility is 
+          {identity.profileVisibility === "PUBLIC" ? "public" : "restricted to you and accepted friends"};
+          private citizenship records are not displayed on your public profile.
         </p>
-        <p className="mt-3 text-xs text-secondary">
+        <p className="mt-3 text-sm text-secondary">
           Identity: {identity.username ? `@${identity.username}` : "Username not yet chosen"}.
           Existing citizenship documents: {identity.citizenships.length} historical ledger entries
           (not changed by this feature).
