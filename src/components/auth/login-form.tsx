@@ -68,10 +68,10 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
   return (
     <AuthCard
       title="Welcome back"
-      subtitle={challenge?"Enter your authenticator or recovery code.":"Log in to continue to your workspace."}
+      subtitle={challenge?"Enter your authenticator or recovery code.":"Log in to continue your KAVANDRO journey."}
       footer={
         <>
-          New to SIMVERSE?{" "}
+          New to KAVANDRO?{" "}
           <Link
             href={earthIntent ? `/register?earthIntent=${encodeURIComponent(earthIntent)}` : "/register"}
             className="font-medium text-accent hover:underline"
