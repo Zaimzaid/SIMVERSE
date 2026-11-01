@@ -1,0 +1,68 @@
+name: KAVANDRO K0 isolated baseline
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/kavandro-k0-baseline.yml"
+      - "docs/kavandro/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-k0:
+    # This K0-only check does not accept workflow input or untrusted DB paths.
+    if: ${{ github.event_name != 'pull_request' || github.head_ref == 'chore/kavandro-k0-baseline' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: "file:./kavandro-k0-ci.db"
+      SESSION_SECRET: "TEST_ONLY_KAVANDRO_K0_ISOLATED_SECRET_1234567890"
+      NEXT_PUBLIC_APP_NAME: "KAVANDRO K0"
+      APP_URL: "http://localhost:3000"
+      AUTH_TRUST_PROXY: "false"
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+
+      - name: Prepare Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Assert disposable database target
+        shell: bash
+        run: |
+          test "$DATABASE_URL" = "file:./kavandro-k0-ci.db"
+          test ! -e prisma/kavandro-k0-ci.db
+          test ! -e kavandro-k0-ci.db
+          test ! -e .env
+          test ! -e .env.local
+          echo "Using fresh CI-only SQLite database; no user DB mounted."
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Initialize disposable SQLite
+        run: npm run db:push
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests in disposable environment
+        run: npm run test
+        env:
+          NODE_ENV: test
+
+      - name: Production build
+        run: npm run build
