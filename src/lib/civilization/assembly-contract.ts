@@ -46,3 +46,8 @@ export const assemblyPolicy = {
   minimumVotingResidenceDays: 14,
   staffBuildAuthority: false,
 } as const;
+
+export const reviewReportSchema = z.strictObject({
+  reportId: assemblyIdSchema,
+  action: z.enum(["RESOLVE", "HIDE_COMMENT", "HIDE_PROPOSAL"]),
+});
