@@ -27,10 +27,15 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import type { SignaturePlanetRenderer } from "@/lib/planet/signature-planet-renderer";
+import { CONCEPT_COUNTRY_SITES, conceptSiteName } from "@/lib/planet/concept-geography";
+import { conceptGlobeHref, conceptMapHref, resolveConceptCountrySlug } from "@/lib/planet/concept-navigation";
 
 type Position = { x: number; y: number };
 
-export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPreview?: boolean }) {
+export function SignaturePlanetExplorer({
+  conceptPreview = false,
+  initialConceptCountrySlug,
+}: { conceptPreview?: boolean; initialConceptCountrySlug?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<SignaturePlanetRenderer | null>(null);
   const pointersRef = useRef(new Map<number, Position>());
@@ -40,6 +45,21 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
   const [autoOrbit, setAutoOrbit] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [selectedConceptCountry, setSelectedConceptCountry] = useState(
+    resolveConceptCountrySlug(initialConceptCountrySlug),
+  );
+  const selectedConceptSite = CONCEPT_COUNTRY_SITES.find(
+    (site) => site.slug === selectedConceptCountry,
+  )!;
+
+  function selectConceptCountry(slug: string) {
+    const site = CONCEPT_COUNTRY_SITES.find((item) => item.slug === slug);
+    if (!conceptPreview || !site) return;
+    setSelectedConceptCountry(site.slug);
+    engineRef.current?.focusConceptCountry(site.center);
+    setAutoOrbit(false);
+    window.history.replaceState(null, "", conceptGlobeHref(site.slug));
+  }
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -69,6 +89,12 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
         if (!checkPlanetWebGL()) throw new Error("3D graphics are unavailable in this browser.");
         instance = new SignaturePlanetRenderer(canvas, window.matchMedia("(prefers-reduced-motion: reduce)").matches, conceptPreview);
         engineRef.current = instance;
+        if (conceptPreview) {
+          const site = CONCEPT_COUNTRY_SITES.find(
+            (item) => item.slug === resolveConceptCountrySlug(initialConceptCountrySlug),
+          );
+          if (site) instance.focusConceptCountry(site.center);
+        }
         observer = new ResizeObserver((entries) => {
           const rect = entries[0]?.contentRect;
           if (rect) instance?.resize(rect.width, rect.height);
@@ -90,7 +116,7 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
       engineRef.current = null;
       pointersRef.current.clear();
     };
-  }, [retry, conceptPreview]);
+  }, [retry, conceptPreview, initialConceptCountrySlug]);
 
   const toggleOrbit = useCallback(() => {
     if (reducedMotion) return;
@@ -157,7 +183,7 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0 h-full w-full cursor-grab touch-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-cyan-200"
-        aria-label="Interactive empty SIMVERSE planet. Use arrow keys to rotate and plus or minus keys to zoom."
+        aria-label={conceptPreview ? "Interactive KAVANDRO concept globe with unapproved land and borders. Use arrow keys to rotate and plus or minus to zoom." : "Interactive fictional KAVANDRO planet with no published countries. Use arrow keys to rotate and plus or minus to zoom."}
         role="img"
         tabIndex={0}
         onPointerDown={onPointerDown}
@@ -171,11 +197,11 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
 
       <header className="pointer-events-none relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 pt-5 sm:px-8 sm:pt-7">
         <div className="pointer-events-auto flex items-center gap-3">
-          <Link href="/" aria-label="Return to SIMVERSE home" className="grid size-10 place-items-center rounded-2xl border border-white/15 bg-[#07182c]/85 text-cyan-100 backdrop-blur transition hover:border-cyan-200/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+          <Link href="/" aria-label="Return to KAVANDRO home" className="grid size-10 place-items-center rounded-2xl border border-white/15 bg-[#07182c]/85 text-cyan-100 backdrop-blur transition hover:border-cyan-200/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
             <ArrowLeft size={17} aria-hidden />
           </Link>
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.23em] text-cyan-100/90"><Sparkles size={13} aria-hidden /> SIMVERSE</div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.23em] text-cyan-100/90"><Sparkles size={13} aria-hidden /> KAVANDRO</div>
             <p className="text-sm font-medium tracking-wide text-white/75">Planet Explorer</p>
           </div>
         </div>
@@ -192,6 +218,32 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
           <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">{conceptPreview ? "A reversible visual study of five original landmasses. Nothing here is officially published." : "An original planet, ready for the countries and stories we create."}</p>
         </div>
 
+        {conceptPreview && (
+          <section className="pointer-events-auto max-w-sm rounded-2xl border border-cyan-200/25 bg-[#061a30]/90 p-4 backdrop-blur-md" aria-label="Select a country concept">
+            <label htmlFor="concept-country" className="block text-xs font-semibold uppercase tracking-wide text-cyan-200">
+              Focus a draft country on the globe
+            </label>
+            <select id="concept-country" value={selectedConceptCountry}
+              onChange={(event) => selectConceptCountry(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-cyan-200/30 bg-[#071a31] px-3 py-2 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+              {CONCEPT_COUNTRY_SITES.map((site) => (
+                <option key={site.slug} value={site.slug}>{conceptSiteName(site)}</option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs text-slate-300">
+              {conceptSiteName(selectedConceptSite)} is a proposed location; camera focus does not approve its borders.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-cyan-100">
+              <Link href={conceptMapHref(selectedConceptCountry)} className="underline underline-offset-4">
+                View same country on flat map
+              </Link>
+              <Link href={`/planet/planning/${selectedConceptCountry}`} className="underline underline-offset-4">
+                Country & district plan
+              </Link>
+            </div>
+          </section>
+        )}
+
         {!ready && (
           <div className="pointer-events-auto mx-auto max-w-sm rounded-2xl border border-white/15 bg-[#08182b]/90 p-5 text-center shadow-2xl backdrop-blur" role="status">
             <Globe2 size={28} className="mx-auto mb-2 text-cyan-300" aria-hidden />
@@ -200,7 +252,7 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
                 <p className="font-semibold text-white">3D preview unavailable</p>
                 <p className="mt-2 text-sm text-slate-300">{error}</p>
                 <button type="button" className="mt-4 rounded-xl border border-cyan-200/40 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-white/10" onClick={() => { setError(""); setRetry((v) => v + 1); }}>Retry 3D view</button>
-                <p className="mt-3 text-xs text-slate-400">The fictional planet is currently empty. No countries have been published.</p>
+                <p className="mt-3 text-xs text-slate-400">No countries have been published. The concept atlas remains available without WebGL.</p>
               </>
             ) : <p className="text-sm text-slate-200">Preparing your orbital planet…</p>}
           </div>
@@ -215,7 +267,7 @@ export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPre
             <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">{conceptPreview ? "published countries" : "countries"}</span></div>
             <p className="mt-2 text-xs leading-relaxed text-slate-400">{conceptPreview ? "The landmasses and ten colored country outlines are unapproved concepts. There are still zero published countries." : "No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages."}</p>
             <Link href="/planet/planning" className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Explore the proposed 10-country plan <Compass size={14} aria-hidden /></Link>
-            {conceptPreview && <Link href="/planet/planning/map" className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Open interactive flat atlas <Compass size={14} aria-hidden /></Link>}
+            {conceptPreview && <Link href={conceptMapHref(selectedConceptCountry)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Open interactive flat atlas <Compass size={14} aria-hidden /></Link>}
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
