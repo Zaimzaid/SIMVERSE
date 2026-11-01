@@ -303,6 +303,7 @@ model FoundingDistrict {
   verifiedGeoVersionId String?
   activatedAt DateTime?
   capacity Int @default(0)
+  occupied Int @default(0)
   createdAt DateTime @default(now())
   country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
   residents FoundingDistrictResidence[]
