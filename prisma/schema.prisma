@@ -241,7 +241,7 @@ model FoundingCitizenshipApplication {
   countryId String
   submittedNationSlug String
   motivation String @default("")
-  status String @default("PENDING_REVIEW") // PENDING_REVIEW | DENIED | WITHDRAWN
+  status String @default("PENDING_REVIEW") // PENDING_REVIEW | DENIED | WITHDRAWN | APPROVED
   intakePolicyVersion Int
   reviewedByUserId String?
   reviewedAt DateTime?
@@ -252,8 +252,9 @@ model FoundingCitizenshipApplication {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
   reviewedBy User? @relation("FoundingCitizenshipReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
-  @@index([countryId, status, createdAt])  approvals FoundingCitizenshipApprovalVote[]
+  approvals FoundingCitizenshipApprovalVote[]
   primaryIssued FoundingPrimaryCitizenship?
+  @@index([countryId, status, createdAt])
 
 }
 
