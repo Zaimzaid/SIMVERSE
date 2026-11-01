@@ -58,7 +58,9 @@ export function FoundingReviewQueue({ applications }: { applications: ReviewItem
 
   return <section className="space-y-4">
     <p className="text-sm leading-7 text-secondary">
-      This restricted review queue allows denial or an independent endorsement. Two\n      different authorized reviewers plus a separately enabled issuance policy are\n      required before primary citizenship can be issued. Reviewer grants cannot be created here.
+      This restricted review queue allows denial or an independent endorsement. Two
+      different authorized reviewers plus a separately enabled issuance policy are
+      required before primary citizenship can be issued. Reviewer grants cannot be created here.
       Applicant statements are private and visible only to authorized country reviewers.
     </p>
     {applications.length === 0
