@@ -51,7 +51,7 @@ export function FoundingCitizenInterestForm({ initial }: Props) {
         <label htmlFor="founding-country" className="mb-2 block text-sm font-semibold text-foreground">
           Preferred founding nationality — for future consideration
         </label>
-        <p className="mb-3 text-xs leading-relaxed text-secondary">
+        <p className="mb-3 text-sm leading-relaxed text-secondary">
           This is a changeable preference, not a virtual citizenship application or an approved national status.
           No fictional countries have been published by this feature.
         </p>
@@ -71,7 +71,7 @@ export function FoundingCitizenInterestForm({ initial }: Props) {
             className="mt-1 size-4 shrink-0 accent-cyan-600"/>
           <span className="space-y-1">
             <span className="block text-sm font-semibold text-foreground">I'm interested in the proposed founding district</span>
-            <span className="block text-xs leading-relaxed text-secondary">
+            <span className="block text-sm leading-relaxed text-secondary">
               The possible first pilot is in Arandia. You can express interest regardless
               of your preferred nationality. This is a non-binding signal, not a waitlist
               reservation, active residence, district assignment or access pass.
