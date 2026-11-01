@@ -9,6 +9,7 @@ export type AuditAction =
   | "user.logged_out"
   | "user.profile_updated"
   | "user.player_identity_updated"
+  | "user.founding_nation_interest_updated"
   | "user.player_avatar_updated"
   | "player.document.applied"
   | "player.document.reviewed"
