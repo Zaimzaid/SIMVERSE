@@ -1,13 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/server/context";
-import { listMyAssemblyDistricts, getDistrictModerationQueue } from "@/server/services/district-assembly-service";
+import { listMyModeratedDistricts, getDistrictModerationQueue } from "@/server/services/district-assembly-service";
 import { DistrictModerationClient } from "@/components/civilization/district-moderation-client";
 
 export const metadata: Metadata = { title: "District Assembly Moderation | SIMVERSE", robots: { index: false } };
 export default async function DistrictModerationPage() {
   const user = await requireUser();
-  const memberships = await listMyAssemblyDistricts(user.id);
+  const memberships = await listMyModeratedDistricts(user.id);
   const district = memberships.districts[0];
   const queue = district ? await getDistrictModerationQueue(user.id, district.id) : null;
   return <main className="mx-auto max-w-5xl space-y-6">
