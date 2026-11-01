@@ -54,7 +54,7 @@ export async function getDistrictLandPlan(userId: string, rawDistrictId: string)
         zone: a.zone, x: a.x, y: a.y, width: a.width, height: a.height })),
     } : null,
     protectedPercent: protectedArea / 1_000_000,
-    notice: LAND_PLANNING_NOTICE, realLandActivated: false, constructionAllowed: false,
+    notice: LAND_PLANNING_NOTICE, realLandActivated: false as const, constructionAllowed: false as const,
   };
 }
 
