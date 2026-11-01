@@ -4,15 +4,18 @@ import { Flag, MapPin, ShieldCheck, Users } from "lucide-react";
 import { requireUser } from "@/server/context";
 import { getMyPlayerIdentity } from "@/server/services/player-identity-service";
 import { getMyFoundingCitizenInterest } from "@/server/services/founding-citizen-interest-service";
+import { getMyFoundingCitizenshipDraft } from "@/server/services/founding-citizenship-draft-service";
+import { FoundingCitizenshipDraftForm } from "@/components/player/founding-citizenship-draft-form";
 import { FoundingCitizenInterestForm } from "@/components/player/founding-citizen-interest-form";
 
 export const metadata: Metadata = { title: "My Civilization | SIMVERSE" };
 
 export default async function MyCivilizationPage() {
   const user = await requireUser();
-  const [identity, interest] = await Promise.all([
+  const [identity, interest, applicationDraft] = await Promise.all([
     getMyPlayerIdentity(user.id),
     getMyFoundingCitizenInterest(user.id),
+    getMyFoundingCitizenshipDraft(user.id),
   ]);
   return (
     <main className="mx-auto max-w-5xl space-y-7">
@@ -67,6 +70,14 @@ export default async function MyCivilizationPage() {
           or your previously reviewed virtual citizenship documents.
         </p>
         <FoundingCitizenInterestForm initial={interest} />
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold text-foreground">Prepare a citizenship application</h2>
+          <span className="rounded-full border border-border px-3 py-1 text-sm font-semibold text-secondary">Phase 3B · Draft only</span>
+        </div>
+        <FoundingCitizenshipDraftForm initial={applicationDraft} suggestedCountry={interest.preferredNationSlug} />
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
