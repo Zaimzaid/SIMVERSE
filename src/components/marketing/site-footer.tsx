@@ -9,7 +9,7 @@ export function SiteFooter() {
             <Logo size="md" />
             <p className="mt-3 max-w-sm text-sm text-secondary">
               Build Your Civilization. Explore the fictional planet, connect with citizens,
-              and help shape the future of SIMVERSE communities.
+              and help shape the future of KAVANDRO communities.
             </p>
           </div>
           <div className="text-sm text-muted">
@@ -18,7 +18,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-8 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-xs text-muted sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} SIMVERSE. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} KAVANDRO. All rights reserved.</p>
           <p>Build Your Civilization.</p>
         </div>
       </div>
