@@ -66,6 +66,8 @@ model User {
   foundingMoves FoundingDistrictMove[]
   foundingVisit FoundingVisit?
   vascoinAccount VascoinAccount?
+  landPlanningGrants FoundingLandPlanningGrant[]
+  landPlansCreated FoundingLandPlan[]
   assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
   assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
   assemblyVotes DistrictAssemblyVote[]
@@ -322,6 +324,8 @@ model FoundingDistrict {
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
   vascoinTreasury VascoinAccount?
+  landPlan FoundingLandPlan?
+  landPlanningGrants FoundingLandPlanningGrant[]
   @@unique([countryId, slug])
   @@index([countryId, status])
 }
@@ -494,6 +498,47 @@ model VascoinJournal {
   @@index([districtId, createdAt])
   @@index([debitAccountId, createdAt])
   @@index([creditAccountId, createdAt])
+}
+
+// Phase 7: diagram-only district schematic. NOT cadastral geography.
+// Phase 2 authoritative district boundaries are not yet integrated.
+// NO approved/activated sites, land titles, parcel ownership or construction.
+model FoundingLandPlanningGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+}
+
+model FoundingLandPlan {
+  id String @id @default(cuid())
+  districtId String @unique
+  createdByUserId String
+  status String @default("SCHEMATIC_DRAFT")
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  creator User @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  areas FoundingLandArea[]
+}
+
+model FoundingLandArea {
+  id String @id @default(cuid())
+  planId String
+  name String
+  kind String // PROTECTED | PUBLIC_RESERVE | DEVELOPMENT
+  zone String // ECOLOGICAL | CORRIDOR | CIVIC | RESIDENTIAL | COMMERCIAL | MIXED_USE
+  x Int
+  y Int
+  width Int
+  height Int
+  createdAt DateTime @default(now())
+  plan FoundingLandPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  @@index([planId, kind])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
