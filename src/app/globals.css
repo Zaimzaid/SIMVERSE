@@ -400,6 +400,29 @@
   min-height: 39rem;
 }
 
+/* Minimal guest landing: one visual hero using our original fictional atlas art.
+   Deliberately separate from the logged-in dashboard and the legacy Earth map. */
+.simverse-landing-hero {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(98deg, rgba(3, 12, 27, .96) 0%, rgba(5, 19, 38, .93) 45%, rgba(7, 25, 43, .81) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+  background-position: center, 70% center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+[data-theme="light"] .simverse-landing-hero {
+  background-color: #e6f1f6;
+  background-image:
+    linear-gradient(98deg, rgba(244, 250, 253, .98) 0%, rgba(231, 243, 250, .94) 48%, rgba(222, 237, 248, .83) 100%),
+    url("/backgrounds/simverse-world-atlas.svg");
+}
+@media (max-width: 640px) {
+  .simverse-landing-hero {
+    background-position: center, 62% center;
+  }
+}
+
 /* Section banners provide visual identity on Profile/Create/Economy/Simulate. */
 .simverse-page-scene {
   position: relative;
