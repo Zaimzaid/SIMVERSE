@@ -5,11 +5,11 @@ import { parseOrThrow } from "@/lib/validation";
 import { getSessionUser } from "@/server/auth/session";
 import { dataResponse, errorResponse } from "@/server/api/response";
 import {
-  getDistrictModerationQueue, moderateDistrictProposal,
+  getDistrictModerationQueue, resolveDistrictReport, moderateDistrictProposal,
   moderateDistrictComment, createDistrictNotice,
 } from "@/server/services/district-assembly-service";
 
-const actionSchema = z.enum(["PROPOSAL", "COMMENT", "NOTICE"]);
+const actionSchema = z.enum(["PROPOSAL", "COMMENT", "NOTICE", "REPORT"]);
 async function loggedInModeratorId() {
   const user = await getSessionUser();
   if (!user) throw new AuthenticationError("Sign in with an active district moderator grant.");
@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     const kind = parseOrThrow(actionSchema, action);
     const result = kind === "PROPOSAL" ? await moderateDistrictProposal(userId, payload)
       : kind === "COMMENT" ? await moderateDistrictComment(userId, payload)
-      : await createDistrictNotice(userId, payload);
+      : kind === "NOTICE" ? await createDistrictNotice(userId, payload)
+      : await resolveDistrictReport(userId, payload);
     return dataResponse(result);
   } catch (error) { return errorResponse(error); }
 }
