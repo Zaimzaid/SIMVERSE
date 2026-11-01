@@ -22,7 +22,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "discover", label: "Explore", description: "Discover worlds and places",
-    icon: Compass, routes: ["/earth/geography", "/worlds", "/entities", "/experiences"],
+    icon: Compass, routes: ["/planet", "/earth/geography", "/worlds", "/entities", "/experiences"],
   },
   {
     id: "build", label: "Build", description: "Create and manage content",
@@ -64,9 +64,27 @@ export function visibleAreaItems(area: PlatformArea, permissions: readonly Permi
     .filter((item): item is NavItem => Boolean(item) && canSeeNavItem(item!, permissions));
 }
 
-export function visibleAreas(permissions: readonly Permission[]) {
+/** Citizen-first navigation is a presentation choice, NOT an authorization role.
+ * Existing creator/workspace links remain available through the full view.
+ */
+export type NavigationSurface = "all" | "citizen";
+export const CITIZEN_ROUTES = new Set([
+  "/dashboard", "/settings", "/planet", "/social",
+  "/profile", "/profile/documents", "/profile/travel",
+  "/anything-wars",
+]);
+
+export function visibleAreas(
+  permissions: readonly Permission[],
+  surface: NavigationSurface = "all",
+) {
   return PLATFORM_AREAS
-    .map((area) => ({ ...area, items: visibleAreaItems(area, permissions) }))
+    .map((area) => ({
+      ...area,
+      items: visibleAreaItems(area, permissions).filter(
+        (item) => surface === "all" || CITIZEN_ROUTES.has(item.href),
+      ),
+    }))
     .filter((area) => area.items.length > 0);
 }
 

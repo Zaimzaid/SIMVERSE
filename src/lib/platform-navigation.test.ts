@@ -31,6 +31,21 @@ describe("SIMVERSE workspace navigation redesign", () => {
       .map((item) => item.href)).toContain("/create");
   });
 
+  it("shows a citizen-first surface without removing creator authority", () => {
+    const citizen = visibleAreas(full, "citizen");
+    const citizenLinks = citizen.flatMap((area) => area.items.map((item) => item.href));
+    expect(citizenLinks).toContain("/planet");
+    expect(citizenLinks).toContain("/social");
+    expect(citizenLinks).toContain("/profile");
+    expect(citizenLinks).not.toContain("/create");
+    expect(citizenLinks).not.toContain("/projects");
+    expect(citizenLinks).not.toContain("/earth/geography");
+    expect(citizenLinks).not.toContain("/economy/lab");
+    expect(visibleAreas(full).flatMap((area) => area.items.map((item) => item.href)))
+      .toContain("/create");
+    expect(areaForPath("/planet").id).toBe("discover");
+  });
+
   it("resolves nested player and economy pages correctly rather than dumping them into Home", () => {
     expect(areaForPath("/dashboard").id).toBe("home");
     expect(areaForPath("/profile").id).toBe("identity");

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Bookmark, Compass, Plus, UserRound } from "lucide-react";
+import { ArrowUpRight, Bookmark, Compass, UserRound } from "lucide-react";
 import { areaForPath, canSeeNavItem } from "@/lib/platform-navigation";
 import { NAV_ITEMS } from "@/lib/nav";
 import type { Permission } from "@/lib/permissions";
@@ -21,8 +21,8 @@ export function ContextRail({
   const pathname = usePathname();
   const active = areaForPath(pathname);
   const actionRoutesByArea: Record<string, string[]> = {
-    home: ["/create", "/earth/geography", "/economy/lab", "/profile"],
-    discover: ["/earth/geography", "/worlds", "/entities", "/create"],
+    home: ["/planet", "/social", "/profile", "/profile/documents"],
+    discover: ["/planet", "/social", "/profile", "/profile/documents"],
     build: ["/create", "/projects", "/assets", "/templates", "/studio"],
     simulations: ["/anything-wars", "/simulations", "/tournaments", "/create"],
     economy: ["/economy/lab", "/profile/career", "/profile/work", "/earth/geography"],
@@ -67,16 +67,9 @@ export function ContextRail({
             Switch areas across the top without losing your work.
           </p>
           <div className="mt-4 flex flex-col gap-2">
-            {permissions.includes("project.create") && (
-              <Link href="/create" className="flex items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-xs font-semibold text-accent-foreground hover:bg-accent-hover">
-                <Plus className="size-4" /> Create something
-              </Link>
-            )}
-            {permissions.includes("workspace.view") && (
-              <Link href="/earth/geography" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
-                <Compass className="size-4" /> Enter Earth Explorer
-              </Link>
-            )}
+            <Link href="/planet" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
+              <Compass className="size-4" /> Preview SIMVERSE Planet
+            </Link>
             <Link href="/profile" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
               <UserRound className="size-4" /> My profile
             </Link>

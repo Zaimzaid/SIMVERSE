@@ -30,7 +30,7 @@ import type { SignaturePlanetRenderer } from "@/lib/planet/signature-planet-rend
 
 type Position = { x: number; y: number };
 
-export function SignaturePlanetExplorer() {
+export function SignaturePlanetExplorer({ conceptPreview = false }: { conceptPreview?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<SignaturePlanetRenderer | null>(null);
   const pointersRef = useRef(new Map<number, Position>());
@@ -67,7 +67,7 @@ export function SignaturePlanetExplorer() {
       .then(({ SignaturePlanetRenderer, checkPlanetWebGL }) => {
         if (!alive) return;
         if (!checkPlanetWebGL()) throw new Error("3D graphics are unavailable in this browser.");
-        instance = new SignaturePlanetRenderer(canvas, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+        instance = new SignaturePlanetRenderer(canvas, window.matchMedia("(prefers-reduced-motion: reduce)").matches, conceptPreview);
         engineRef.current = instance;
         observer = new ResizeObserver((entries) => {
           const rect = entries[0]?.contentRect;
@@ -90,7 +90,7 @@ export function SignaturePlanetExplorer() {
       engineRef.current = null;
       pointersRef.current.clear();
     };
-  }, [retry]);
+  }, [retry, conceptPreview]);
 
   const toggleOrbit = useCallback(() => {
     if (reducedMotion) return;
@@ -181,15 +181,15 @@ export function SignaturePlanetExplorer() {
         </div>
         <div className="flex items-center gap-2 rounded-full border border-cyan-300/25 bg-[#061b32]/85 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-cyan-100 backdrop-blur">
           <span className="size-1.5 rounded-full bg-cyan-300" aria-hidden />
-          Orbital planet · Visual proof
+          {conceptPreview ? "Concept globe · Unapproved" : "Orbital planet · Visual proof"}
         </div>
       </header>
 
       <main className="pointer-events-none relative z-10 flex flex-1 flex-col justify-between gap-6 px-4 pb-6 pt-8 sm:px-8 sm:pb-8">
         <div className="max-w-sm">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">A universe waiting to be created</p>
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">Your world.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">No borders yet.</span></h1>
-          <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">An original planet, ready for the countries and stories we create.</p>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">{conceptPreview ? <>Five continents.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">A proposed design.</span></> : <>Your world.<br /><span className="bg-gradient-to-r from-cyan-200 to-[#9d81e8] bg-clip-text text-transparent">No borders yet.</span></>}</h1>
+          <p className="mt-3 max-w-[17rem] text-sm leading-relaxed text-slate-300 sm:max-w-xs">{conceptPreview ? "A reversible visual study of five original landmasses. Nothing here is officially published." : "An original planet, ready for the countries and stories we create."}</p>
         </div>
 
         {!ready && (
@@ -212,8 +212,10 @@ export function SignaturePlanetExplorer() {
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-200"><Globe2 size={15} aria-hidden /> World status</div>
               <span className="rounded-full bg-amber-200/10 px-2 py-1 text-[10px] font-medium text-amber-100">Unallocated</span>
             </div>
-            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">countries</span></div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages.</p>
+            <div className="flex items-baseline gap-2"><strong className="font-display text-4xl font-semibold tabular-nums">0</strong><span className="text-sm text-slate-300">{conceptPreview ? "published countries" : "countries"}</span></div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-400">{conceptPreview ? "The landmasses and ten colored country outlines are unapproved concepts. There are still zero published countries." : "No fictional territories are published in this visual proof. Country creation and live geography will follow in the next stages."}</p>
+            <Link href="/planet/planning" className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Explore the proposed 10-country plan <Compass size={14} aria-hidden /></Link>
+            {conceptPreview && <Link href="/planet/planning/map" className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-300/10">Open interactive flat atlas <Compass size={14} aria-hidden /></Link>}
             <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-slate-300"><ShieldCheck size={15} className="text-cyan-300" aria-hidden /> No real-world geography</div>
           </div>
           <div className="pointer-events-auto flex items-center gap-2 self-end rounded-2xl border border-white/15 bg-[#06162a]/90 p-2 backdrop-blur-md" aria-label="Planet controls">
