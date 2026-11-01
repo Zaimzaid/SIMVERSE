@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     const userId = await loggedInModeratorId();
     const raw: unknown = await request.json().catch(() => ({}));
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new ValidationError("Invalid moderation request.");
-    const { action, ...payload } = raw as Record<string, unknown>;
+    const { action, decision, ...fields } = raw as Record<string, unknown>;
     const kind = parseOrThrow(actionSchema, action);
+    const payload = kind === "NOTICE" ? fields : { ...fields, action: decision };
     const result = kind === "PROPOSAL" ? await moderateDistrictProposal(userId, payload)
       : kind === "COMMENT" ? await moderateDistrictComment(userId, payload)
       : kind === "NOTICE" ? await createDistrictNotice(userId, payload)
