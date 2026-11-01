@@ -34,9 +34,9 @@ export default async function MyProfilePage() {
   return <div className="mx-auto max-w-6xl space-y-7">
     <ProfileIdentityPanel initial={identity} countries={countries}/>
     <section aria-label="Profile overview" className="grid gap-3 sm:grid-cols-3">
-      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Your friends</p><p className="mt-1 text-2xl font-semibold">{social.friends.length}</p><Link href="/social" className="mt-2 block text-xs text-accent">Open community →</Link></div>
-      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Creations in your active workspace</p><p className="mt-1 text-2xl font-semibold">{portfolio.items.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">My creations →</Link></div>
-      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-xs text-secondary">Publicly shared stories</p><p className="mt-1 text-2xl font-semibold">{portfolio.published.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">View portfolio →</Link></div>
+      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-sm text-secondary">Your friends</p><p className="mt-1 text-2xl font-semibold">{social.friends.length}</p><Link href="/social" className="mt-2 block text-xs text-accent">Open community →</Link></div>
+      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-sm text-secondary">Creations in your active workspace</p><p className="mt-1 text-2xl font-semibold">{portfolio.items.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">My creations →</Link></div>
+      <div className="rounded-2xl border border-border bg-surface p-4"><p className="text-sm text-secondary">Publicly shared stories</p><p className="mt-1 text-2xl font-semibold">{portfolio.published.length}</p><Link href="/profile/creations" className="mt-2 block text-xs text-accent">View portfolio →</Link></div>
     </section>
     <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6" aria-labelledby="getting-started">
       <div className="flex items-start gap-3"><Sparkles className="mt-1 size-5 text-accent"/>
@@ -46,16 +46,16 @@ export default async function MyProfilePage() {
         {steps.map((step) => <div key={step.label} className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 text-sm">
           <span aria-hidden className={step.done ? "text-emerald-500" : "text-muted"}>{step.done ? "✓" : "○"}</span>{step.label}</div>)}
       </div>
-      <p className="mt-3 text-xs text-secondary">Your profile is private by default. You can keep it private and still complete all steps.</p>
+      <p className="mt-3 text-sm text-secondary">{identity.profileVisibility === "PUBLIC" ? "Your profile is currently public. You can change visibility in Edit Profile; your private account identifiers and documents remain hidden." : "Your profile is currently visible to you and accepted friends. You can complete all setup steps without making it public."}</p>
       {completed < steps.length && <Link href="#identity" className="mt-3 inline-block text-sm font-semibold text-accent">Open my profile →</Link>}
     </section>
     <section aria-labelledby="profile-sections">
       <h2 id="profile-sections" className="mb-3 text-xl font-semibold">Your SIMVERSE</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sections.map(({label,detail,href,icon:Icon}) =>
-          <Link key={label} href={href} className="group flex min-h-36 flex-col justify-between rounded-2xl border border-border bg-surface p-5 transition hover:border-accent/50 hover:bg-surface-hover">
+          <Link key={label} href={href} className="group flex min-h-32 flex-col justify-between rounded-2xl border border-border bg-surface p-4 transition hover:border-accent/50 hover:bg-surface-hover">
             <div className="flex items-start justify-between"><span className="rounded-xl bg-accent-soft p-3 text-accent"><Icon className="size-5"/></span><ArrowUpRight className="size-4 text-muted group-hover:text-accent"/></div>
-            <div><h3 className="font-semibold">{label}</h3><p className="mt-1 text-xs text-secondary">{detail}</p></div>
+            <div><h3 className="font-semibold">{label}</h3><p className="mt-1 text-sm leading-5 text-secondary">{detail}</p></div>
           </Link>)}
       </div>
       <Link href="/profile/travel" className="mt-3 inline-flex items-center gap-2 text-sm text-accent"><Plane className="size-4"/> Travel and immigration</Link>
