@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/client/api";
 
@@ -17,6 +17,7 @@ const number = new Intl.NumberFormat("en-NG");
 export function VascoinWalletClient({ initial }: { initial: Overview }) {
   const router = useRouter();
   const [amount, setAmount] = useState(10);
+  const contributionRetryId = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -40,10 +41,11 @@ export function VascoinWalletClient({ initial }: { initial: Overview }) {
     setMessage(null);
     const result = await apiFetch("/api/civilization/vascoin/contribute", {
       method: "POST",
-      body: JSON.stringify({ amount, requestId: crypto.randomUUID() }),
+      body: JSON.stringify({ amount, requestId: contributionRetryId.current ??= crypto.randomUUID() }),
     });
     setBusy(false);
     if (result.error) { setSuccess(false); setMessage(result.error.message); return; }
+    contributionRetryId.current = null;
     setSuccess(true);
     setMessage("Virtual contribution recorded in your district treasury. This does not authorize construction.");
     router.refresh();
@@ -91,7 +93,7 @@ export function VascoinWalletClient({ initial }: { initial: Overview }) {
               Contribute virtual VC
             </label>
             <input id="vascoin-contribution" type="number" min={1} max={500} step={1}
-              value={amount} onChange={(e) => setAmount(Number(e.target.value))}
+              value={amount} onChange={(e) => { contributionRetryId.current = null; setAmount(Number(e.target.value)); }}
               className="mt-2 h-11 w-36 rounded-xl border border-border bg-background px-3 text-sm text-foreground" />
           </div>
           <button type="button" onClick={contribute}
