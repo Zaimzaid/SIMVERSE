@@ -6,6 +6,9 @@ import { getMyPlayerIdentity } from "@/server/services/player-identity-service";
 import { getMyFoundingCitizenInterest } from "@/server/services/founding-citizen-interest-service";
 import { getMyFoundingCitizenshipDraft } from "@/server/services/founding-citizenship-draft-service";
 import { getMyFoundingApplicationReadiness } from "@/server/services/founding-citizenship-intake-service";
+import { getMyFoundingCivicStatus, listJoinableFoundingDistricts } from "@/server/services/founding-residence-service";
+import { listPublicFictionalCountries } from "@/server/services/fictional-planet-service";
+import { FoundingCivicDashboard } from "@/components/player/founding-civic-dashboard";
 import { FoundingApplicationReadinessPanel } from "@/components/player/founding-application-readiness-panel";
 import { FoundingCitizenshipDraftForm } from "@/components/player/founding-citizenship-draft-form";
 import { FoundingCitizenInterestForm } from "@/components/player/founding-citizen-interest-form";
@@ -14,11 +17,14 @@ export const metadata: Metadata = { title: "My Civilization | SIMVERSE" };
 
 export default async function MyCivilizationPage() {
   const user = await requireUser();
-  const [identity, interest, applicationDraft, applicationReadiness] = await Promise.all([
+  const [identity, interest, applicationDraft, applicationReadiness, civic, eligibleDistricts, countries] = await Promise.all([
     getMyPlayerIdentity(user.id),
     getMyFoundingCitizenInterest(user.id),
     getMyFoundingCitizenshipDraft(user.id),
     getMyFoundingApplicationReadiness(user.id),
+    getMyFoundingCivicStatus(user.id),
+    listJoinableFoundingDistricts(user.id),
+    listPublicFictionalCountries(),
   ]);
   return (
     <main className="mx-auto max-w-5xl space-y-7">
@@ -92,6 +98,17 @@ export default async function MyCivilizationPage() {
           Countries without published geography or independently opened intake remain closed.
         </p>
         <FoundingApplicationReadinessPanel initial={applicationReadiness} />
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold text-foreground">Nationality, residency and travel</h2>
+        <p className="mt-2 mb-4 text-sm text-secondary">
+          Independent verified records determine your citizenship and home district.
+          A temporary visit never changes voting eligibility.
+        </p>
+        <FoundingCivicDashboard initial={civic}
+          districts={eligibleDistricts.districts}
+          publicCountries={countries.countries.map(({id, name}) => ({id, name}))}/>
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
