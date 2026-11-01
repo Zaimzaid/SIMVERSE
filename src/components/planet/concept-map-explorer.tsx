@@ -64,7 +64,7 @@ export function ConceptMapExplorer({ initialCountrySlug }: { initialCountrySlug?
           <svg
             viewBox="0 0 1000 500"
             className="w-full"
-            role="img"
+            role="group"
             aria-label="An original five-continent fictional planet concept with ten candidate country markers; this is not published territory."
           >
             <defs>
@@ -97,6 +97,18 @@ export function ConceptMapExplorer({ initialCountrySlug }: { initialCountrySlug?
             {showBoundarySketches && CONCEPT_COUNTRY_BOUNDARIES.map((country) => (
               <path
                 key={country.slug}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${country.name} draft country outline`}
+                aria-pressed={selected === country.slug}
+                onClick={() => chooseCountry(country.slug)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    chooseCountry(country.slug);
+                  }
+                }}
+                className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 d={countryBoundaryPath(country)}
                 fill={country.color}
                 fillOpacity={country.slug === selected ? 0.86 : 0.58}
