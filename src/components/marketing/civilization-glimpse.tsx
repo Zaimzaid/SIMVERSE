@@ -34,7 +34,7 @@ const moments = [
 
 export function CivilizationGlimpse() {
   const [active, setActive] = useState(0);
-  const moment = moments[active];
+  const moment = moments[active] ?? moments[0];
   const Icon = moment.icon;
 
   return (
