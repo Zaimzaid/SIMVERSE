@@ -56,6 +56,7 @@ model User {
   economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
   foundingCitizenInterest FoundingCitizenInterest?
+  foundingCitizenshipDraft FoundingCitizenshipDraft?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
   virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
@@ -181,6 +182,21 @@ model FoundingCitizenInterest {
 
   @@index([preferredNationSlug])
   @@index([proposedPilotInterest])
+}
+
+// Phase 3B: one private *draft* per user for future founding-world
+// citizenship consideration. Not an actual application queue or grant.
+// Deliberately NO approval/status fields or link to EarthGeoPlace citizenship.
+model FoundingCitizenshipDraft {
+  userId            String   @id
+  targetNationSlug  String
+  motivation        String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([targetNationSlug])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
