@@ -101,6 +101,19 @@ export default async function MyCivilizationPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold text-foreground">District land & zoning</h2>
+        <p className="mt-2 text-sm leading-7 text-secondary">
+          Explore a clearly labeled schematic of protected corridors, public reserves
+          and possible development areas. Only independently granted planners can edit drafts;
+          no official land parcels are active.
+        </p>
+        <Link href="/profile/civilization/land"
+          className="mt-4 inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-accent">
+          Open land planning preview
+        </Link>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <h2 className="font-display text-xl font-semibold text-foreground">My Vascoin Wallet</h2>
         <p className="mt-2 text-sm leading-7 text-secondary">
           Track virtual daily rewards, your own nonredeemable VC balance, and
