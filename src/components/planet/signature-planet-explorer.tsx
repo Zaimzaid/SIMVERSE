@@ -45,6 +45,7 @@ export function SignaturePlanetExplorer({
   const [autoOrbit, setAutoOrbit] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const selectedConceptCountryRef = useRef(resolveConceptCountrySlug(initialConceptCountrySlug));
   const [selectedConceptCountry, setSelectedConceptCountry] = useState(
     resolveConceptCountrySlug(initialConceptCountrySlug),
   );
@@ -55,6 +56,7 @@ export function SignaturePlanetExplorer({
   function selectConceptCountry(slug: string) {
     const site = CONCEPT_COUNTRY_SITES.find((item) => item.slug === slug);
     if (!conceptPreview || !site) return;
+    selectedConceptCountryRef.current = site.slug;
     setSelectedConceptCountry(site.slug);
     engineRef.current?.focusConceptCountry(site.center);
     setAutoOrbit(false);
@@ -91,7 +93,7 @@ export function SignaturePlanetExplorer({
         engineRef.current = instance;
         if (conceptPreview) {
           const site = CONCEPT_COUNTRY_SITES.find(
-            (item) => item.slug === resolveConceptCountrySlug(initialConceptCountrySlug),
+            (item) => item.slug === selectedConceptCountryRef.current,
           );
           if (site) instance.focusConceptCountry(site.center);
         }
