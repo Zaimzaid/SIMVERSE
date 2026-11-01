@@ -20,10 +20,10 @@ export function ProfileIdentityPanel({ initial, countries }: {
 
   return <section id="identity" className="space-y-4 scroll-mt-6" aria-labelledby="profile-identity-heading">
     <div className="overflow-hidden rounded-3xl border border-border bg-surface">
-      <div className="relative h-36 bg-gradient-to-br from-[#13283e] via-[#087988] to-[#1a4f65] sm:h-52">
+      <div className="relative h-24 bg-gradient-to-br from-[#13283e] via-[#087988] to-[#1a4f65] sm:h-32">
         {profile.bannerUrl && <img src={profile.bannerUrl} alt="" className="size-full object-cover"/>}
       </div>
-      <div className="flex flex-wrap items-center gap-4 px-5 py-5 sm:px-8">
+      <div className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
         <Avatar name={profile.displayName} src={profile.avatarUrl} size="lg" className="ring-4 ring-surface"/>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">My SIMVERSE Profile</p>
@@ -60,10 +60,9 @@ export function ProfileIdentityPanel({ initial, countries }: {
           <p className="mt-1 text-sm text-secondary">Your saved information is displayed above. Edit it only when you need to make changes.</p>
           {profile.creatorName && <p className="mt-2 text-sm text-secondary">Creator: {profile.creatorName}</p>}
           {profile.homeCountry?.name && <p className="text-sm text-secondary">Virtual home: {profile.homeCountry.name}</p>}
-          <p className="mt-1 text-xs text-secondary">Visibility: {profile.profileVisibility === "PUBLIC" ? "Public" : "Only you and accepted friends"}</p>
+          <p className="mt-1 text-sm text-secondary">Visibility: {profile.profileVisibility === "PUBLIC" ? "Public" : "Only you and accepted friends"}</p>
         </div>
-        <button type="button" onClick={() => setEditing(true)}
-          className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:border-accent">Edit Profile</button>
+
       </div>
     </div>}
   </section>;
