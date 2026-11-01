@@ -27,6 +27,8 @@ export type AuditAction =
   | "assembly.vote_cast"
   | "assembly.report_submitted"
   | "assembly.report_reviewed"
+  | "vascoin.daily_claim"
+  | "vascoin.district_contribution"
   | "user.player_avatar_updated"
   | "player.document.applied"
   | "player.document.reviewed"
