@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/client/api";
 
 type ReviewQueue = {
   proposals: { id: string; title: string; description: string }[];
+  openProposals: { id: string; title: string; support: number; oppose: number }[];
   comments: { id: string; body: string; proposalId: string }[];
   reports: { id: string; reason: string; proposalId: string; commentId: string | null }[];
 };
@@ -48,6 +49,24 @@ export function DistrictModerationClient({ districtId, queue }: { districtId: st
             className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-50">Reject proposal</button>
         </div>
       </article>)}
+    </section>
+    <section className="rounded-2xl border border-border bg-surface p-5">
+      <h2 className="text-lg font-semibold text-foreground">Recommend an idea for staff feasibility</h2>
+      <p className="mt-2 text-sm text-secondary">
+        At least 3 supporting votes and a supporting majority are required.
+        Shortlisting is advisory: it does not authorize construction or spending.
+      </p>
+      {queue.openProposals.map((p) => <div key={p.id}
+        className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-border p-4 text-sm">
+        <span className="min-w-0 flex-1 font-semibold">{p.title}</span>
+        <span>Support {p.support} · Oppose {p.oppose}</span>
+        <button type="button" disabled={busy || p.support < 3 || p.support <= p.oppose}
+          onClick={() => act({ action: "PROPOSAL", proposalId: p.id,
+            decision: "SHORTLIST", reason: "Forward for future staff feasibility review" })}
+          className="min-h-10 rounded-lg border border-border px-3 disabled:opacity-50">
+          Recommend to staff
+        </button>
+      </div>)}
     </section>
     <section className="rounded-2xl border border-border bg-surface p-5">
       <h2 className="text-lg font-semibold text-foreground">Moderate comments ({queue.comments.length})</h2>
