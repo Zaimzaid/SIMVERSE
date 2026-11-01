@@ -101,6 +101,19 @@ export default async function MyCivilizationPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold text-foreground">My District Assembly</h2>
+        <p className="mt-2 text-sm leading-7 text-secondary">
+          Discuss what your community should build, submit a moderated project
+          idea, see announcements and vote when your district becomes eligible.
+          Unapproved districts remain inactive.
+        </p>
+        <Link href="/profile/civilization/assembly"
+          className="mt-4 inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-accent">
+          Open my district assembly
+        </Link>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <h2 className="font-display text-xl font-semibold text-foreground">Nationality, residency and travel</h2>
         <p className="mt-2 mb-4 text-sm text-secondary">
           Independent verified records determine your citizenship and home district.
