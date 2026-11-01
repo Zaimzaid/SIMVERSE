@@ -73,7 +73,7 @@ export async function getDistrictAssembly(userId: string, districtId: string) {
     prisma.districtAssemblyProposal.findMany({
       where: { districtId },
       select: {
-        id: true, title: true, category: true, status: true, description: true,
+        id: true, authorUserId: true, title: true, category: true, status: true, description: true,
         createdAt: true, reviewReason: true,
         author: { select: { displayName: true } },
         votes: { select: { userId: true, choice: true } },
@@ -102,7 +102,7 @@ export async function getDistrictAssembly(userId: string, districtId: string) {
     canPropose: true, canComment: true, canVote: voteEligible,
     canModerate: isModerator,
     notices,
-    proposals: proposals.filter((p) => p.status !== "PENDING_MODERATION" || isModerator).map((p) => ({
+    proposals: proposals.filter((p) => p.status === "OPEN" || p.status === "SHORTLISTED_FOR_FEASIBILITY" || p.authorUserId === userId || isModerator).map((p) => ({
       id: p.id, title: p.title, category: p.category, status: p.status, description: p.description,
       authorDisplayName: p.author.displayName, createdAt: p.createdAt, reviewReason: p.reviewReason,
       support: p.votes.filter((v) => v.choice === "SUPPORT").length,
@@ -249,6 +249,11 @@ export async function reportDistrictContent(userId: string, payload: unknown) {
     });
     if (!comment) throw new ValidationError("Comment does not belong to this proposal.");
   }
+  const duplicate = await prisma.districtAssemblyReport.findFirst({
+    where: { reporterUserId: userId, proposalId: proposal.id, commentId: data.commentId },
+    select: { id: true },
+  });
+  if (duplicate) throw new ConflictError("You already reported this content.");
   const recent = await prisma.districtAssemblyReport.count({
     where: { reporterUserId: userId, createdAt: { gte: since(1) } },
   });
@@ -261,6 +266,45 @@ export async function reportDistrictContent(userId: string, payload: unknown) {
     entityType: "DistrictAssemblyReport", entityId: report.id,
     metadata: { proposalId: proposal.id, districtId: proposal.districtId } });
   return { reportId: report.id, status: "OPEN" as const };
+}
+
+export async function resolveDistrictReport(userId: string, payload: unknown) {
+  const data = parseOrThrow(
+    (await import("@/lib/civilization/assembly-contract")).reviewReportSchema,
+    payload,
+  );
+  return prisma.$transaction(async (tx) => {
+    const report = await tx.districtAssemblyReport.findUnique({
+      where: { id: data.reportId },
+      include: { proposal: { select: { districtId: true, authorUserId: true } },
+        comment: { select: { authorUserId: true } } },
+    });
+    if (!report) throw new ValidationError("Unknown report.");
+    await moderator(userId, report.proposal.districtId, tx);
+    if (report.status !== "OPEN") throw new ConflictError("Report already resolved.");
+    if (report.proposal.authorUserId === userId ||
+      (report.comment && report.comment.authorUserId === userId)) {
+      throw new AuthorizationError("You cannot moderate a report about your own content.");
+    }
+    if (data.action === "HIDE_COMMENT") {
+      if (!report.commentId) throw new ValidationError("This report is not about a comment.");
+      await tx.districtAssemblyComment.update({
+        where: { id: report.commentId }, data: { status: "HIDDEN" },
+      });
+    } else if (data.action === "HIDE_PROPOSAL") {
+      await tx.districtAssemblyProposal.update({
+        where: { id: report.proposalId }, data: { status: "HIDDEN" },
+      });
+    }
+    await tx.districtAssemblyReport.update({
+      where: { id: report.id },
+      data: { status: "RESOLVED", reviewedByUserId: userId },
+    });
+    await recordAudit({ action: "assembly.report_reviewed", actorUserId: userId,
+      entityType: "DistrictAssemblyReport", entityId: report.id,
+      metadata: { action: data.action, districtId: report.proposal.districtId } }, tx);
+    return { id: report.id, status: "RESOLVED" as const, action: data.action };
+  });
 }
 
 export async function getDistrictModerationQueue(userId: string, districtId: string) {
