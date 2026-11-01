@@ -67,8 +67,6 @@ model User {
   foundingVisit FoundingVisit?
   vascoinAccount VascoinAccount?
   landPlanningGrants FoundingLandPlanningGrant[]
-  developmentStaffGrants FoundingDevelopmentStaffGrant[]
-  developmentCases FoundingDevelopmentCase[]
   landPlansCreated FoundingLandPlan[]
   developmentStaffGrants FoundingDevelopmentStaffGrant[]
   developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
@@ -332,6 +330,8 @@ model FoundingDistrict {
   vascoinTreasury VascoinAccount?
   landPlan FoundingLandPlan?
   landPlanningGrants FoundingLandPlanningGrant[]
+  developmentStaffGrants FoundingDevelopmentStaffGrant[]
+  developmentCases FoundingDevelopmentCase[]
   @@unique([countryId, slug])
   @@index([countryId, status])
 }
