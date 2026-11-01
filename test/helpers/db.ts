@@ -45,6 +45,33 @@ export async function resetDb(): Promise<void> {
   await prisma.playerDocumentApplication.deleteMany();
   await prisma.playerDocumentReviewer.deleteMany();
   await prisma.playerCitizenship.deleteMany();
+  await prisma.foundingCitizenInterest.deleteMany();
+  await prisma.foundingVisit.deleteMany();
+  await prisma.foundingDistrictMove.deleteMany();
+  await prisma.foundingDistrictResidence.deleteMany();
+  await prisma.districtAssemblyReport.deleteMany();
+  await prisma.districtAssemblyVote.deleteMany();
+  await prisma.districtAssemblyComment.deleteMany();
+  await prisma.foundingDevelopmentUpdate.deleteMany();
+  await prisma.foundingDevelopmentCase.deleteMany();
+  await prisma.foundingDevelopmentStaffGrant.deleteMany();
+  await prisma.districtAssemblyProposal.deleteMany();
+  await prisma.districtAssemblyNotice.deleteMany();
+  await prisma.districtAssemblyModeratorGrant.deleteMany();
+  await prisma.vascoinJournal.deleteMany();
+  await prisma.vascoinAccount.deleteMany();
+  await prisma.vascoinPolicy.deleteMany();
+  await prisma.foundingLandArea.deleteMany();
+  await prisma.foundingLandPlan.deleteMany();
+  await prisma.foundingLandPlanningGrant.deleteMany();
+  await prisma.foundingDistrict.deleteMany();
+  await prisma.foundingPrimaryCitizenship.deleteMany();
+  await prisma.foundingCitizenshipApprovalVote.deleteMany();
+  await prisma.foundingCitizenshipIssuanceGate.deleteMany();
+  await prisma.foundingCitizenshipApplication.deleteMany();
+  await prisma.foundingCitizenshipReviewerGrant.deleteMany();
+  await prisma.foundingCitizenshipIntake.deleteMany();
+  await prisma.foundingCitizenshipDraft.deleteMany();
   await prisma.playerIdentity.deleteMany();
   // Earth Phase 4 global stewardship and immutable zone history. The stable
   // zone points at its active version, so clear that projection before deleting

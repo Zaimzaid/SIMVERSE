@@ -53,6 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
       { label: "My Profile", href: "/profile", icon: UserRound, exact: true },
+      { label: "My Civilization", href: "/profile/civilization", icon: Globe2 },
       { label: "Friends & Messages", href: "/social", icon: MessagesSquare, exact: true },
       { label: "My Documents", href: "/profile/documents", icon: FileBadge2, exact: true },
       { label: "Travel & Immigration", href: "/profile/travel", icon: Plane, exact: true },

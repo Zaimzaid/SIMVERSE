@@ -55,6 +55,31 @@ model User {
 
   economyLabs EconomyLab[] @relation("EconomyLabCreator")
   playerIdentity PlayerIdentity?
+  foundingCitizenInterest FoundingCitizenInterest?
+  foundingCitizenshipDraft FoundingCitizenshipDraft?
+  foundingCitizenshipApplication FoundingCitizenshipApplication?
+  foundingCitizenshipReviewGrants FoundingCitizenshipReviewerGrant[] @relation("FoundingCitizenshipReviewerUser")
+  foundingCitizenshipReviews FoundingCitizenshipApplication[] @relation("FoundingCitizenshipReviewActor")
+  foundingPrimaryCitizenship FoundingPrimaryCitizenship?
+  foundingApprovalVotes FoundingCitizenshipApprovalVote[]
+  foundingResidence FoundingDistrictResidence?
+  foundingMoves FoundingDistrictMove[]
+  foundingVisit FoundingVisit?
+  vascoinAccount VascoinAccount?
+  landPlanningGrants FoundingLandPlanningGrant[]
+  landPlansCreated FoundingLandPlan[]
+  developmentStaffGrants FoundingDevelopmentStaffGrant[]
+  developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
+  developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
+  developmentUpdatesWritten FoundingDevelopmentUpdate[]
+  assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
+  assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
+  assemblyVotes DistrictAssemblyVote[]
+  assemblyModeratorGrants DistrictAssemblyModeratorGrant[]
+  assemblyNoticesCreated DistrictAssemblyNotice[] @relation("AssemblyNoticeAuthor")
+  assemblyReportsSubmitted DistrictAssemblyReport[] @relation("AssemblyReportReporter")
+  assemblyReportsReviewed DistrictAssemblyReport[] @relation("AssemblyReportReviewer")
+  assemblyProposalsReviewed DistrictAssemblyProposal[] @relation("AssemblyProposalReviewer")
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
   virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
@@ -164,6 +189,412 @@ model PlayerCitizenship {
 
   @@unique([playerIdentityId, countryPlaceId])
   @@index([countryPlaceId, status])
+}
+
+// Phase 3 Build Your Civilization — country preference and optional future
+// district interest only. Neither column is an approved citizenship or legal
+// residence. This table is independent of the legacy EarthGeo citizenship FK.
+model FoundingCitizenInterest {
+  userId               String   @id
+  preferredNationSlug  String?
+  proposedPilotInterest Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([preferredNationSlug])
+  @@index([proposedPilotInterest])
+}
+
+// Phase 3B: one private *draft* per user for future founding-world
+// citizenship consideration. Not an actual application queue or grant.
+// Deliberately NO approval/status fields or link to EarthGeoPlace citizenship.
+model FoundingCitizenshipDraft {
+  userId            String   @id
+  targetNationSlug  String
+  motivation        String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([targetNationSlug])
+}
+
+// Staff-controlled opt-in for accepting applications from a PUBLISHED fictional
+// founding country. Never provisioned by ordinary users or planet stewards.
+// No public mutation endpoint in Phase 3B.1; default is fail-closed.
+model FoundingCitizenshipIntake {
+  countryId String  @id
+  isOpen    Boolean @default(false)
+  policyVersion Int @default(1)
+  updatedAt DateTime @updatedAt
+
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+}
+
+// Independent reviewer grant, never inherited from a workspace or planet steward.
+// No endpoint to grant reviewer permissions in Phase 3B.1.
+model FoundingCitizenshipReviewerGrant {
+  userId    String
+  countryId String
+  isActive  Boolean @default(false)
+  createdAt DateTime @default(now())
+  reviewer  User @relation("FoundingCitizenshipReviewerUser", fields: [userId], references: [id], onDelete: Cascade)
+  country   FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  @@id([userId, countryId])
+  @@index([countryId, isActive])
+}
+
+// Exactly one pending/review history record per player in this cautious pilot.
+// No approval/issuance status exists: reviewer can DENY, player can WITHDRAW.
+// A future release must separately design repeat application/transfer policies.
+model FoundingCitizenshipApplication {
+  id String @id @default(cuid())
+  userId String @unique
+  countryId String
+  submittedNationSlug String
+  motivation String @default("")
+  status String @default("PENDING_REVIEW") // PENDING_REVIEW | DENIED | WITHDRAWN | APPROVED
+  intakePolicyVersion Int
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  reviewNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("FoundingCitizenshipReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  approvals FoundingCitizenshipApprovalVote[]
+  primaryIssued FoundingPrimaryCitizenship?
+  @@index([countryId, status, createdAt])
+
+}
+
+
+model FoundingCitizenshipIssuanceGate {
+  countryId String @id
+  enabled Boolean @default(false)
+  policyVersion Int @default(1)
+  updatedAt DateTime @updatedAt
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+}
+
+model FoundingCitizenshipApprovalVote {
+  id String @id @default(cuid())
+  applicationId String
+  reviewerId String
+  createdAt DateTime @default(now())
+  application FoundingCitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  reviewer User @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+  @@unique([applicationId, reviewerId])
+  @@index([applicationId])
+}
+
+// Exactly one fictional PRIMARY citizenship per user. Never changes the
+// historical Earth-linked PlayerCitizenship records.
+model FoundingPrimaryCitizenship {
+  userId String @id
+  countryId String
+  applicationId String @unique
+  issuedAt DateTime @default(now())
+  status String @default("ACTIVE")
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  application FoundingCitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  @@index([countryId, status])
+}
+
+// No resident can join until a genuinely reviewed spatial district is
+// activated. A named district alone is not sufficient.
+model FoundingDistrict {
+  id String @id @default(cuid())
+  countryId String
+  slug String
+  name String
+  status String @default("PLANNED")
+  verifiedGeoVersionId String?
+  activatedAt DateTime?
+  capacity Int @default(0)
+  occupied Int @default(0)
+  createdAt DateTime @default(now())
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  residents FoundingDistrictResidence[]
+  movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
+  visits FoundingVisit[]
+  assemblyProposals DistrictAssemblyProposal[]
+  assemblyNotices DistrictAssemblyNotice[]
+  assemblyModerators DistrictAssemblyModeratorGrant[]
+  vascoinTreasury VascoinAccount?
+  landPlan FoundingLandPlan?
+  landPlanningGrants FoundingLandPlanningGrant[]
+  developmentStaffGrants FoundingDevelopmentStaffGrant[]
+  developmentCases FoundingDevelopmentCase[]
+  @@unique([countryId, slug])
+  @@index([countryId, status])
+}
+
+model FoundingDistrictResidence {
+  userId String @id
+  districtId String
+  startedAt DateTime @default(now())
+  lastTransferAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@index([districtId])
+}
+
+model FoundingDistrictMove {
+  id String @id @default(cuid())
+  userId String
+  fromDistrictId String?
+  toDistrictId String
+  movedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  destination FoundingDistrict @relation("FoundingMoveDestination", fields: [toDistrictId], references: [id], onDelete: Restrict)
+  @@index([userId, movedAt])
+}
+
+model FoundingVisit {
+  userId String @id
+  countryId String
+  districtId String?
+  arrivedAt DateTime @default(now())
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  district FoundingDistrict? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  @@index([countryId, expiresAt])
+}
+
+// Phase 4 — human assemblies are available only in independently active,
+// verified geographic districts. All content is private to the district.
+model DistrictAssemblyModeratorGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  moderator User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+  @@index([districtId, isActive])
+}
+
+model DistrictAssemblyProposal {
+  id String @id @default(cuid())
+  districtId String
+  authorUserId String
+  title String
+  description String
+  category String // INFRASTRUCTURE | ENVIRONMENT | RECREATION | SERVICES | CULTURE
+  status String @default("PENDING_MODERATION")
+  reviewReason String?
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  author User @relation("AssemblyProposalAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("AssemblyProposalReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  comments DistrictAssemblyComment[]
+  votes DistrictAssemblyVote[]
+  reports DistrictAssemblyReport[]
+  developmentCase FoundingDevelopmentCase?
+  @@index([districtId, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model DistrictAssemblyComment {
+  id String @id @default(cuid())
+  proposalId String
+  authorUserId String
+  body String
+  status String @default("VISIBLE") // VISIBLE | HIDDEN
+  createdAt DateTime @default(now())
+  proposal DistrictAssemblyProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+  author User @relation("AssemblyCommentAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reports DistrictAssemblyReport[]
+  @@index([proposalId, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model DistrictAssemblyVote {
+  proposalId String
+  userId String
+  choice String // SUPPORT | OPPOSE
+  castAt DateTime @default(now())
+  proposal DistrictAssemblyProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  @@id([proposalId, userId])
+  @@index([proposalId, choice])
+}
+
+model DistrictAssemblyNotice {
+  id String @id @default(cuid())
+  districtId String
+  authorUserId String
+  title String
+  body String
+  kind String // ANNOUNCEMENT | MEETING
+  scheduledFor DateTime?
+  createdAt DateTime @default(now())
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  author User @relation("AssemblyNoticeAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  @@index([districtId, createdAt])
+}
+
+model DistrictAssemblyReport {
+  id String @id @default(cuid())
+  proposalId String
+  commentId String?
+  reporterUserId String
+  reason String
+  status String @default("OPEN") // OPEN | RESOLVED
+  reviewedByUserId String?
+  createdAt DateTime @default(now())
+  proposal DistrictAssemblyProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+  comment DistrictAssemblyComment? @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  reporter User @relation("AssemblyReportReporter", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("AssemblyReportReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  @@unique([proposalId, commentId, reporterUserId])
+  @@index([proposalId, status])
+}
+
+// Phase 6: isolated NONREDEEMABLE virtual VC; never SVC, GFC, fiat, crypto
+// or a claim on future buildings. This policy cannot be toggled through a
+// public API. Issuance/contributions both fail closed in new installations.
+model VascoinPolicy {
+  id String @id
+  dailyClaimsEnabled Boolean @default(false)
+  contributionsEnabled Boolean @default(false)
+  totalIssued Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VascoinAccount {
+  id String @id @default(cuid())
+  kind String // ISSUANCE | CITIZEN | DISTRICT
+  ownerUserId String? @unique
+  districtId String? @unique
+  balance Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner User? @relation(fields: [ownerUserId], references: [id], onDelete: Restrict)
+  district FoundingDistrict? @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  debits VascoinJournal[] @relation("VascoinDebit")
+  credits VascoinJournal[] @relation("VascoinCredit")
+  @@index([kind])
+}
+
+model VascoinJournal {
+  id String @id @default(cuid())
+  eventKey String @unique
+  kind String // DAILY_CLAIM | DISTRICT_CONTRIBUTION
+  amount Int
+  debitAccountId String
+  creditAccountId String
+  actorUserId String
+  districtId String?
+  createdAt DateTime @default(now())
+  debitAccount VascoinAccount @relation("VascoinDebit", fields: [debitAccountId], references: [id], onDelete: Restrict)
+  creditAccount VascoinAccount @relation("VascoinCredit", fields: [creditAccountId], references: [id], onDelete: Restrict)
+  @@index([actorUserId, createdAt])
+  @@index([districtId, createdAt])
+  @@index([debitAccountId, createdAt])
+  @@index([creditAccountId, createdAt])
+}
+
+// Phase 7: diagram-only district schematic. NOT cadastral geography.
+// Phase 2 authoritative district boundaries are not yet integrated.
+// NO approved/activated sites, land titles, parcel ownership or construction.
+model FoundingLandPlanningGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+}
+
+model FoundingLandPlan {
+  id String @id @default(cuid())
+  districtId String @unique
+  createdByUserId String
+  status String @default("SCHEMATIC_DRAFT")
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  creator User @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  areas FoundingLandArea[]
+}
+
+model FoundingLandArea {
+  id String @id @default(cuid())
+  planId String
+  name String
+  kind String // PROTECTED | PUBLIC_RESERVE | DEVELOPMENT
+  zone String // ECOLOGICAL | CORRIDOR | CIVIC | RESIDENTIAL | COMMERCIAL | MIXED_USE
+  x Int
+  y Int
+  width Int
+  height Int
+  createdAt DateTime @default(now())
+  plan FoundingLandPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  proposedForCases FoundingDevelopmentCase[]
+  @@index([planId, kind])
+}
+ 
+// Phase 8 feasibility and reporting only. No spending, construction,
+// geographic site assignment, project commissioning, or live activation.
+model FoundingDevelopmentStaffGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+  @@index([districtId, isActive])
+}
+
+model FoundingDevelopmentCase {
+  id String @id @default(cuid())
+  proposalId String @unique
+  districtId String
+  createdByUserId String
+  status String @default("FEASIBILITY_REVIEW") // FEASIBILITY_REVIEW | NEEDS_REVISION | DECLINED | FEASIBLE_CONCEPT
+  reviewSummary String?
+  indicativeCostVC Int? // illustration only, never an earmark, debit, escrow, or commitment
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  candidateSchematicAreaId String? // not an approved site
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  proposal DistrictAssemblyProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  creator User @relation("DevelopmentCaseCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("DevelopmentCaseReviewer", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  candidateSchematicArea FoundingLandArea? @relation(fields: [candidateSchematicAreaId], references: [id], onDelete: Restrict)
+  publicUpdates FoundingDevelopmentUpdate[]
+  @@index([districtId, status, createdAt])
+}
+
+model FoundingDevelopmentUpdate {
+  id String @id @default(cuid())
+  caseId String
+  authorUserId String
+  kind String // REVIEW | COMMUNITY_CONSULTATION | GEO_DEPENDENCY | HOLD
+  summary String
+  createdAt DateTime @default(now())
+  case FoundingDevelopmentCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  author User @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  @@index([caseId, createdAt])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
@@ -2296,6 +2727,13 @@ model FictionalCountry {
 
   planet   FictionalPlanet @relation(fields: [planetId], references: [id], onDelete: Restrict)
   versions FictionalCountryVersion[]
+  foundingCitizenshipIntake FoundingCitizenshipIntake?
+  foundingCitizenshipApplications FoundingCitizenshipApplication[]
+  foundingCitizenshipReviewGrants FoundingCitizenshipReviewerGrant[]
+  foundingPrimaryCitizenships FoundingPrimaryCitizenship[]
+  foundingIssuanceGate FoundingCitizenshipIssuanceGate?
+  foundingDistricts FoundingDistrict[]
+  foundingVisits FoundingVisit[]
 
   @@unique([planetId, slug])
   @@index([planetId, status, name])
