@@ -67,7 +67,13 @@ model User {
   foundingVisit FoundingVisit?
   vascoinAccount VascoinAccount?
   landPlanningGrants FoundingLandPlanningGrant[]
+  developmentStaffGrants FoundingDevelopmentStaffGrant[]
+  developmentCases FoundingDevelopmentCase[]
   landPlansCreated FoundingLandPlan[]
+  developmentStaffGrants FoundingDevelopmentStaffGrant[]
+  developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
+  developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
+  developmentUpdatesWritten FoundingDevelopmentUpdate[]
   assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
   assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
   assemblyVotes DistrictAssemblyVote[]
@@ -395,6 +401,7 @@ model DistrictAssemblyProposal {
   comments DistrictAssemblyComment[]
   votes DistrictAssemblyVote[]
   reports DistrictAssemblyReport[]
+  developmentCase FoundingDevelopmentCase?
   @@index([districtId, status, createdAt])
   @@index([authorUserId, createdAt])
 }
@@ -538,7 +545,56 @@ model FoundingLandArea {
   height Int
   createdAt DateTime @default(now())
   plan FoundingLandPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  proposedForCases FoundingDevelopmentCase[]
   @@index([planId, kind])
+}
+ 
+// Phase 8 feasibility and reporting only. No spending, construction,
+// geographic site assignment, project commissioning, or live activation.
+model FoundingDevelopmentStaffGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+  @@index([districtId, isActive])
+}
+
+model FoundingDevelopmentCase {
+  id String @id @default(cuid())
+  proposalId String @unique
+  districtId String
+  createdByUserId String
+  status String @default("FEASIBILITY_REVIEW") // FEASIBILITY_REVIEW | NEEDS_REVISION | DECLINED | FEASIBLE_CONCEPT
+  reviewSummary String?
+  indicativeCostVC Int? // illustration only, never an earmark, debit, escrow, or commitment
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  candidateSchematicAreaId String? // not an approved site
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  proposal DistrictAssemblyProposal @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  creator User @relation("DevelopmentCaseCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("DevelopmentCaseReviewer", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+  candidateSchematicArea FoundingLandArea? @relation(fields: [candidateSchematicAreaId], references: [id], onDelete: Restrict)
+  publicUpdates FoundingDevelopmentUpdate[]
+  @@index([districtId, status, createdAt])
+}
+
+model FoundingDevelopmentUpdate {
+  id String @id @default(cuid())
+  caseId String
+  authorUserId String
+  kind String // REVIEW | COMMUNITY_CONSULTATION | GEO_DEPENDENCY | HOLD
+  summary String
+  createdAt DateTime @default(now())
+  case FoundingDevelopmentCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  author User @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  @@index([caseId, createdAt])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
