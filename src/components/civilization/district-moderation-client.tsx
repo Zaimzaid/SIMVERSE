@@ -42,8 +42,6 @@ export function DistrictModerationClient({ districtId, queue }: { districtId: st
       {queue.proposals.map((p) => <article key={p.id} className="mt-4 space-y-2 rounded-xl border border-border p-4">
         <h3 className="font-semibold">{p.title}</h3><p className="whitespace-pre-wrap text-sm text-secondary">{p.description}</p>
         <div className="flex flex-wrap gap-2">
-          <button disabled={busy} onClick={() => act({ action: "PROPOSAL", proposalId: p.id, actionDetail: undefined, reason: "", })}
-            className="hidden">No-op</button>
           <button disabled={busy} onClick={() => act({ action: "PROPOSAL", proposalId: p.id, decision: "OPEN", reason: "" })}
             className="min-h-10 rounded-lg border border-border px-3 text-sm disabled:opacity-50">Open discussion</button>
           <button disabled={busy} onClick={() => act({ action: "PROPOSAL", proposalId: p.id, decision: "REJECT", reason: "Not suitable for community review" })}
