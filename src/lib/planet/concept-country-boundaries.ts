@@ -1,6 +1,7 @@
 import { FOUNDING_COUNTRIES, type PlannedCountrySize } from "./founding-plan";
-import { CONCEPT_CONTINENTS, CONCEPT_COUNTRY_SITES, conceptMapPoint, conceptPointInContinent } from "./concept-geography";
+import { CONCEPT_CONTINENTS, CONCEPT_COUNTRY_SITES, conceptMapPoint } from "./concept-geography";
 import { validatePlanetGeometry, type PlanetGeometry, type PlanetPoint } from "./geometry";
+import { strictlyContainsConceptPolygon } from "./concept-topology";
 
 /**
  * Unpublished, completely reversible national boundary sketches.
@@ -81,19 +82,12 @@ export function countryBoundaryPath(country: ConceptCountryBoundary): string {
 }
 
 /**
- * A preliminary conservative design check, NOT a general-purpose polygon
- * containment proof. A later formal GIS containment audit remains required.
+ * Full edge/vertex check for our non-wrapping, hole-free concept polygons.
+ * Still NOT formal spherical containment or sovereign publication approval.
  */
 export function conceptBoundaryWithinContinent(country: ConceptCountryBoundary): boolean {
   const continent = CONCEPT_CONTINENTS.find((land) => land.id === country.continentId);
-  if (!continent || country.geometry.type !== "Polygon") return false;
-  const ring = country.geometry.coordinates[0]!;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const a = ring[i]!, b = ring[i + 1]!;
-    for (const share of [0, 0.25, 0.5, 0.75]) {
-      const point: PlanetPoint = [a[0] + (b[0] - a[0]) * share, a[1] + (b[1] - a[1]) * share];
-      if (!conceptPointInContinent(point, continent)) return false;
-    }
-  }
-  return true;
+  return continent
+    ? strictlyContainsConceptPolygon(continent.geometry, country.geometry)
+    : false;
 }
