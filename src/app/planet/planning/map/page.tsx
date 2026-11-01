@@ -37,7 +37,7 @@ export default async function ConceptPlanetMapPage({ searchParams }: {
         </header>
         <Link href={conceptGlobeHref(selected)}
           className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/30 bg-[#12304b] px-5 py-3 text-sm font-semibold text-cyan-100 hover:border-cyan-200/70">
-          See these proposed continents on the rotating globe
+          Open the rotating concept globe
         </Link>
         <Link href="/planet/planning/audit"
           className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/30 bg-[#12304b] px-5 py-3 text-sm font-semibold text-cyan-100 hover:border-cyan-200/70">
