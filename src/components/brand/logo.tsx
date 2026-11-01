@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { BRAND_NAME } from "@/lib/brand";
 
 interface LogoProps {
   /** Render as a non-navigating mark (e.g. inside an existing link). */
@@ -55,7 +56,7 @@ function OrbitalMark({ className }: { className?: string }) {
   );
 }
 
-/** The SIMVERSE wordmark — wide-tracked, gradient, cinematic. */
+/** KAVANDRO public wordmark; legacy account identifiers remain untouched. */
 export function Logo({
   asStatic = false,
   href = "/",
@@ -72,7 +73,7 @@ export function Logo({
           SIZES[size],
         )}
       >
-        Simverse
+        {BRAND_NAME}
       </span>
     </span>
   );
@@ -80,7 +81,7 @@ export function Logo({
   if (asStatic) return content;
 
   return (
-    <Link href={href} aria-label="SIMVERSE home" className="inline-flex">
+    <Link href={href} aria-label={`${BRAND_NAME} home`} className="inline-flex">
       {content}
     </Link>
   );
