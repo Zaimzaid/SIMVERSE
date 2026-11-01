@@ -26,6 +26,13 @@ export default async function DashboardPage() {
       marker: "Visual preview",
     },
     {
+      label: "My future civilization",
+      detail: "Save a founding-country preference and express interest in the proposed pilot district.",
+      href: "/profile/civilization",
+      icon: MapPinned,
+      marker: "Phase 3 preview",
+    },
+    {
       label: "My identity",
       detail: "View your SIMVERSE player profile and existing citizenship workflows.",
       href: "/profile",
