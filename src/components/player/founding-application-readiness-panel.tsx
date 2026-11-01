@@ -9,7 +9,7 @@ type Props = {
   initial: FoundingApplicationReadiness & {
     application: {
       id: string;
-      status: "PENDING_REVIEW" | "DENIED" | "WITHDRAWN";
+      status: "PENDING_REVIEW" | "DENIED" | "WITHDRAWN" | "APPROVED";
       submittedNationSlug: string;
       submittedAt: Date | string;
       reviewedAt: Date | string | null;
@@ -60,7 +60,9 @@ export function FoundingApplicationReadinessPanel({ initial }: Props) {
             </button>
           )}
           <p className="mt-3 text-sm text-secondary">
-            This pilot does not issue citizenship even when an application is in review.
+            {status === "APPROVED"
+              ? "The independent review completed. Check the Nationality, residency and travel panel for the issued primary nationality."
+              : "An application alone does not grant citizenship. Two authorized endorsements and an independently enabled issuance gate are required."}
           </p>
         </div>
       ) : (
