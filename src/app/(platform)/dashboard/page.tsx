@@ -19,6 +19,13 @@ export default async function DashboardPage() {
 
   const places = [
     {
+      label: "My founding journey",
+      detail: "Set up your public identity and save a founding-country preference without claiming automatic citizenship.",
+      href: "/welcome",
+      icon: Sparkles,
+      marker: "Get started",
+    },
+    {
       label: "Preview the planet",
       detail: "Explore the new fictional globe prototype. Countries are not yet published.",
       href: "/planet",
@@ -34,7 +41,7 @@ export default async function DashboardPage() {
     },
     {
       label: "My identity",
-      detail: "View your SIMVERSE player profile and existing citizenship workflows.",
+      detail: "View your existing player profile and historical SIMVERSE citizenship records.",
       href: "/profile",
       icon: FileBadge2,
       marker: "Available",
@@ -84,7 +91,7 @@ export default async function DashboardPage() {
               <Sparkles className="size-3.5" aria-hidden /> Build Your Civilization
             </span>
             <h1 className="mt-5 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Welcome to SIMVERSE, {firstName}.
+              Welcome to KAVANDRO, {firstName}.
             </h1>
             <p className="hero-description mt-3 max-w-xl text-sm leading-relaxed sm:text-base">
               A new world is taking shape. Explore the planet preview, connect with citizens

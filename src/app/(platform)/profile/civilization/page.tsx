@@ -13,7 +13,7 @@ import { FoundingApplicationReadinessPanel } from "@/components/player/founding-
 import { FoundingCitizenshipDraftForm } from "@/components/player/founding-citizenship-draft-form";
 import { FoundingCitizenInterestForm } from "@/components/player/founding-citizen-interest-form";
 
-export const metadata: Metadata = { title: "My Civilization | SIMVERSE" };
+export const metadata: Metadata = { title: "My Civilization | KAVANDRO" };
 
 export default async function MyCivilizationPage() {
   const user = await requireUser();
@@ -33,7 +33,7 @@ export default async function MyCivilizationPage() {
           ← Back to my profile
         </Link>
         <p className="mt-7 text-xs font-semibold uppercase tracking-[0.16em] text-accent">
-          SIMVERSE · Build Your Civilization · Phase 3
+          KAVANDRO · Build Your Civilization · Preview
         </p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-foreground sm:text-4xl">
           My future civilization

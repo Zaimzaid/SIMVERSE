@@ -81,7 +81,7 @@ export function SiteHeader({ authed, simple = false }: { authed: boolean; simple
                 href="/register"
                 className={buttonClasses({ variant: "primary", size: "sm" })}
               >
-                Enter SIMVERSE
+                Enter KAVANDRO
               </Link>
             </>
           )}
