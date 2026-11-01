@@ -65,8 +65,8 @@ export default async function MyCivilizationPage() {
         <div className="rounded-2xl border border-border bg-surface p-5">
           <MapPin className="size-5 text-accent" aria-hidden />
           <p className="mt-3 text-sm text-secondary">Current residence</p>
-          <p className="mt-1 text-lg font-semibold text-foreground">Unassigned</p>
-          <p className="mt-1 text-sm text-secondary">Residence starts after geography approval</p>
+          <p className="mt-1 text-lg font-semibold text-foreground">{civic.residence?.districtName ?? "Unassigned"}</p>
+          <p className="mt-1 text-sm text-secondary">{civic.residence ? "Active approved district residence" : "Residence starts after geography approval"}</p>
         </div>
       </section>
 
