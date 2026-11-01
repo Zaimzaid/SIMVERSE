@@ -198,9 +198,9 @@ export async function getMyVascoinOverview(userId: string) {
       districtId: e.districtId, createdAt: e.createdAt,
     })),
     notice: vascoinNotice,
-    availableForConstruction: false,
-    redeemable: false,
-    separateFromSVCAndGFC: true,
+    availableForConstruction: false as const,
+    redeemable: false as const,
+    separateFromSVCAndGFC: true as const,
   };
 }
 
