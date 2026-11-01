@@ -25,6 +25,8 @@ import {
   WebGLRenderer,
 } from "three";
 import { planetHomeCameraDistance } from "./visual-contract";
+import { conceptFocusRotation } from "./concept-navigation";
+import type { PlanetPoint } from "./geometry";
 import { CONCEPT_CONTINENTS } from "./concept-geography";
 import { CONCEPT_COUNTRY_BOUNDARIES } from "./concept-country-boundaries";
 import {
@@ -407,6 +409,17 @@ export class SignaturePlanetRenderer {
   rotate(deltaX: number, deltaY: number): void {
     this.root.rotation.y += deltaX * 0.005;
     this.root.rotation.x = Math.max(-1.12, Math.min(1.12, this.root.rotation.x + deltaY * 0.004));
+    this.draw();
+  }
+
+  /** Front-center a candidate site on the original equirectangular concept globe.
+   * This changes only camera presentation; never publishes country geometry.
+   */
+  focusConceptCountry(point: PlanetPoint): void {
+    if (!this.conceptPreview) return;
+    const [pitch, yaw] = conceptFocusRotation(point);
+    this.playing = false;
+    this.root.rotation.set(pitch, yaw, 0);
     this.draw();
   }
 

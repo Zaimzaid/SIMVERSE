@@ -66,7 +66,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Build",
     items: [
       { label: "Anything Wars", href: "/anything-wars", icon: Swords, permission: "simulation.view" },
-      { label: "SIMVERSE Planet", href: "/planet", icon: Globe2 },
+      { label: "KAVANDRO World Explorer", href: "/world", icon: Globe2 },
+      { label: "Empty planet prototype", href: "/planet", icon: Globe2 },
       { label: "Earth Explorer", href: "/earth/geography", icon: Map, permission: "workspace.view" },
       { label: "Economy Lab", href: "/economy/lab", icon: Landmark, permission: "world.view" },
       { label: "Projects", href: "/projects", icon: FolderKanban, permission: "project.view" },

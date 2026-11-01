@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { conceptGlobeHref, conceptMapHref, resolveConceptCountrySlug } from "@/lib/planet/concept-navigation";
 import { ArrowRight, Compass, Flag, Layers3 } from "lucide-react";
 import { CONCEPT_COUNTRY_BOUNDARIES, countryBoundaryPath } from "@/lib/planet/concept-country-boundaries";
 import {
@@ -14,8 +15,14 @@ import {
   CONCEPT_MAP_STATUS, conceptContinentPath, conceptMapPoint, conceptSiteName,
 } from "@/lib/planet/concept-geography";
 
-export function ConceptMapExplorer() {
-  const [selected, setSelected] = useState(CONCEPT_COUNTRY_SITES[0]!.slug);
+export function ConceptMapExplorer({ initialCountrySlug }: { initialCountrySlug?: string }) {
+  const [selected, setSelected] = useState(resolveConceptCountrySlug(initialCountrySlug));
+  function chooseCountry(slug: string) {
+    if (!CONCEPT_COUNTRY_SITES.some((site) => site.slug === slug)) return;
+    setSelected(slug);
+    // Keep a shareable, safe deep link without remounting the atlas and losing layer settings.
+    window.history.replaceState(null, "", conceptMapHref(slug));
+  }
   const [showBoundarySketches, setShowBoundarySketches] = useState(true);
   const [showTerrain, setShowTerrain] = useState(true);
   const [showResources, setShowResources] = useState(false);
@@ -57,7 +64,7 @@ export function ConceptMapExplorer() {
           <svg
             viewBox="0 0 1000 500"
             className="w-full"
-            role="img"
+            role="group"
             aria-label="An original five-continent fictional planet concept with ten candidate country markers; this is not published territory."
           >
             <defs>
@@ -90,6 +97,18 @@ export function ConceptMapExplorer() {
             {showBoundarySketches && CONCEPT_COUNTRY_BOUNDARIES.map((country) => (
               <path
                 key={country.slug}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${country.name} draft country outline`}
+                aria-pressed={selected === country.slug}
+                onClick={() => chooseCountry(country.slug)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    chooseCountry(country.slug);
+                  }
+                }}
+                className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 d={countryBoundaryPath(country)}
                 fill={country.color}
                 fillOpacity={country.slug === selected ? 0.86 : 0.58}
@@ -174,7 +193,7 @@ export function ConceptMapExplorer() {
                 <button
                   key={candidate.slug}
                   type="button"
-                  onClick={() => setSelected(candidate.slug)}
+                  onClick={() => chooseCountry(candidate.slug)}
                   aria-pressed={active}
                   className={`rounded-xl border px-3 py-3 text-left text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300 ${active
                     ? "border-cyan-200 bg-cyan-200/15 text-white"
@@ -217,6 +236,12 @@ export function ConceptMapExplorer() {
               These are not assigned to {name} or any other country.
             </p>
             <p className="mt-2 text-[11px] text-slate-400">{CONCEPT_TERRAIN_STATUS.replaceAll("_"," ").toLowerCase()}</p>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Link href={conceptGlobeHref(selected)}
+            className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/40 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-200/10">
+            See {name} on the 3D concept globe <ArrowRight className="size-4" aria-hidden />
+          </Link>
           </div>
           <Link href={`/planet/planning/${site.slug}`}
             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-100 underline-offset-4 hover:underline">

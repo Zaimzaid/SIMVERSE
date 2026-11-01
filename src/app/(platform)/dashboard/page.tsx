@@ -26,11 +26,11 @@ export default async function DashboardPage() {
       marker: "Get started",
     },
     {
-      label: "Preview the planet",
-      detail: "Explore the new fictional globe prototype. Countries are not yet published.",
-      href: "/planet",
+      label: "Explore the concept world",
+      detail: "Explore the original five-continent atlas and ten draft country locations. Nothing is published yet.",
+      href: "/planet/planning/map",
       icon: Globe2,
-      marker: "Visual preview",
+      marker: "Country concept atlas",
     },
     {
       label: "My future civilization",
@@ -103,9 +103,9 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/planet"
+            <Link href="/planet/planning/map"
               className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground hover:bg-accent-hover">
-              <Compass className="size-4" /> View planet preview <ArrowRight className="size-4" />
+              <Compass className="size-4" /> Explore the concept atlas <ArrowRight className="size-4" />
             </Link>
             <Link href="/social"
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/75 px-4 py-3 text-sm font-semibold text-foreground hover:bg-surface-hover">

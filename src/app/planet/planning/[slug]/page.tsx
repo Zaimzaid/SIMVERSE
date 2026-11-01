@@ -6,6 +6,7 @@ import {
   FOUNDING_COUNTRIES, getFoundingCountry, plannedCityCount,
   plannedDistrictCount, plannedStateSlots,
 } from "@/lib/planet/founding-plan";
+import { conceptGlobeHref, conceptMapHref } from "@/lib/planet/concept-navigation";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const country = getFoundingCountry(slug);
   return {
-    title: country ? `${country.name} Planning | SIMVERSE` : "Country not found | SIMVERSE",
+    title: country ? `${country.name} Planning | KAVANDRO` : "Country not found | KAVANDRO",
     robots: { index: false, follow: false },
   };
 }
@@ -33,9 +34,19 @@ export default async function PlannedCountryPage({ params }: PageProps) {
         <Link href="/planet/planning" className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/20 px-4 py-2.5 text-sm font-medium text-cyan-100 hover:bg-cyan-300/10">
           <ArrowLeft className="size-4" /> All founding countries
         </Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href={conceptMapHref(country.slug)}
+            className="rounded-xl border border-cyan-200/25 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/10">
+            Highlight {country.name} on flat atlas
+          </Link>
+          <Link href={conceptGlobeHref(country.slug)}
+            className="rounded-xl border border-cyan-200/25 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/10">
+            Focus {country.name} on globe
+          </Link>
+        </div>
         <header className="mt-8">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-200">
-            SIMVERSE geographic blueprint · Proposed, not published
+            KAVANDRO geographic blueprint · Proposed, not published
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">{country.name}</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">
@@ -79,7 +90,7 @@ export default async function PlannedCountryPage({ params }: PageProps) {
 
         <section aria-labelledby="proposed-hierarchy" className="mt-10">
           <h2 id="proposed-hierarchy" className="text-2xl font-semibold">Proposed state, city and district hierarchy</h2>
-          <p className="mt-2 text-sm text-slate-400">Expand any state to inspect its two city slots and six district slots.</p>
+          <p className="mt-2 text-sm text-slate-400">Expand any state to inspect its city and district slots. Select a district to open its planning profile; no district boundary is published.</p>
           <div className="mt-5 grid items-start gap-3 md:grid-cols-2">
             {states.map((state) => (
               <details key={state.key} className="group overflow-hidden rounded-2xl border border-cyan-200/15 bg-[#0a2039] open:border-cyan-300/35">
@@ -94,7 +105,10 @@ export default async function PlannedCountryPage({ params }: PageProps) {
                       <div className="mt-2 grid gap-2">
                         {city.districts.map((district) => (
                           <div key={district.key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#06182d] px-3 py-2 text-xs">
-                            <span className="text-slate-200">{district.label}</span>
+                            <Link href={`/planet/planning/${country.slug}/districts/${district.key}`}
+                              className="font-medium text-slate-100 underline-offset-4 hover:text-cyan-100 hover:underline">
+                              {district.label}
+                            </Link>
                             <span className="text-cyan-100">
                               {district.status === "PILOT_CANDIDATE" ? "Pilot candidate" :
                                 district.status === "EXPANSION_CANDIDATE" ? "Expansion candidate" :

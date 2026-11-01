@@ -8,7 +8,7 @@ import {
 } from "@/lib/planet/founding-plan";
 
 export const metadata: Metadata = {
-  title: "Founding Geography Plan | SIMVERSE",
+  title: "Founding Geography Plan | KAVANDRO",
   description: "A proposed ten-country civilization planning blueprint. Territories are not yet published.",
   robots: { index: false, follow: false },
 };
@@ -32,7 +32,7 @@ export default function FoundingGeographyPlanPage() {
 
         <header className="mt-8 max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-200">
-            SIMVERSE · Build Your Civilization · Geographic planning
+            KAVANDRO · Build Your Civilization · Geographic planning
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">The ten founding countries</h1>
           <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">
@@ -63,7 +63,7 @@ export default function FoundingGeographyPlanPage() {
           <Link href="/planet/planning/globe" className="group flex items-center justify-between rounded-2xl border border-cyan-200/25 bg-[#0a2039] p-5 text-cyan-100 hover:border-cyan-200/60">
             <div>
               <h2 className="font-semibold">Preview the concept on the 3D globe</h2>
-              <p className="mt-1 text-xs text-slate-300">Unapproved coastlines on a reversible globe preview</p>
+              <p className="mt-1 text-xs text-slate-300">Focus any proposed country site on the same reversible globe preview</p>
             </div>
             <ArrowRight className="size-5" aria-hidden />
           </Link>
@@ -104,7 +104,7 @@ export default function FoundingGeographyPlanPage() {
         <section aria-label="Planning rules" className="mt-10 rounded-2xl border border-cyan-200/15 bg-[#081b30] p-5 sm:p-7">
           <div className="flex items-center gap-2 text-cyan-100"><ShieldCheck aria-hidden className="size-5" /><h2 className="font-semibold">What happens next?</h2></div>
           <p className="mt-3 text-sm leading-7 text-slate-300">
-            Before any country appears as sovereign territory on the globe, SIMVERSE must design
+            Before any country appears as sovereign territory on the globe, KAVANDRO must design
             and validate original boundaries, check overlaps, and publish reviewed geometry
             through the existing fictional-country approval system. District activation and
             land allocations will be separate, later steps.

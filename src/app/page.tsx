@@ -45,10 +45,10 @@ export default async function LandingPage() {
                   {user ? "Go to my dashboard" : "Join KAVANDRO"}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
-                <Link href="/planet"
+                <Link href="/world"
                   className={buttonClasses({ variant: "secondary", size: "lg", className: "min-h-12 border-border-strong bg-background/85 px-6" })}>
                   <Globe2 className="size-4" aria-hidden="true" />
-                  Explore the planet
+                  Explore the world
                 </Link>
               </div>
 
@@ -66,8 +66,8 @@ export default async function LandingPage() {
         <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-3 px-4 py-5 text-sm text-secondary sm:flex-row sm:items-center sm:px-6 lg:px-8">
           <Logo size="sm" />
           <p>© {new Date().getFullYear()} {BRAND_NAME} · A world shaped together.</p>
-          <Link href="/planet" className="font-semibold text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent">
-            Preview the planet
+          <Link href="/world" className="font-semibold text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent">
+            Explore the concept world
           </Link>
         </div>
       </footer>

@@ -2,14 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { ConceptMapExplorer } from "@/components/planet/concept-map-explorer";
+import { resolveConceptCountrySlug, conceptGlobeHref } from "@/lib/planet/concept-navigation";
 
 export const metadata: Metadata = {
-  title: "Five-Continent Concept Map | SIMVERSE",
+  title: "Fictional Five-Continent Atlas | KAVANDRO",
   description: "Original landmass sketches and candidate fictional-country positions, not published territories.",
   robots: { index: false, follow: false },
 };
 
-export default function ConceptPlanetMapPage() {
+export default async function ConceptPlanetMapPage({ searchParams }: {
+  searchParams: Promise<{ country?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const selected = resolveConceptCountrySlug(typeof params.country === "string" ? params.country : null);
   return (
     <main className="min-h-dvh bg-[#041022] px-4 py-8 text-slate-100 sm:px-6 lg:py-12">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -19,7 +24,7 @@ export default function ConceptPlanetMapPage() {
         </Link>
         <header className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
-            SIMVERSE · Geographic design laboratory · Phase 2B
+            KAVANDRO · Fictional world explorer · Concept preview
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
             A first look at our five continents
@@ -30,15 +35,15 @@ export default function ConceptPlanetMapPage() {
             Your review of this geography should come before any steward-authorized publication.
           </p>
         </header>
-        <Link href="/planet/planning/globe"
+        <Link href={conceptGlobeHref(selected)}
           className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/30 bg-[#12304b] px-5 py-3 text-sm font-semibold text-cyan-100 hover:border-cyan-200/70">
-          See these proposed continents on the rotating globe
+          Open the rotating concept globe
         </Link>
         <Link href="/planet/planning/audit"
           className="inline-flex items-center gap-2 rounded-xl border border-cyan-200/30 bg-[#12304b] px-5 py-3 text-sm font-semibold text-cyan-100 hover:border-cyan-200/70">
           Inspect geometry readiness and unassigned land
         </Link>
-        <ConceptMapExplorer />
+        <ConceptMapExplorer initialCountrySlug={selected} />
         <p className="flex items-start gap-3 rounded-xl border border-cyan-200/15 bg-[#0b223b] p-5 text-sm text-slate-300">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-cyan-200" aria-hidden />
           This experimental atlas is not based on Earth coastlines, does not publish fictional
