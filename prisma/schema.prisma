@@ -60,6 +60,11 @@ model User {
   foundingCitizenshipApplication FoundingCitizenshipApplication?
   foundingCitizenshipReviewGrants FoundingCitizenshipReviewerGrant[] @relation("FoundingCitizenshipReviewerUser")
   foundingCitizenshipReviews FoundingCitizenshipApplication[] @relation("FoundingCitizenshipReviewActor")
+  foundingPrimaryCitizenship FoundingPrimaryCitizenship?
+  foundingApprovalVotes FoundingCitizenshipApprovalVote[]
+  foundingResidence FoundingDistrictResidence?
+  foundingMoves FoundingDistrictMove[]
+  foundingVisit FoundingVisit?
   virtualDocumentReviewGrants PlayerDocumentReviewer[] @relation("DocumentReviewerUser")
   virtualDocumentReviews PlayerDocumentApplication[] @relation("DocumentReviewActor")
   virtualTravelReviews PlayerTravelVisaApplication[] @relation("TravelVisaReviewActor")
@@ -247,7 +252,96 @@ model FoundingCitizenshipApplication {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
   reviewedBy User? @relation("FoundingCitizenshipReviewActor", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
-  @@index([countryId, status, createdAt])
+  @@index([countryId, status, createdAt])  approvals FoundingCitizenshipApprovalVote[]
+  primaryIssued FoundingPrimaryCitizenship?
+
+}
+
+
+model FoundingCitizenshipIssuanceGate {
+  countryId String @id
+  enabled Boolean @default(false)
+  policyVersion Int @default(1)
+  updatedAt DateTime @updatedAt
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+}
+
+model FoundingCitizenshipApprovalVote {
+  id String @id @default(cuid())
+  applicationId String
+  reviewerId String
+  createdAt DateTime @default(now())
+  application FoundingCitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  reviewer User @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+  @@unique([applicationId, reviewerId])
+  @@index([applicationId])
+}
+
+// Exactly one fictional PRIMARY citizenship per user. Never changes the
+// historical Earth-linked PlayerCitizenship records.
+model FoundingPrimaryCitizenship {
+  userId String @id
+  countryId String
+  applicationId String @unique
+  issuedAt DateTime @default(now())
+  status String @default("ACTIVE")
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  application FoundingCitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  @@index([countryId, status])
+}
+
+// No resident can join until a genuinely reviewed spatial district is
+// activated. A named district alone is not sufficient.
+model FoundingDistrict {
+  id String @id @default(cuid())
+  countryId String
+  slug String
+  name String
+  status String @default("PLANNED")
+  verifiedGeoVersionId String?
+  activatedAt DateTime?
+  capacity Int @default(0)
+  createdAt DateTime @default(now())
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  residents FoundingDistrictResidence[]
+  movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
+  visits FoundingVisit[]
+  @@unique([countryId, slug])
+  @@index([countryId, status])
+}
+
+model FoundingDistrictResidence {
+  userId String @id
+  districtId String
+  startedAt DateTime @default(now())
+  lastTransferAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@index([districtId])
+}
+
+model FoundingDistrictMove {
+  id String @id @default(cuid())
+  userId String
+  fromDistrictId String?
+  toDistrictId String
+  movedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  destination FoundingDistrict @relation("FoundingMoveDestination", fields: [toDistrictId], references: [id], onDelete: Restrict)
+  @@index([userId, movedAt])
+}
+
+model FoundingVisit {
+  userId String @id
+  countryId String
+  districtId String?
+  arrivedAt DateTime @default(now())
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  country FictionalCountry @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  district FoundingDistrict? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  @@index([countryId, expiresAt])
 }
 
 // Player-only applications and approvals. No governmental/real-world authority.
@@ -2383,6 +2477,10 @@ model FictionalCountry {
   foundingCitizenshipIntake FoundingCitizenshipIntake?
   foundingCitizenshipApplications FoundingCitizenshipApplication[]
   foundingCitizenshipReviewGrants FoundingCitizenshipReviewerGrant[]
+  foundingPrimaryCitizenships FoundingPrimaryCitizenship[]
+  foundingIssuanceGate FoundingCitizenshipIssuanceGate?
+  foundingDistricts FoundingDistrict[]
+  foundingVisits FoundingVisit[]
 
   @@unique([planetId, slug])
   @@index([planetId, status, name])
