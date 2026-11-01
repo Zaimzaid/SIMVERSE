@@ -62,7 +62,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
     router.replace(
       earthIntent
         ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
-        : next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard",
+        : next && next.startsWith("/") && !next.startsWith("//") ? next : "/welcome",
     );
     router.refresh();
   }
@@ -70,7 +70,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
   return (
     <AuthCard
       title="Create your account"
-      subtitle="Start building your simulation universe."
+      subtitle="Join KAVANDRO and help shape a new fictional world."
       footer={
         <>
           Already have an account?{" "}
