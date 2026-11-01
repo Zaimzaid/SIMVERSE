@@ -22,7 +22,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "discover", label: "Explore", description: "Discover worlds and places",
-    icon: Compass, routes: ["/planet", "/earth/geography", "/worlds", "/entities", "/experiences"],
+    icon: Compass, routes: ["/world", "/planet", "/earth/geography", "/worlds", "/entities", "/experiences"],
   },
   {
     id: "build", label: "Build", description: "Create and manage content",
@@ -69,7 +69,7 @@ export function visibleAreaItems(area: PlatformArea, permissions: readonly Permi
  */
 export type NavigationSurface = "all" | "citizen";
 export const CITIZEN_ROUTES = new Set([
-  "/dashboard", "/settings", "/planet", "/social",
+  "/dashboard", "/settings", "/world", "/planet", "/social",
   "/profile", "/profile/civilization", "/profile/documents", "/profile/travel",
   "/anything-wars",
 ]);
