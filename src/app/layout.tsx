@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import { ThemeProvider, themeInitScript } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
+import { BRAND_NAME, BRAND_TAGLINE, BRAND_DESCRIPTION } from "@/lib/brand";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,15 +18,15 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["500", "600", "700"],
 });
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "SIMVERSE";
+const APP_NAME = BRAND_NAME;
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} — Simulate Anything`,
+    default: `${APP_NAME} — ${BRAND_TAGLINE}`,
     template: `%s · ${APP_NAME}`,
   },
   description:
-    "SIMVERSE is a creator platform to build worlds, create entities, run simulations, and turn outcomes into stories.",
+    BRAND_DESCRIPTION,
   applicationName: APP_NAME,
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
