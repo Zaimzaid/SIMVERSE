@@ -28,6 +28,8 @@ export type AuditAction =
   | "assembly.report_submitted"
   | "assembly.report_reviewed"
   | "vascoin.daily_claim"
+  | "land.plan_draft_created"
+  | "land.schematic_area_added"
   | "vascoin.district_contribution"
   | "user.player_avatar_updated"
   | "player.document.applied"
