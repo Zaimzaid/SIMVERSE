@@ -187,7 +187,7 @@ describe("K4.1 private opt-in District Club neighbor directory", () => {
     const peer = (await getMyDistrictClubDirectory(bob.id)).neighbors[0];
     expect(peer?.publicUsername).toBe("clubalice");
     expect(peer?.friendTargetUserId).toBe(alice.id);
-    await requestFriend(bob.id, { userId: peer.friendTargetUserId });
+    await requestFriend(bob.id, { userId: peer!.friendTargetUserId });
     expect(await prisma.socialFriendship.count()).toBe(1);
   });
 
