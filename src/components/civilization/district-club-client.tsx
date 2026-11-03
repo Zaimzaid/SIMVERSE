@@ -25,6 +25,7 @@ type Activity = {
 export function DistrictClubClient({ home }: { home: Home }) {
   const [room, setRoom] = useState("GENERAL");
   const roomRef = useRef(room);
+  const lastAcknowledged = useRef<Record<string, string>>({});
   const [activity, setActivity] = useState<Activity | null>(null);
   const [connectionNotice, setConnectionNotice] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -43,6 +44,7 @@ export function DistrictClubClient({ home }: { home: Home }) {
       setActivity(status.data);
       setConnectionNotice("");
     } else {
+      setActivity(null);
       setConnectionNotice("Club updates are unavailable. Check your connection or membership.");
     }
   }, [home.active]);
@@ -60,12 +62,15 @@ export function DistrictClubClient({ home }: { home: Home }) {
       // Server verifies the message belongs to this private room before moving
       // the caller's read cursor. Never acknowledge beyond what was received.
       const last = response.data.messages.at(-1);
-      if (last && document.visibilityState === "visible") {
+      if (last && document.visibilityState === "visible" && lastAcknowledged.current[chosen] !== last.id) {
         const ack = await apiFetch<{ accepted: boolean }>("/api/civilization/club/activity", {
           method: "POST",
           body: JSON.stringify({ channel: chosen, itemId: last.id }),
         });
-        if (ack.data) await refreshActivity();
+        if (ack.data) {
+          lastAcknowledged.current[chosen] = last.id;
+          await refreshActivity();
+        }
       }
     } else if (response.error) {
       setError(response.error.message);

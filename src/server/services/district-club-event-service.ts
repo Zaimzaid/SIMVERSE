@@ -51,6 +51,7 @@ export async function listMyDistrictClubEvents(userId: string) {
       category: event.category,
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt.toISOString(),
+      reviewedAt: event.reviewedAt?.toISOString() ?? null,
       organizerDisplayName: event.organizer.displayName,
       status: event.status,
       attendanceCount: event._count.rsvps,

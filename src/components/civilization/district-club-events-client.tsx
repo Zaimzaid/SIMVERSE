@@ -7,7 +7,7 @@ import { CLUB_EVENT_CATEGORIES } from "@/lib/civilization/district-club-event-co
 type ClubEvent = {
   id: string; title: string; description: string; category: string;
   startsAt: string; endsAt: string; organizerDisplayName: string;
-  status: string; attendanceCount: number; myRsvp: boolean; mine: boolean;
+  status: string; reviewedAt: string | null; attendanceCount: number; myRsvp: boolean; mine: boolean;
 };
 type EventListing = {
   district: { id: string; name: string };
@@ -24,6 +24,7 @@ function dateLabel(value: string) {
 export function DistrictClubEventsClient() {
   const [listing, setListing] = useState<EventListing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newEventCount, setNewEventCount] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -38,6 +39,8 @@ export function DistrictClubEventsClient() {
     if (response.data) {
       setListing(response.data);
       setError("");
+      const activity = await apiFetch<{ eventUnread: number }>("/api/civilization/club/activity");
+      if (activity.data) setNewEventCount(activity.data.eventUnread);
     } else {
       setListing(null);
       setError(response.error?.message ?? "Club activities could not be loaded.");
@@ -46,6 +49,27 @@ export function DistrictClubEventsClient() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  async function acknowledgeEvents() {
+    if (!listing) return;
+    const newest = [...listing.events].filter(event =>
+      event.status === "PUBLISHED" && event.reviewedAt).sort((a, b) =>
+        (a.reviewedAt ?? "").localeCompare(b.reviewedAt ?? "") || a.id.localeCompare(b.id)
+      ).at(-1);
+    if (!newest) { setNewEventCount(0); return; }
+    setBusy("EVENT_ACK"); setError("");
+    const response = await apiFetch<{ accepted: boolean }>("/api/civilization/club/activity", {
+      method: "POST", body: JSON.stringify({ channel: "EVENTS", itemId: newest.id }),
+    });
+    setBusy(null);
+    if (!response.data) {
+      setError(response.error?.message ?? "Could not mark approved event updates as read.");
+      return;
+    }
+    const activity = await apiFetch<{ eventUnread: number }>("/api/civilization/club/activity");
+    if (activity.data) setNewEventCount(activity.data.eventUnread);
+    setNotice("Approved event updates marked as viewed.");
+  }
 
   async function propose(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -157,6 +181,11 @@ export function DistrictClubEventsClient() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-foreground">Upcoming district activities</h3>
+        {newEventCount > 0 && <button type="button" disabled={busy !== null}
+          onClick={() => void acknowledgeEvents()}
+          className="rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent disabled:opacity-50">
+          Mark {newEventCount} new event{newEventCount === 1 ? "" : "s"} as viewed
+        </button>}
         <button type="button" onClick={() => { setLoading(true); void load(); }}
           className="rounded-lg border border-border px-3 py-2 text-xs font-semibold text-accent">
           Refresh
