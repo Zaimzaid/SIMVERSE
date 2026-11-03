@@ -1,0 +1,54 @@
+name: KAVANDRO K4 District Club verification
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "src/lib/civilization/district-club-contract.ts"
+      - "src/server/services/district-club-service*"
+      - "src/server/services/audit-service.ts"
+      - "src/app/api/civilization/club/**"
+      - "src/app/(platform)/profile/civilization/club/**"
+      - "src/components/civilization/district-club*"
+      - "src/app/(platform)/profile/civilization/page.tsx"
+      - "src/app/(platform)/dashboard/page.tsx"
+      - "prisma/schema.prisma"
+      - "test/helpers/db.ts"
+      - "docs/kavandro/K4_DISTRICT_CLUB_V1.md"
+      - ".github/workflows/kavandro-k4-district-club.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-club:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: "file:./kavandro-k4-ci.db"
+      SESSION_SECRET: "TEST_ONLY_KAVANDRO_K4_ISOLATED_SECRET_1234567890"
+      NEXT_PUBLIC_APP_NAME: "KAVANDRO"
+      APP_URL: "http://localhost:3000"
+      AUTH_TRUST_PROXY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Assert isolated checkout and database
+        run: |
+          test "$DATABASE_URL" = "file:./kavandro-k4-ci.db"
+          test ! -e .env
+          test ! -e .env.local
+          test ! -e kavandro-k4-ci.db
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Run disposable tests
+        run: npm run test
+        env:
+          NODE_ENV: test
+      - run: npm run build
