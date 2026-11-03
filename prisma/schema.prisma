@@ -72,6 +72,10 @@ model User {
   developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
   developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
   developmentUpdatesWritten FoundingDevelopmentUpdate[]
+  clubMessages DistrictClubMessage[] @relation("ClubMessageAuthor")
+  clubModeratorGrants DistrictClubModeratorGrant[]
+  clubReportsSent DistrictClubReport[] @relation("ClubReportReporter")
+  clubReportsReviewed DistrictClubReport[] @relation("ClubReportReviewer")
   assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
   assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
   assemblyVotes DistrictAssemblyVote[]
@@ -325,6 +329,8 @@ model FoundingDistrict {
   movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
   visits FoundingVisit[]
   assemblyProposals DistrictAssemblyProposal[]
+  clubMessages DistrictClubMessage[]
+  clubModerators DistrictClubModeratorGrant[]
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
   vascoinTreasury VascoinAccount?
@@ -2772,4 +2778,51 @@ model FictionalPlanetSteward {
   notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+
+// KAVANDRO K4 — Residents-only District Club social rooms.
+// Access is derived on every request from active approved fictional citizenship
+// and actual home-district residence. No speculative preferences or visit grants.
+model DistrictClubModeratorGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  moderator User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+  @@index([districtId, isActive])
+}
+
+model DistrictClubMessage {
+  id String @id @default(cuid())
+  districtId String
+  authorUserId String
+  room String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS
+  body String
+  status String @default("VISIBLE") // VISIBLE | HIDDEN
+  createdAt DateTime @default(now())
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  author User @relation("ClubMessageAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reports DistrictClubReport[]
+  @@index([districtId, room, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model DistrictClubReport {
+  id String @id @default(cuid())
+  messageId String
+  reporterUserId String
+  reason String
+  status String @default("OPEN") // OPEN | RESOLVED
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  message DistrictClubMessage @relation(fields: [messageId], references: [id], onDelete: Restrict)
+  reporter User @relation("ClubReportReporter", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ClubReportReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  @@unique([messageId, reporterUserId])
+  @@index([messageId, status])
+  @@index([reporterUserId, createdAt])
 }

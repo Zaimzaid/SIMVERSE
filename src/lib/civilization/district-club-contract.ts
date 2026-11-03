@@ -1,0 +1,32 @@
+import { z } from "zod";
+
+export const DISTRICT_CLUB_ROOMS = [
+  { key: "GENERAL", title: "General Chat", description: "Meet neighbors and talk about daily life." },
+  { key: "INTRODUCTIONS", title: "Introductions", description: "Welcome new residents and make friends." },
+  { key: "ACTIVITIES", title: "Activities & Games", description: "Plan friendly events, contests and recreational activities." },
+  { key: "INTERESTS", title: "Shared Interests", description: "Discuss hobbies, learning and local interests." },
+] as const;
+
+export const districtClubRoomSchema = z.enum(["GENERAL", "INTRODUCTIONS", "ACTIVITIES", "INTERESTS"]);
+export const districtClubMessageSchema = z.strictObject({
+  room: districtClubRoomSchema,
+  body: z.string().trim().min(2).max(650),
+});
+export const districtClubReportSchema = z.strictObject({
+  messageId: z.string().regex(/^[a-z0-9]{20,40}$/i),
+  reason: z.string().trim().min(8).max(350),
+});
+export const districtClubReviewSchema = z.strictObject({
+  reportId: z.string().regex(/^[a-z0-9]{20,40}$/i),
+  action: z.enum(["DISMISS", "HIDE"]),
+});
+
+export const districtClubRules = {
+  messagesPerHour: 35,
+  minimumSecondsBetweenMessages: 4,
+  reportsPerHour: 5,
+  maximumMessageLength: 650,
+  membership: "APPROVED_RESIDENCE_AND_PRIMARY_CITIZENSHIP",
+  districtConstructionAuthority: false,
+  vascoinRewardsEnabled: false,
+} as const;
