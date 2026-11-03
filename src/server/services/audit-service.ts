@@ -20,6 +20,7 @@ export type AuditAction =
   | "user.founding_district_residence_changed"
   | "user.founding_travel_started"
   | "user.founding_travel_ended"
+  | "club.directory_preference_changed"
   | "club.message_posted"
   | "club.message_reported"
   | "club.report_reviewed"
