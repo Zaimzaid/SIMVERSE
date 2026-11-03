@@ -76,6 +76,7 @@ model User {
   clubEventsOrganized DistrictClubEvent[] @relation("ClubEventOrganizer")
   clubEventsReviewed DistrictClubEvent[] @relation("ClubEventReviewer")
   clubEventRsvps DistrictClubEventRsvp[]
+  clubReadCursors DistrictClubReadCursor[]
   clubMessages DistrictClubMessage[] @relation("ClubMessageAuthor")
   clubModeratorGrants DistrictClubModeratorGrant[]
   clubReportsSent DistrictClubReport[] @relation("ClubReportReporter")
@@ -333,6 +334,7 @@ model FoundingDistrict {
   movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
   visits FoundingVisit[]
   assemblyProposals DistrictAssemblyProposal[]
+  clubReadCursors DistrictClubReadCursor[]
   clubEvents DistrictClubEvent[]
   clubMessages DistrictClubMessage[]
   clubDirectoryPreferences DistrictClubDirectoryPreference[]
@@ -2883,4 +2885,20 @@ model DistrictClubEventRsvp {
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
   @@id([eventId, userId])
   @@index([userId, createdAt])
+}
+
+
+// KAVANDRO K4.3 — private, per-resident room/event read cursors.
+// Never a public "last seen" timestamp or surveillance of other residents.
+model DistrictClubReadCursor {
+  userId String
+  districtId String
+  channel String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS | EVENTS
+  lastSeenAt DateTime
+  lastSeenId String
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId, channel])
+  @@index([districtId, channel])
 }
