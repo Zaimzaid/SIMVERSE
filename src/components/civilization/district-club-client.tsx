@@ -5,7 +5,7 @@ import { apiFetch } from "@/lib/client/api";
 
 type Room = { key: string; title: string; description: string };
 type ChatMessage = {
-  id: string; room: string; body: string; createdAt: string;
+  id: string; room: string; body: string; mediaUrl: string | null; createdAt: string;
   authorDisplayName: string; isMine: boolean;
 };
 type Home = {
@@ -30,6 +30,7 @@ export function DistrictClubClient({ home }: { home: Home }) {
   const [connectionNotice, setConnectionNotice] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [body, setBody] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(home.active);
   const [error, setError] = useState("");
@@ -98,6 +99,34 @@ export function DistrictClubClient({ home }: { home: Home }) {
   }, [home.active, room, refresh]);
 
   useEffect(() => {
+    if (!home.active || !home.district) return;
+    let source: EventSource | null = null;
+    const start = () => {
+      source?.close();
+      source = null;
+      if (document.visibilityState !== "visible") return;
+      // SSE carries only change signals. Content and access checks stay on
+      // authenticated HTTP endpoints; the five-second poll is fallback.
+      source = new EventSource("/api/civilization/club/live");
+      source.addEventListener("sync", () => {
+        if (document.visibilityState !== "visible") return;
+        void refresh(roomRef.current, true);
+        void refreshActivity();
+      });
+      source.onerror = () => {
+        source?.close();
+        source = null;
+      };
+    };
+    start();
+    document.addEventListener("visibilitychange", start);
+    return () => {
+      source?.close();
+      document.removeEventListener("visibilitychange", start);
+    };
+  }, [home.active, home.district, refresh, refreshActivity]);
+
+  useEffect(() => {
     if (!home.active) return;
     void refreshActivity();
     const id = window.setInterval(() => { void refreshActivity(); }, 7_000);
@@ -106,11 +135,12 @@ export function DistrictClubClient({ home }: { home: Home }) {
 
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || body.trim().length < 2) return;
+    if (busy || (body.trim().length < 2 && !mediaUrl.trim())) return;
     setBusy(true);
     setError("");
     const result = await apiFetch<{ accepted: boolean }>("/api/civilization/club", {
-      method: "POST", body: JSON.stringify({ action: "MESSAGE", room, body }),
+      method: "POST", body: JSON.stringify({ action: "MESSAGE", room, body,
+        ...(mediaUrl.trim() ? { mediaUrl: mediaUrl.trim() } : {}) }),
     });
     setBusy(false);
     if (!result.data) {
@@ -118,6 +148,7 @@ export function DistrictClubClient({ home }: { home: Home }) {
       return;
     }
     setBody("");
+    setMediaUrl("");
     setNotice("Message sent to your district.");
     await refresh(room, true);
   }
@@ -217,7 +248,11 @@ export function DistrictClubClient({ home }: { home: Home }) {
                 {new Date(message.createdAt).toLocaleString()}
               </time>
             </div>
-            <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-foreground">{message.body}</p>
+            {message.body && <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-foreground">{message.body}</p>}
+            {message.mediaUrl && <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer nofollow"
+              className="mt-2 block break-all text-sm font-semibold text-accent hover:underline">
+              Open shared media link (external)
+            </a>}
             {!message.isMine && <button type="button"
               onClick={() => { setReportId(reportId === message.id ? null : message.id); setReportReason(""); }}
               className="mt-3 text-xs font-semibold text-secondary hover:text-accent">
@@ -245,9 +280,16 @@ export function DistrictClubClient({ home }: { home: Home }) {
           value={body} onChange={event => setBody(event.target.value)}
           placeholder="Introduce yourself or share something with your neighbors…"
           className="w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground" />
+        <label htmlFor="club-media-url" className="block text-sm text-foreground">
+          Optional external image or video URL (HTTPS, no uploads)
+        </label>
+        <input id="club-media-url" type="url" maxLength={2048} value={mediaUrl}
+          onChange={event => setMediaUrl(event.target.value)}
+          placeholder="https://example.com/photo.webp"
+          className="w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-secondary">{body.length}/650 characters</p>
-          <button type="submit" disabled={busy || body.trim().length < 2}
+          <button type="submit" disabled={busy || (body.trim().length < 2 && !mediaUrl.trim())}
             className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground disabled:opacity-50">
             {busy ? "Sending…" : "Send to room"}
           </button>
