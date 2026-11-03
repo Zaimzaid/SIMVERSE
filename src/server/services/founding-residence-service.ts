@@ -75,6 +75,8 @@ export async function joinOrTransferFoundingDistrict(userId: string, districtId:
       create: { userId, districtId: destination.id, startedAt: at, lastTransferAt: at },
       update: { districtId: destination.id, startedAt: at, lastTransferAt: at },
     });
+    // Clear private read history on transfer; the next district starts fresh.
+    await tx.districtClubReadCursor.deleteMany({ where: { userId } });
     // A former resident must not retain an RSVP for an old district's events.
     await tx.districtClubEventRsvp.deleteMany({ where: { userId } });
     // Moving districts revokes an earlier voluntary Club directory listing.
