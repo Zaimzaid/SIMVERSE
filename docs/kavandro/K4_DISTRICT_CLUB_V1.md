@@ -48,6 +48,30 @@ Status: draft implementation, not deployed or activated.
 - New GET/PATCH /api/civilization/club/directory with strict input validation,
   audit entries and isolated directory privacy tests.
 
+## K4.2 — Reviewed online community events and RSVP
+
+- Residents can suggest **online-only** friendly activities and community
+  gatherings in the Club. This phase does not require physical venues or 3D.
+- Proposal title, description, event type, start/end are validated on the
+  server; 30 minutes to 90 days advance notice, maximum six-hour duration,
+  and maximum three proposals per resident in seven days.
+- Event proposals begin **PENDING_REVIEW**. Only the author and authorized
+  moderators may see pending content. Independently authorized District Club
+  moderators can publish or reject proposals; they cannot review their own.
+- Approved events are listed only to the **current eligible residents** of
+  the same activated district, with organizer display name, local-time-friendly
+  timestamps and participant COUNT (never a list of attendee identities).
+- Each resident may RSVP once and withdraw. Concurrent duplicate joins
+  are rejected by the composite database primary key. RSVP is blocked
+  once the gathering starts and when the event is cancelled.
+- Moderators can cancel previously published gatherings, clearing RSVPs.
+  When a citizen officially transfers districts, their old Club RSVPs are
+  erased by the existing approved residence-transfer workflow.
+- No external venue URLs, uploading, compulsory attendance, revenue, real
+  currency, Vascoin, Assembly votes, geography objects or construction.
+- New event APIs, moderator review interface, and isolated integration
+  tests covering residents, privacy, review, cancellation and transfers.
+
 ## Hard boundaries
 
 No club access without real approved virtual-country and district activation.
@@ -71,6 +95,6 @@ or reward issuance. No 3D, world map, globe or geography files changed.
 
 ## Deferred
 
-Private uploads, event calendar, group voice calls,
+Private uploads, recurring event calendar, group voice calls,
 online presence, push notifications, WebSocket delivery, mute/ban policies
 and appeals workflows.

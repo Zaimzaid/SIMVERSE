@@ -75,6 +75,8 @@ export async function joinOrTransferFoundingDistrict(userId: string, districtId:
       create: { userId, districtId: destination.id, startedAt: at, lastTransferAt: at },
       update: { districtId: destination.id, startedAt: at, lastTransferAt: at },
     });
+    // A former resident must not retain an RSVP for an old district's events.
+    await tx.districtClubEventRsvp.deleteMany({ where: { userId } });
     // Moving districts revokes an earlier voluntary Club directory listing.
     // Even a future return to the original district requires fresh consent.
     await tx.districtClubDirectoryPreference.updateMany({
