@@ -2875,6 +2875,10 @@ model DistrictClubEvent {
   title String
   description String
   category String // SOCIAL | GAMES | LEARNING | COMMUNITY
+  capacity Int @default(100)
+  seriesId String?
+  occurrence Int @default(1)
+  occurrencesTotal Int @default(1)
   startsAt DateTime
   endsAt DateTime
   status String @default("PENDING_REVIEW") // PENDING_REVIEW | PUBLISHED | REJECTED | CANCELLED

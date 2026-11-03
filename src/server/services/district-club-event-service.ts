@@ -49,6 +49,10 @@ export async function listMyDistrictClubEvents(userId: string) {
       title: event.title,
       description: event.description,
       category: event.category,
+      capacity: event.capacity,
+      seriesId: event.seriesId,
+      occurrence: event.occurrence,
+      occurrencesTotal: event.occurrencesTotal,
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt.toISOString(),
       reviewedAt: event.reviewedAt?.toISOString() ?? null,
@@ -74,35 +78,49 @@ export async function submitDistrictClubEvent(userId: string, payload: unknown) 
       end.getTime() - start.getTime() > clubEventPolicy.maximumDurationHours * 3_600_000) {
     throw new ValidationError("The event must end after it begins, within six hours.");
   }
+  if (end.getTime() + (input.repeatWeeks - 1) * 7 * 86_400_000 >
+      now + clubEventPolicy.latestStartDays * 86_400_000) {
+    throw new ValidationError("The final weekly occurrence must also end within 90 days.");
+  }
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
     await ensureClubCanPost(userId, district.id, tx);
     const recent = await tx.districtClubEvent.count({
       where: { organizerUserId: userId, createdAt: { gte: new Date(Date.now() - 7 * 86_400_000) } },
     });
-    if (recent >= clubEventPolicy.maximumProposalsPerWeek) {
-      throw new ConflictError("You have reached the weekly limit of three event proposals.");
+    if (recent + input.repeatWeeks > clubEventPolicy.maximumProposalsPerWeek) {
+      throw new ConflictError("Each weekly occurrence counts toward your three-proposal limit.");
     }
-    const event = await tx.districtClubEvent.create({
-      data: {
-        districtId: district.id,
-        organizerUserId: userId,
-        title: input.title,
-        description: input.description,
-        category: input.category,
-        startsAt: start,
-        endsAt: end,
-        status: "PENDING_REVIEW",
-      },
-    });
-    await recordAudit({
-      action: "club.event_submitted",
-      actorUserId: userId,
-      entityType: "DistrictClubEvent",
-      entityId: event.id,
-      metadata: { districtId: district.id, category: event.category, status: event.status },
-    }, tx);
-    return { id: event.id, status: "PENDING_REVIEW" as const, publiclyVisible: false };
+    const seriesId = input.repeatWeeks > 1 ? crypto.randomUUID() : null;
+    const created: string[] = [];
+    for (let i = 0; i < input.repeatWeeks; i++) {
+      const shift = i * 7 * 86_400_000;
+      const event = await tx.districtClubEvent.create({
+        data: {
+          districtId: district.id,
+          organizerUserId: userId,
+          title: input.title,
+          description: input.description,
+          category: input.category,
+          capacity: input.capacity,
+          seriesId, occurrence: i + 1, occurrencesTotal: input.repeatWeeks,
+          startsAt: new Date(start.getTime() + shift),
+          endsAt: new Date(end.getTime() + shift),
+          status: "PENDING_REVIEW",
+        },
+      });
+      created.push(event.id);
+      await recordAudit({
+        action: "club.event_submitted",
+        actorUserId: userId,
+        entityType: "DistrictClubEvent",
+        entityId: event.id,
+        metadata: { districtId: district.id, category: event.category,
+          status: event.status, occurrence: i + 1 },
+      }, tx);
+    }
+    return { id: created[0], ids: created, occurrences: created.length,
+      status: "PENDING_REVIEW" as const, publiclyVisible: false };
   });
 }
 
@@ -192,6 +210,9 @@ export async function setMyDistrictClubEventRsvp(userId: string, payload: unknow
       if (event.startsAt.getTime() <= Date.now()) {
         throw new ConflictError("RSVP closes when the event starts.");
       }
+      if (await tx.districtClubEventRsvp.count({
+        where: { eventId: event.id },
+      }) >= event.capacity) throw new ConflictError("This activity has reached its participant limit.");
       try {
         await tx.districtClubEventRsvp.create({ data: { eventId: event.id, userId } });
       } catch (error) {

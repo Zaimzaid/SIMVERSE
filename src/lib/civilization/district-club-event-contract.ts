@@ -12,6 +12,8 @@ export const clubEventDraftSchema = z.strictObject({
   title: z.string().trim().min(8).max(100),
   description: z.string().trim().min(20).max(1000),
   category: z.enum(["SOCIAL", "GAMES", "LEARNING", "COMMUNITY"]),
+  capacity: z.number().int().min(2).max(200).default(100),
+  repeatWeeks: z.number().int().min(1).max(3).default(1),
   startsAt: z.string().datetime({ offset: true }),
   endsAt: z.string().datetime({ offset: true }),
 });
