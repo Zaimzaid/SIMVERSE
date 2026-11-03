@@ -242,6 +242,10 @@ describe("K4.3 residents-only unread room activity and cursor privacy", () => {
     const { country, a } = await setup();
     const alice = await resident(country.id, a.id, "Alice");
     const bob = await resident(country.id, a.id, "Bob");
+    await prisma.foundingDistrictResidence.update({
+      where: { userId: bob.id },
+      data: { startedAt: new Date(Date.now() - 90_000) },
+    });
     const earlier = await prisma.districtClubMessage.create({
       data: {
         districtId: a.id, authorUserId: alice.id, room: "GENERAL",

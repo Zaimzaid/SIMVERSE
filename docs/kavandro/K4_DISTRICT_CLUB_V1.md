@@ -13,7 +13,7 @@ Status: draft implementation, not deployed or activated.
 - Requires a published fictional country version and approved, active district
   geography. Visits and saved country preferences never grant chat access.
 - Per-district private message history (latest 60), user display names,
-  client-side polling every eight seconds and bounded posting frequency.
+  foreground-only polling every five seconds and bounded posting frequency.
 - Message reports do not automatically remove content. Moderators receive
   reports through a private queue and may dismiss or hide messages.
 - Independent district club moderator grants, not inherited from the Assembly
@@ -71,6 +71,32 @@ Status: draft implementation, not deployed or activated.
   currency, Vascoin, Assembly votes, geography objects or construction.
 - New event APIs, moderator review interface, and isolated integration
   tests covering residents, privacy, review, cancellation and transfers.
+
+## K4.3 — In-app activity badges and faster room refresh
+
+- A private, server-authoritative unread summary tracks four room counts and
+  new moderator-approved events for each **currently eligible resident**.
+- Club rooms display unread badges and the Club header displays the total.
+  Event alerts offer an explicit "mark as viewed" action in the activities
+  section. Messages in the currently open room are acknowledged only after
+  their visible server response is received.
+- Read cursors belong to the resident and approved district; they are never
+  exposed to other citizens. Each acknowledgment checks the requested room
+  and message/event against the **current approved home district**. A client
+  cannot forge timestamps, access another district or move a cursor backward.
+- Unread counts exclude a citizen's own messages/proposals, hidden messages,
+  unpublished/cancelled events and content before the citizen's home-district
+  residence began. The unread summary is capped per channel.
+- Approved district transfers clear a citizen's previous room/event cursor
+  state. Revoked citizenship and inactive districts fail closed.
+- While the page is visible, the open chat checks for updates every five
+  seconds; the activity summary checks every seven seconds and refreshes on
+  the next check after the page becomes visible. This is **polling** and is
+  NOT an instant WebSocket connection, mobile push, background notification
+  or a 100% delivery guarantee.
+- The read state introduces one additive Prisma model. Production rollout
+  still requires migration review, backup/rollback rehearsal, mobile QA and
+  operational moderation policies.
 
 ## Hard boundaries
 
