@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/server/context";
 import { getMyDistrictClubHome } from "@/server/services/district-club-service";
 import { DistrictClubClient } from "@/components/civilization/district-club-client";
+import { DistrictClubDirectoryClient } from "@/components/civilization/district-club-directory-client";
 
 export const metadata: Metadata = {
   title: "My District Club | KAVANDRO",
@@ -29,6 +30,7 @@ export default async function DistrictClubPage() {
       </p>
     </header>
     <DistrictClubClient home={home} />
+    {home.active && <DistrictClubDirectoryClient />}
     <p className="text-xs leading-6 text-secondary">
       Social clubs are residents-only pilots and need independently activated districts.
       General friends and private messages are still available in{" "}
