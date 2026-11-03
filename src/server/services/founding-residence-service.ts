@@ -75,6 +75,12 @@ export async function joinOrTransferFoundingDistrict(userId: string, districtId:
       create: { userId, districtId: destination.id, startedAt: at, lastTransferAt: at },
       update: { districtId: destination.id, startedAt: at, lastTransferAt: at },
     });
+    // Moving districts revokes an earlier voluntary Club directory listing.
+    // Even a future return to the original district requires fresh consent.
+    await tx.districtClubDirectoryPreference.updateMany({
+      where: { userId },
+      data: { isVisible: false, intro: "" },
+    });
     await tx.foundingDistrictMove.create({
       data: { userId, fromDistrictId: previous?.districtId ?? null, toDistrictId: destination.id },
     });

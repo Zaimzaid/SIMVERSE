@@ -5,6 +5,7 @@ import { resetDb } from "../../../test/helpers/db";
 import { registerUser } from "./auth-service";
 import { createFictionalCountryDraft, publishFictionalCountry } from "./fictional-planet-service";
 import { requestFriend } from "./social-service";
+import { joinOrTransferFoundingDistrict } from "./founding-residence-service";
 import {
   getMyDistrictClubDirectory, saveMyDistrictClubDirectoryPreference,
 } from "./district-club-service";
@@ -138,9 +139,16 @@ describe("K4.1 private opt-in District Club neighbor directory", () => {
       visible: true, intro: "Hello from the first district",
     });
     expect((await getMyDistrictClubDirectory(bob.id)).neighbors).toHaveLength(1);
+    // This test uses the real transfer service, not a direct DB override.
     await prisma.foundingDistrictResidence.update({
-      where: { userId: alice.id }, data: { districtId: second.id },
+      where: { userId: alice.id },
+      data: { lastTransferAt: new Date(Date.now() - 31 * 86400000) },
     });
+    await prisma.foundingDistrict.update({ where: { id: first.id }, data: { occupied: 1 } });
+    await joinOrTransferFoundingDistrict(alice.id, second.id);
+    expect((await prisma.districtClubDirectoryPreference.findUnique({
+      where: { userId: alice.id },
+    }))?.isVisible).toBe(false);
     expect((await getMyDistrictClubDirectory(bob.id)).neighbors).toHaveLength(0);
     expect((await getMyDistrictClubDirectory(carol.id)).neighbors).toHaveLength(0);
     expect((await getMyDistrictClubDirectory(alice.id)).mine.visible).toBe(false);

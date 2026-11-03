@@ -34,8 +34,10 @@ Status: draft implementation, not deployed or activated.
   fictional district, with a bound of 50 entries in the initial view.
 - The record retains the district where consent was given. A transfer does not
   carry a visible listing to the destination district: new explicit opt-in is
-  required. If residency or citizenship is lost, the account is no longer
-  discoverable; opt-out is still available to clear the stored introduction.
+  required. The existing residence-transfer service additionally clears the
+  old listing and introduction atomically, so returning to a prior home
+  district will not revive old consent. If residency or citizenship is lost,
+  the account is no longer discoverable; opt-out remains possible.
 - Users blocking each other are excluded from the other's directory.
 - Only display name and volunteered short introduction are shown. Account IDs
   and public usernames are disclosed only when a player has additionally set
@@ -69,6 +71,6 @@ or reward issuance. No 3D, world map, globe or geography files changed.
 
 ## Deferred
 
-Private uploads, resident opt-in directory, event calendar, group voice calls,
+Private uploads, event calendar, group voice calls,
 online presence, push notifications, WebSocket delivery, mute/ban policies
 and appeals workflows.
