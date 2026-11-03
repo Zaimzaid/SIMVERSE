@@ -108,7 +108,13 @@ export async function listMyClubEventReviewQueue(userId: string) {
   const district = await approvedHome(userId);
   await ensureClubModerator(userId, district.id);
   const events = await prisma.districtClubEvent.findMany({
-    where: { districtId: district.id, status: "PENDING_REVIEW" },
+    where: {
+      districtId: district.id,
+      OR: [
+        { status: "PENDING_REVIEW" },
+        { status: "PUBLISHED", endsAt: { gt: new Date() } },
+      ],
+    },
     include: { organizer: { select: { displayName: true } } },
     orderBy: { createdAt: "asc" }, take: 50,
   });
@@ -119,6 +125,7 @@ export async function listMyClubEventReviewQueue(userId: string) {
       title: event.title,
       description: event.description,
       category: event.category,
+      status: event.status,
       startsAt: event.startsAt.toISOString(),
       endsAt: event.endsAt.toISOString(),
       organizerDisplayName: event.organizer.displayName,
