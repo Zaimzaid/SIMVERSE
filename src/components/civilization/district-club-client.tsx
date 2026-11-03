@@ -20,6 +20,7 @@ type Activity = {
   eventUnread: number;
   totalUnread: number;
   transport: string;
+  alerts: { chat: boolean; events: boolean; quietHoursActive: boolean };
 };
 
 export function DistrictClubClient({ home }: { home: Home }) {
@@ -198,11 +199,13 @@ export function DistrictClubClient({ home }: { home: Home }) {
       <p className="mt-2 text-xs leading-6 text-secondary">
         Updates refresh while this page is open. Instant push and WebSockets are not enabled.
       </p>
-      {activity && activity.totalUnread > 0 && <div className="mt-4 flex flex-wrap items-center gap-3">
+      {activity && activity.totalUnread > 0 &&
+        (activity.alerts.chat || activity.alerts.events) &&
+        <div className="mt-4 flex flex-wrap items-center gap-3">
         <p role="status" className="text-sm font-semibold text-accent">
           {activity.totalUnread} unread club update{activity.totalUnread === 1 ? "" : "s"}
         </p>
-        {activity.eventUnread > 0 &&
+        {activity.alerts.events && activity.eventUnread > 0 &&
           <a href="#club-events-heading" className="text-sm font-semibold text-accent hover:underline">
             {activity.eventUnread} new approved event{activity.eventUnread === 1 ? "" : "s"}
           </a>}

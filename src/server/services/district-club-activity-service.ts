@@ -6,6 +6,7 @@ import {
   clubActivityAcknowledgeSchema, clubActivityPolicy,
 } from "@/lib/civilization/district-club-activity-contract";
 import { approvedHome } from "./district-club-service";
+import { isQuietHour } from "./district-club-alert-service";
 
 const CHANNELS = DISTRICT_CLUB_ROOMS.map(room => room.key);
 type ActivityChannel = typeof CHANNELS[number] | "EVENTS";
@@ -19,7 +20,7 @@ function newerThan(seenAt: Date, seenId: string) {
 
 export async function getMyDistrictClubActivity(userId: string) {
   const district = await approvedHome(userId);
-  const [home, cursors] = await Promise.all([
+  const [home, cursors, preferences] = await Promise.all([
     prisma.foundingDistrictResidence.findUniqueOrThrow({
       where: { userId }, select: { startedAt: true },
     }),
@@ -27,6 +28,7 @@ export async function getMyDistrictClubActivity(userId: string) {
       where: { userId, districtId: district.id },
       select: { channel: true, lastSeenAt: true, lastSeenId: true },
     }),
+    prisma.districtClubNotificationPreference.findUnique({ where: { userId } }),
   ]);
   const byChannel = new Map(cursors.map(cursor => [cursor.channel, cursor]));
   const roomCounts = await Promise.all(CHANNELS.map(async channel => {
@@ -57,11 +59,17 @@ export async function getMyDistrictClubActivity(userId: string) {
     Record<(typeof CHANNELS)[number], number>;
   const events = Math.min(clubActivityPolicy.maxUnreadPerChannel, eventCount);
   const totalUnread = roomCounts.reduce((n, item) => n + item.count, 0) + events;
+  const saved = preferences?.districtId === district.id ? preferences : null;
+  const quiet = isQuietHour(new Date(), saved?.quietStartHourUtc ?? null,
+    saved?.quietEndHourUtc ?? null);
   return {
     district: { id: district.id, name: district.name },
     roomUnread: unreadRooms,
     eventUnread: events,
     totalUnread,
+    alerts: { chat: !quiet && (saved?.chatAlerts ?? true),
+      events: !quiet && (saved?.eventAlerts ?? true),
+      quietHoursActive: quiet },
     refreshIntervalMs: clubActivityPolicy.refreshIntervalMs,
     transport: clubActivityPolicy.transport,
   };
