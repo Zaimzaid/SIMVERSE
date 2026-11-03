@@ -75,6 +75,10 @@ export async function joinOrTransferFoundingDistrict(userId: string, districtId:
       create: { userId, districtId: destination.id, startedAt: at, lastTransferAt: at },
       update: { districtId: destination.id, startedAt: at, lastTransferAt: at },
     });
+    // Voluntary interest-group memberships never carry over across districts.
+    await tx.districtClubInterestMembership.updateMany({
+      where: { userId, status: "ACTIVE" }, data: { status: "LEFT" },
+    });
     // Clear private read history on transfer; the next district starts fresh.
     await tx.districtClubReadCursor.deleteMany({ where: { userId } });
     await tx.districtClubNotificationPreference.deleteMany({ where: { userId } });
