@@ -24,6 +24,28 @@ Status: draft implementation, not deployed or activated.
   reporting, self-review and unauthorized moderation.
 - Existing Social group chat and Assembly proposal/vote records are unchanged.
 
+## K4.1 — Optional resident directory (same draft branch)
+
+- A "Meet your neighbors" panel appears on the District Club page.
+- Directory visibility is **OFF by default**: neither residence assignment nor
+  participating in club chats publishes a player in this directory.
+- A resident may explicitly enable discovery and add a short optional 180-character
+  introduction. This is only visible to current approved residents of the same
+  fictional district, with a bound of 50 entries in the initial view.
+- The record retains the district where consent was given. A transfer does not
+  carry a visible listing to the destination district: new explicit opt-in is
+  required. If residency or citizenship is lost, the account is no longer
+  discoverable; opt-out is still available to clear the stored introduction.
+- Users blocking each other are excluded from the other's directory.
+- Only display name and volunteered short introduction are shown. Account IDs
+  and public usernames are disclosed only when a player has additionally set
+  their existing player profile to PUBLIC and has a username.
+- An optional **friend request** reuses the existing protected Social friends API;
+  messaging still requires the receiver to accept. Email, home address, private
+  documents and private username are never returned.
+- New GET/PATCH /api/civilization/club/directory with strict input validation,
+  audit entries and isolated directory privacy tests.
+
 ## Hard boundaries
 
 No club access without real approved virtual-country and district activation.

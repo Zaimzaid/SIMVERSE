@@ -6,6 +6,7 @@ on:
     paths:
       - "src/lib/civilization/district-club-contract.ts"
       - "src/server/services/district-club-service*"
+      - "src/server/services/district-club-directory-service.test.ts"
       - "src/server/services/audit-service.ts"
       - "src/app/api/civilization/club/**"
       - "src/app/(platform)/profile/civilization/club/**"
