@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { AuthorizationError, ConflictError, NotFoundError } from "@/lib/errors";
 import { parseOrThrow } from "@/lib/validation";
 import { prisma } from "@/server/db/client";
