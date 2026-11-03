@@ -27,6 +27,7 @@ export type AuditAction =
   | "assembly.vote_cast"
   | "assembly.report_submitted"
   | "assembly.report_reviewed"
+  | "civilization.challenge_completed"
   | "vascoin.daily_claim"
   | "land.plan_draft_created"
   | "development.feasibility_started"
