@@ -105,6 +105,7 @@ export async function listMyDistrictClubMessages(userId: string, roomInput: unkn
     room,
     messages: messages.reverse().map(message => ({
       id: message.id,
+      mediaUrl: message.mediaUrl,
       room: message.room,
       body: message.body,
       createdAt: message.createdAt.toISOString(),
@@ -115,7 +116,7 @@ export async function listMyDistrictClubMessages(userId: string, roomInput: unkn
 }
 
 export async function postMyDistrictClubMessage(userId: string, payload: unknown) {
-  const { room, body } = parseOrThrow(districtClubMessageSchema, payload);
+  const { room, body, mediaUrl } = parseOrThrow(districtClubMessageSchema, payload);
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
     await ensureClubCanPost(userId, district.id, tx);
@@ -133,7 +134,7 @@ export async function postMyDistrictClubMessage(userId: string, payload: unknown
       throw new ConflictError("Please allow a few seconds between club messages.");
     }
     const message = await tx.districtClubMessage.create({
-      data: { districtId: district.id, authorUserId: userId, room, body, status: "VISIBLE" },
+      data: { districtId: district.id, authorUserId: userId, room, body, mediaUrl: mediaUrl ?? null, status: "VISIBLE" },
     });
     await recordAudit({
       action: "club.message_posted", actorUserId: userId,

@@ -72,6 +72,7 @@ model User {
   developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
   developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
   developmentUpdatesWritten FoundingDevelopmentUpdate[]
+  clubNotificationPreference DistrictClubNotificationPreference?
   clubDirectoryPreference DistrictClubDirectoryPreference?
   clubEventsOrganized DistrictClubEvent[] @relation("ClubEventOrganizer")
   clubEventsReviewed DistrictClubEvent[] @relation("ClubEventReviewer")
@@ -339,6 +340,7 @@ model FoundingDistrict {
   movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
   visits FoundingVisit[]
   assemblyProposals DistrictAssemblyProposal[]
+  clubNotificationPreferences DistrictClubNotificationPreference[]
   clubReadCursors DistrictClubReadCursor[]
   clubEvents DistrictClubEvent[]
   clubMessages DistrictClubMessage[]
@@ -2815,6 +2817,7 @@ model DistrictClubMessage {
   authorUserId String
   room String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS
   body String
+  mediaUrl String?
   status String @default("VISIBLE") // VISIBLE | HIDDEN
   createdAt DateTime @default(now())
   district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
@@ -2946,4 +2949,20 @@ model DistrictClubAppeal {
   author User @relation("ClubAppealAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
   reviewer User? @relation("ClubAppealReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   @@index([status, createdAt])
+}
+
+
+// K4.6 — in-app Club notification preferences. Quiet hours in UTC.
+// Provider-based push/email delivery is intentionally disabled until configured.
+model DistrictClubNotificationPreference {
+  userId String @id
+  districtId String
+  chatAlerts Boolean @default(true)
+  eventAlerts Boolean @default(true)
+  quietStartHourUtc Int?
+  quietEndHourUtc Int?
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@index([districtId])
 }
