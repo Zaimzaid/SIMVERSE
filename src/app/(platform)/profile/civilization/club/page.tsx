@@ -41,7 +41,7 @@ export default async function DistrictClubPage() {
       <Link href="/profile/civilization/club/safety" className="font-semibold text-accent hover:underline">Safety & appeals</Link>
       {" · "}
       Social clubs are residents-only pilots and need independently activated districts.
-      General friends and private messages are still available in{" "}
+      General friends and private messages and existing one-to-one voice/video calls are available in{" "}
       <Link href="/social" className="font-semibold text-accent hover:underline">Friends & Messages</Link>.
     </p>
   </main>;
