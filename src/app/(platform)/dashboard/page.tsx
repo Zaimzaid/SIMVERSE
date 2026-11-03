@@ -47,6 +47,13 @@ export default async function DashboardPage() {
       marker: "Available",
     },
     {
+      label: "My District Club",
+      detail: "Meet residents in friendly district chat rooms when official membership becomes active.",
+      href: "/profile/civilization/club",
+      icon: MessageCircle,
+      marker: "Residents-only · Gated",
+    },
+    {
       label: "Friends & messages",
       detail: "Meet people through the existing community and messaging features.",
       href: "/social",
