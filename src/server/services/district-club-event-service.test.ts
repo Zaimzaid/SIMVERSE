@@ -158,7 +158,7 @@ describe("K4.2 approved non-3D District Club social events", () => {
     const draft = upcoming();
     const bad = [
       { ...draft, districtId: second.id },
-      { ...draft, title: "too short" },
+      { ...draft, title: "Tiny" },
       { ...draft, category: "CONSTRUCTION" },
       { ...draft, startsAt: new Date(Date.now() + 10_000).toISOString() },
       { ...draft, endsAt: new Date(Date.now() - 1_000).toISOString() },
