@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { apiFetch } from "@/lib/client/api";
 
 type Room = { key: string; title: string; description: string };
@@ -15,9 +15,18 @@ type Home = {
 type Conversation = {
   room: string; district: { id: string; name: string }; messages: ChatMessage[];
 };
+type Activity = {
+  roomUnread: Record<string, number>;
+  eventUnread: number;
+  totalUnread: number;
+  transport: string;
+};
 
 export function DistrictClubClient({ home }: { home: Home }) {
   const [room, setRoom] = useState("GENERAL");
+  const roomRef = useRef(room);
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [connectionNotice, setConnectionNotice] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,30 +36,68 @@ export function DistrictClubClient({ home }: { home: Home }) {
   const [reportId, setReportId] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState("");
 
+  const refreshActivity = useCallback(async () => {
+    if (!home.active || document.visibilityState !== "visible") return;
+    const status = await apiFetch<Activity>("/api/civilization/club/activity");
+    if (status.data) {
+      setActivity(status.data);
+      setConnectionNotice("");
+    } else {
+      setConnectionNotice("Club updates are unavailable. Check your connection or membership.");
+    }
+  }, [home.active]);
+
   const refresh = useCallback(async (chosen: string, silent = false) => {
     if (!home.active) return;
     if (!silent) setLoading(true);
     const response = await apiFetch<Conversation>(
       "/api/civilization/club?room=" + encodeURIComponent(chosen),
     );
+    if (roomRef.current !== chosen) return;
     if (response.data) {
       setMessages(response.data.messages);
       if (!silent) setError("");
+      // Server verifies the message belongs to this private room before moving
+      // the caller's read cursor. Never acknowledge beyond what was received.
+      const last = response.data.messages.at(-1);
+      if (last && document.visibilityState === "visible") {
+        const ack = await apiFetch<{ accepted: boolean }>("/api/civilization/club/activity", {
+          method: "POST",
+          body: JSON.stringify({ channel: chosen, itemId: last.id }),
+        });
+        if (ack.data) await refreshActivity();
+      }
     } else if (response.error) {
       setError(response.error.message);
       setMessages([]);
+      setConnectionNotice("Club chat could not refresh.");
     }
     if (!silent) setLoading(false);
-  }, [home.active]);
+  }, [home.active, refreshActivity]);
 
   useEffect(() => {
     if (!home.active) return;
+    roomRef.current = room;
     void refresh(room);
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh(room, true);
-    }, 8_000);
-    return () => window.clearInterval(id);
+    }, 5_000);
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void refresh(room, true);
+    };
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, [home.active, room, refresh]);
+
+  useEffect(() => {
+    if (!home.active) return;
+    void refreshActivity();
+    const id = window.setInterval(() => { void refreshActivity(); }, 7_000);
+    return () => window.clearInterval(id);
+  }, [home.active, refreshActivity]);
 
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,6 +156,19 @@ export function DistrictClubClient({ home }: { home: Home }) {
         {home.district.name} Club
       </h2>
       <p className="mt-2 text-sm leading-7 text-secondary">{home.notice}</p>
+      <p className="mt-2 text-xs leading-6 text-secondary">
+        Updates refresh while this page is open. Instant push and WebSockets are not enabled.
+      </p>
+      {activity && activity.totalUnread > 0 && <div className="mt-4 flex flex-wrap items-center gap-3">
+        <p role="status" className="text-sm font-semibold text-accent">
+          {activity.totalUnread} unread club update{activity.totalUnread === 1 ? "" : "s"}
+        </p>
+        {activity.eventUnread > 0 &&
+          <a href="#club-events-heading" className="text-sm font-semibold text-accent hover:underline">
+            {activity.eventUnread} new approved event{activity.eventUnread === 1 ? "" : "s"}
+          </a>}
+      </div>}
+      {connectionNotice && <p role="status" className="mt-2 text-xs text-secondary">{connectionNotice}</p>}
       {home.canModerate && <a href="/profile/civilization/club/moderation"
         className="mt-4 inline-block rounded-xl border border-border px-4 py-2 text-sm font-semibold text-accent">
         Club moderation queue
@@ -117,11 +177,16 @@ export function DistrictClubClient({ home }: { home: Home }) {
     <section className="rounded-2xl border border-border bg-surface p-4 sm:p-6" aria-label="District Club chat rooms">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Choose a club room">
         {home.rooms.map(item => <button key={item.key} type="button" aria-pressed={room === item.key}
-          onClick={() => { setRoom(item.key); setMessages([]); setError(""); setNotice(""); setReportId(null); }}
+          onClick={() => { roomRef.current = item.key; setRoom(item.key); setMessages([]); setError(""); setNotice(""); setReportId(null); }}
           className={"min-h-14 rounded-xl border px-3 py-3 text-left text-xs font-semibold transition " +
             (room === item.key ? "border-accent bg-accent-soft text-accent" :
               "border-border bg-background text-secondary hover:border-accent")}>
-          {item.title}
+          <span>{item.title}</span>
+          {(activity?.roomUnread[item.key] ?? 0) > 0 &&
+            <span aria-label={activity!.roomUnread[item.key] + " unread messages"}
+              className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full border border-accent px-2 py-0.5 text-xs font-semibold text-accent">
+              {activity!.roomUnread[item.key]}
+            </span>}
         </button>)}
       </div>
       <p className="mt-4 text-sm text-secondary">

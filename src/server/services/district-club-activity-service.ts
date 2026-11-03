@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/lib/errors";
 import { parseOrThrow } from "@/lib/validation";
 import { prisma } from "@/server/db/client";
@@ -96,17 +95,14 @@ export async function acknowledgeMyDistrictClubActivity(userId: string, payload:
     const where = {
       userId_districtId_channel: { userId, districtId: district.id, channel },
     };
-    try {
-      await tx.districtClubReadCursor.create({
-        data: {
-          userId, districtId: district.id, channel,
-          lastSeenAt: seenAt, lastSeenId: itemId,
-        },
-      });
-    } catch (error) {
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError) ||
-          error.code !== "P2002") throw error;
-    }
+    await tx.districtClubReadCursor.upsert({
+      where,
+      create: {
+        userId, districtId: district.id, channel,
+        lastSeenAt: seenAt, lastSeenId: itemId,
+      },
+      update: {},
+    });
     // Concurrent/out-of-order clients may only advance the cursor.
     await tx.districtClubReadCursor.updateMany({
       where: {
