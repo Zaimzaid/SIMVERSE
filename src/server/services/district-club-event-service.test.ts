@@ -6,6 +6,9 @@ import { registerUser } from "./auth-service";
 import { createFictionalCountryDraft, publishFictionalCountry } from "./fictional-planet-service";
 import { joinOrTransferFoundingDistrict } from "./founding-residence-service";
 import {
+  getMyDistrictClubActivity, acknowledgeMyDistrictClubActivity,
+} from "./district-club-activity-service";
+import {
   listMyDistrictClubEvents, submitDistrictClubEvent, listMyClubEventReviewQueue,
   reviewDistrictClubEvent, setMyDistrictClubEventRsvp,
 } from "./district-club-event-service";
@@ -221,5 +224,37 @@ describe("K4.2 approved non-3D District Club social events", () => {
       where: { eventId: published.id, userId: alice.id },
     })).toBe(0);
     expect((await listMyDistrictClubEvents(alice.id)).events).toHaveLength(0);
+  });
+});
+
+
+describe("K4.3 privately notified approved community events", () => {
+  it("counts newly published events, excluding own proposals, and honors read acknowledgement", async () => {
+    const { country, first, second } = await setup();
+    const author = await resident(country.id, first.id, "Organizer");
+    const neighbor = await resident(country.id, first.id, "Neighbor");
+    const outsider = await resident(country.id, second.id, "Another district");
+    const moderator = await resident(country.id, first.id, "Moderator");
+    await prisma.districtClubModeratorGrant.create({
+      data: { userId: moderator.id, districtId: first.id, isActive: true },
+    });
+    const proposed = await submitDistrictClubEvent(author.id, upcoming());
+    expect((await getMyDistrictClubActivity(neighbor.id)).eventUnread).toBe(0);
+    await reviewDistrictClubEvent(moderator.id, { eventId: proposed.id, action: "PUBLISH" });
+    expect((await getMyDistrictClubActivity(neighbor.id)).eventUnread).toBe(1);
+    expect((await getMyDistrictClubActivity(author.id)).eventUnread).toBe(0);
+    expect((await getMyDistrictClubActivity(outsider.id)).eventUnread).toBe(0);
+    await expect(acknowledgeMyDistrictClubActivity(outsider.id, {
+      channel: "EVENTS", itemId: proposed.id,
+    })).rejects.toBeInstanceOf(NotFoundError);
+    await acknowledgeMyDistrictClubActivity(neighbor.id, {
+      channel: "EVENTS", itemId: proposed.id,
+    });
+    expect((await getMyDistrictClubActivity(neighbor.id)).eventUnread).toBe(0);
+    await reviewDistrictClubEvent(moderator.id, { eventId: proposed.id, action: "CANCEL" });
+    expect((await getMyDistrictClubActivity(neighbor.id)).eventUnread).toBe(0);
+    await expect(acknowledgeMyDistrictClubActivity(neighbor.id, {
+      channel: "EVENTS", itemId: proposed.id,
+    })).rejects.toBeInstanceOf(NotFoundError);
   });
 });
