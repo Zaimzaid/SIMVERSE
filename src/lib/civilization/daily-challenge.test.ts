@@ -35,7 +35,7 @@ describe("K3 non-3D daily civic planning puzzle", () => {
     for (const ids of [
       [], ["bogus"], [puzzle.choices[0]!.id, puzzle.choices[0]!.id],
       puzzle.choices.slice(0, 4).map((choice) => choice.id),
-      puzzle.choices.slice(0, 3).map((choice) => choice.id),
+      [puzzle.choices[0]!.id, puzzle.choices[3]!.id, puzzle.choices[5]!.id],
     ]) {
       expect(() => evaluateDailyChallenge(puzzle, ids)).toThrow(ValidationError);
     }

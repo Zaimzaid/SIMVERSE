@@ -78,7 +78,7 @@ describe("Phase 5 saved challenge results and abuse boundaries", () => {
       { selectedIds: [puzzle.choices[0]!.id], grantVascoin: 1000 },
       { selectedIds: ["not-a-choice"] },
       { selectedIds: [puzzle.choices[0]!.id, puzzle.choices[0]!.id] },
-      { selectedIds: puzzle.choices.slice(0, 3).map((choice) => choice.id) },
+      { selectedIds: [puzzle.choices[0]!.id, puzzle.choices[3]!.id, puzzle.choices[5]!.id] },
     ]) {
       await expect(submitDailyCivilizationChallenge(user.id, input, tuesday))
         .rejects.toBeInstanceOf(ValidationError);
