@@ -12,7 +12,7 @@ import { recordAudit } from "./audit-service";
 
 type Db = Prisma.TransactionClient | typeof prisma;
 
-async function approvedHome(userId: string, db: Db = prisma) {
+export async function approvedHome(userId: string, db: Db = prisma) {
   const [home, primary] = await Promise.all([
     db.foundingDistrictResidence.findUnique({
       where: { userId },
@@ -38,7 +38,7 @@ async function approvedHome(userId: string, db: Db = prisma) {
   return district;
 }
 
-async function ensureClubModerator(userId: string, districtId: string, db: Db = prisma) {
+export async function ensureClubModerator(userId: string, districtId: string, db: Db = prisma) {
   // Independent club roles: neither workspace admins nor assembly moderators inherit access.
   const grant = await db.districtClubModeratorGrant.findUnique({
     where: { userId_districtId: { userId, districtId } },
