@@ -23,7 +23,7 @@ export const clubEventReviewSchema = z.strictObject({
 });
 export const clubEventRsvpSchema = z.strictObject({
   eventId: idSchema,
-  action: z.enum(["JOIN", "LEAVE"]),
+  rsvpAction: z.enum(["JOIN", "LEAVE"]),
 });
 export const clubEventPolicy = {
   maximumProposalsPerWeek: 3,

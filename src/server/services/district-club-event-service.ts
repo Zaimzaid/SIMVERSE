@@ -178,7 +178,7 @@ export async function setMyDistrictClubEventRsvp(userId: string, payload: unknow
     if (!event || event.districtId !== district.id || event.status !== "PUBLISHED") {
       throw new NotFoundError("The event is not available in your district.");
     }
-    if (input.action === "JOIN") {
+    if (input.rsvpAction === "JOIN") {
       if (event.startsAt.getTime() <= Date.now()) {
         throw new ConflictError("RSVP closes when the event starts.");
       }
@@ -198,8 +198,8 @@ export async function setMyDistrictClubEventRsvp(userId: string, payload: unknow
     await recordAudit({
       action: "club.event_rsvp_changed", actorUserId: userId,
       entityType: "DistrictClubEvent", entityId: event.id,
-      metadata: { districtId: district.id, action: input.action },
+      metadata: { districtId: district.id, action: input.rsvpAction },
     }, tx);
-    return { eventId: event.id, attending: input.action === "JOIN" };
+    return { eventId: event.id, attending: input.rsvpAction === "JOIN" };
   });
 }
