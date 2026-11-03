@@ -35,7 +35,25 @@ export async function approvedHome(userId: string, db: Db = prisma) {
       !district.verifiedGeoVersionId) {
     throw new ConflictError("The district club cannot open until its district and geography are officially approved.");
   }
+  // BAN excludes members from all private Club features while the sanction is active.
+  if (await db.districtClubSanction.findFirst({
+    where: { districtId: district.id, targetUserId: userId, kind: "BAN",
+      status: "ACTIVE", expiresAt: { gt: new Date() } },
+    select: { id: true },
+  })) {
+    throw new AuthorizationError("Your District Club access is temporarily suspended. You can appeal in Club Safety.");
+  }
   return district;
+}
+
+export async function ensureClubCanPost(userId: string, districtId: string,
+  db: Db = prisma) {
+  const sanction = await db.districtClubSanction.findFirst({
+    where: { districtId, targetUserId: userId, status: "ACTIVE",
+      expiresAt: { gt: new Date() }, kind: { in: ["MUTE", "BAN"] } },
+    select: { id: true },
+  });
+  if (sanction) throw new AuthorizationError("Club participation is temporarily restricted; review your sanctions and appeal options.");
 }
 
 export async function ensureClubModerator(userId: string, districtId: string, db: Db = prisma) {
@@ -100,6 +118,7 @@ export async function postMyDistrictClubMessage(userId: string, payload: unknown
   const { room, body } = parseOrThrow(districtClubMessageSchema, payload);
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
+    await ensureClubCanPost(userId, district.id, tx);
     const oneHour = new Date(Date.now() - 3_600_000);
     const recent = await tx.districtClubMessage.findMany({
       where: { authorUserId: userId, createdAt: { gte: oneHour } },
@@ -295,6 +314,7 @@ export async function saveMyDistrictClubDirectoryPreference(userId: string, inpu
 
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
+    await ensureClubCanPost(userId, district.id, tx);
     await tx.districtClubDirectoryPreference.upsert({
       where: { userId },
       create: { userId, districtId: district.id, isVisible: true, intro: data.intro },

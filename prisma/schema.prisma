@@ -78,6 +78,11 @@ model User {
   clubEventRsvps DistrictClubEventRsvp[]
   clubReadCursors DistrictClubReadCursor[]
   clubMessages DistrictClubMessage[] @relation("ClubMessageAuthor")
+  clubSanctionsReceived DistrictClubSanction[] @relation("ClubSanctionTarget")
+  clubSanctionsIssued DistrictClubSanction[] @relation("ClubSanctionIssuer")
+  clubSanctionsRevoked DistrictClubSanction[] @relation("ClubSanctionRevoker")
+  clubAppealsWritten DistrictClubAppeal[] @relation("ClubAppealAuthor")
+  clubAppealsReviewed DistrictClubAppeal[] @relation("ClubAppealReviewer")
   clubModeratorGrants DistrictClubModeratorGrant[]
   clubReportsSent DistrictClubReport[] @relation("ClubReportReporter")
   clubReportsReviewed DistrictClubReport[] @relation("ClubReportReviewer")
@@ -339,6 +344,7 @@ model FoundingDistrict {
   clubMessages DistrictClubMessage[]
   clubDirectoryPreferences DistrictClubDirectoryPreference[]
   clubModerators DistrictClubModeratorGrant[]
+  clubSanctions DistrictClubSanction[]
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
   vascoinTreasury VascoinAccount?
@@ -2901,4 +2907,43 @@ model DistrictClubReadCursor {
   district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
   @@id([userId, districtId, channel])
   @@index([districtId, channel])
+}
+
+
+// K4.4 — independent, bounded Club sanctions with auditable appeal workflow.
+model DistrictClubSanction {
+  id String @id @default(cuid())
+  districtId String
+  targetUserId String
+  issuedByUserId String
+  kind String // MUTE | BAN
+  reason String
+  status String @default("ACTIVE") // ACTIVE | REVOKED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  revokedByUserId String?
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  target User @relation("ClubSanctionTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  issuer User @relation("ClubSanctionIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
+  revoker User? @relation("ClubSanctionRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  appeal DistrictClubAppeal?
+  @@index([districtId, targetUserId, status, expiresAt])
+  @@index([issuedByUserId, createdAt])
+}
+
+model DistrictClubAppeal {
+  id String @id @default(cuid())
+  sanctionId String @unique
+  authorUserId String
+  reason String
+  status String @default("OPEN") // OPEN | UPHELD | OVERTURNED
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  decisionReason String?
+  createdAt DateTime @default(now())
+  sanction DistrictClubSanction @relation(fields: [sanctionId], references: [id], onDelete: Restrict)
+  author User @relation("ClubAppealAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ClubAppealReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  @@index([status, createdAt])
 }
