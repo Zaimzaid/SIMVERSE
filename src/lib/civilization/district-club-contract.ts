@@ -30,3 +30,11 @@ export const districtClubRules = {
   districtConstructionAuthority: false,
   vascoinRewardsEnabled: false,
 } as const;
+
+
+// Directory is PRIVATE and OFF by default; changing home districts requires
+// a fresh affirmative opt-in to appear in the new district's directory.
+export const districtClubDirectoryPreferenceSchema = z.strictObject({
+  visible: z.boolean(),
+  intro: z.string().trim().max(180).default(""),
+});

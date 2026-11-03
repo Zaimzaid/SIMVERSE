@@ -6,6 +6,7 @@ import { prisma } from "@/server/db/client";
 import {
   DISTRICT_CLUB_ROOMS, districtClubMessageSchema, districtClubReportSchema,
   districtClubReviewSchema, districtClubRoomSchema, districtClubRules,
+  districtClubDirectoryPreferenceSchema,
 } from "@/lib/civilization/district-club-contract";
 import { recordAudit } from "./audit-service";
 
@@ -215,5 +216,95 @@ export async function reviewDistrictClubReport(userId: string, payload: unknown)
       metadata: { districtId: district.id, action, messageId: report.messageId },
     }, tx);
     return { reviewed: true, action, hidden: action === "HIDE" };
+  });
+}
+
+
+// K4.1 — discoverability is voluntary and district-scoped, not implied by
+// chat use, residency, country preference, citizenship or profile privacy.
+export async function getMyDistrictClubDirectory(userId: string) {
+  const district = await approvedHome(userId);
+  const [preference, members] = await Promise.all([
+    prisma.districtClubDirectoryPreference.findUnique({ where: { userId } }),
+    prisma.user.findMany({
+      where: {
+        id: { not: userId },
+        clubDirectoryPreference: {
+          is: { districtId: district.id, isVisible: true },
+        },
+        foundingResidence: { is: { districtId: district.id } },
+        foundingPrimaryCitizenship: {
+          is: { countryId: district.countryId, status: "ACTIVE" },
+        },
+        NOT: {
+          OR: [
+            { socialBlocksCreated: { some: { blockedId: userId } } },
+            { socialBlocksReceived: { some: { blockerId: userId } } },
+          ],
+        },
+      },
+      select: {
+        id: true,
+        displayName: true,
+        clubDirectoryPreference: { select: { intro: true } },
+        playerIdentity: { select: { username: true, profileVisibility: true } },
+      },
+      orderBy: [{ displayName: "asc" }, { id: "asc" }],
+      take: 50,
+    }),
+  ]);
+  const sameDistrictPreference = preference?.districtId === district.id;
+  return {
+    district: { id: district.id, name: district.name },
+    mine: {
+      visible: Boolean(sameDistrictPreference && preference?.isVisible),
+      intro: sameDistrictPreference ? preference?.intro ?? "" : "",
+    },
+    neighbors: members.map(member => {
+      const publicUsername = member.playerIdentity?.profileVisibility === "PUBLIC"
+        ? member.playerIdentity.username : null;
+      return {
+        displayName: member.displayName,
+        intro: member.clubDirectoryPreference?.intro ?? "",
+        // Account identifiers are exposed only when the target also opted
+        // into a public player profile (normal friend-request requirement).
+        friendTargetUserId: publicUsername ? member.id : null,
+        publicUsername: publicUsername ?? null,
+      };
+    }),
+    cappedAt: 50,
+    notice: "Private to opted-in residents of this approved district. Hidden by default. Changing districts requires a new opt-in.",
+  };
+}
+
+export async function saveMyDistrictClubDirectoryPreference(userId: string, input: unknown) {
+  const data = parseOrThrow(districtClubDirectoryPreferenceSchema, input);
+  // An opted-out user can erase discoverability even if residency was revoked.
+  // Never create a listing or grant access while the district is inactive.
+  if (!data.visible) {
+    await prisma.districtClubDirectoryPreference.updateMany({
+      where: { userId }, data: { isVisible: false, intro: "" },
+    });
+    await recordAudit({
+      action: "club.directory_preference_changed", actorUserId: userId,
+      entityType: "DistrictClubDirectoryPreference", entityId: userId,
+      metadata: { visible: false },
+    });
+    return { visible: false, intro: "" };
+  }
+
+  return prisma.$transaction(async tx => {
+    const district = await approvedHome(userId, tx);
+    await tx.districtClubDirectoryPreference.upsert({
+      where: { userId },
+      create: { userId, districtId: district.id, isVisible: true, intro: data.intro },
+      update: { districtId: district.id, isVisible: true, intro: data.intro },
+    });
+    await recordAudit({
+      action: "club.directory_preference_changed", actorUserId: userId,
+      entityType: "DistrictClubDirectoryPreference", entityId: userId,
+      metadata: { visible: true, districtId: district.id },
+    }, tx);
+    return { visible: true, intro: data.intro };
   });
 }
