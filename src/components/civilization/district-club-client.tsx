@@ -151,6 +151,9 @@ export function DistrictClubClient({ home }: { home: Home }) {
         A founding-country preference or temporary district visit does not unlock residents-only chat.
         Your existing account and general social messages remain available.
       </p>
+      <a href="/profile/civilization/club/safety" className="mt-3 inline-block text-sm font-semibold text-accent hover:underline">
+        Review restrictions and submit an appeal
+      </a>
     </section>;
   }
 
@@ -174,6 +177,9 @@ export function DistrictClubClient({ home }: { home: Home }) {
           </a>}
       </div>}
       {connectionNotice && <p role="status" className="mt-2 text-xs text-secondary">{connectionNotice}</p>}
+      <a href="/profile/civilization/club/safety" className="mt-4 mr-3 inline-block rounded-xl border border-border px-4 py-2 text-sm font-semibold text-accent">
+        Safety & appeals
+      </a>
       {home.canModerate && <a href="/profile/civilization/club/moderation"
         className="mt-4 inline-block rounded-xl border border-border px-4 py-2 text-sm font-semibold text-accent">
         Club moderation queue

@@ -2,11 +2,14 @@ name: KAVANDRO K4 District Club verification
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, feature/kavandro-k4-district-social-club-20261103]
     paths:
       - "src/lib/civilization/district-club-contract.ts"
       - "src/server/services/district-club-service*"
       - "src/server/services/district-club-event-service*"
+      - "src/server/services/district-club-safety-service*"
+      - "src/lib/civilization/district-club-safety-contract.ts"
+      - "src/app/api/civilization/club/safety/**"
       - "src/server/services/district-club-activity-service.ts"
       - "src/lib/civilization/district-club-activity-contract.ts"
       - "src/app/api/civilization/club/activity/route.ts"

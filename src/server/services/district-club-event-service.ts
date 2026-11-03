@@ -6,7 +6,7 @@ import {
   clubEventDraftSchema, clubEventPolicy, clubEventReviewSchema, clubEventRsvpSchema,
 } from "@/lib/civilization/district-club-event-contract";
 import { recordAudit } from "./audit-service";
-import { approvedHome, ensureClubModerator } from "./district-club-service";
+import { approvedHome, ensureClubModerator, ensureClubCanPost } from "./district-club-service";
 
 export async function listMyDistrictClubEvents(userId: string) {
   const district = await approvedHome(userId);
@@ -76,6 +76,7 @@ export async function submitDistrictClubEvent(userId: string, payload: unknown) 
   }
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
+    await ensureClubCanPost(userId, district.id, tx);
     const recent = await tx.districtClubEvent.count({
       where: { organizerUserId: userId, createdAt: { gte: new Date(Date.now() - 7 * 86_400_000) } },
     });
@@ -182,6 +183,7 @@ export async function setMyDistrictClubEventRsvp(userId: string, payload: unknow
   const input = parseOrThrow(clubEventRsvpSchema, payload);
   return prisma.$transaction(async tx => {
     const district = await approvedHome(userId, tx);
+    await ensureClubCanPost(userId, district.id, tx);
     const event = await tx.districtClubEvent.findUnique({ where: { id: input.eventId } });
     if (!event || event.districtId !== district.id || event.status !== "PUBLISHED") {
       throw new NotFoundError("The event is not available in your district.");

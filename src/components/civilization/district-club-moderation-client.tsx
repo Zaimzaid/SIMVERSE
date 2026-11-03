@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/client/api";
 
 type Report = {
   id: string; messageId: string; messageBody: string; room: string;
+  reportedAuthorId: string; reportedAuthorName: string;
   reason: string; createdAt: string; ownMessage: boolean; ownReport: boolean;
 };
 type Queue = { district: { id: string; name: string }; reports: Report[] };
@@ -42,6 +43,9 @@ export function DistrictClubModerationClient({ initial }: { initial: Queue }) {
         className="rounded-xl border border-border bg-background p-4">
         <p className="text-xs uppercase tracking-wider text-accent">{report.room}</p>
         <p className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">{report.messageBody}</p>
+        <p className="mt-2 text-xs text-secondary">
+          Reported author: {report.reportedAuthorName} · ID {report.reportedAuthorId}
+        </p>
         <p className="mt-3 text-sm text-secondary">Report reason: {report.reason}</p>
         {(report.ownMessage || report.ownReport) ? <p className="mt-2 text-xs text-secondary">
           Independent review required: you were involved in this message or report.

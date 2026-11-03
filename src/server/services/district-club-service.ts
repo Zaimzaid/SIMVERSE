@@ -178,7 +178,8 @@ export async function listMyClubModerationQueue(userId: string) {
   await ensureClubModerator(userId, district.id);
   const reports = await prisma.districtClubReport.findMany({
     where: { status: "OPEN", message: { districtId: district.id, status: "VISIBLE" } },
-    include: { message: { select: { room: true, body: true, authorUserId: true } } },
+    include: { message: { select: { room: true, body: true, authorUserId: true,
+      author: { select: { displayName: true } } } } },
     orderBy: { createdAt: "asc" }, take: 50,
   });
   return {
@@ -187,6 +188,8 @@ export async function listMyClubModerationQueue(userId: string) {
       id: report.id,
       messageId: report.messageId,
       messageBody: report.message.body,
+      reportedAuthorId: report.message.authorUserId,
+      reportedAuthorName: report.message.author.displayName,
       room: report.message.room,
       reason: report.reason,
       createdAt: report.createdAt.toISOString(),

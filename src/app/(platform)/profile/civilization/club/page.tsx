@@ -34,6 +34,8 @@ export default async function DistrictClubPage() {
     {home.active && <DistrictClubDirectoryClient />}
     {home.active && <DistrictClubEventsClient />}
     <p className="text-xs leading-6 text-secondary">
+      <Link href="/profile/civilization/club/safety" className="font-semibold text-accent hover:underline">Safety & appeals</Link>
+      {" · "}
       Social clubs are residents-only pilots and need independently activated districts.
       General friends and private messages are still available in{" "}
       <Link href="/social" className="font-semibold text-accent hover:underline">Friends & Messages</Link>.
