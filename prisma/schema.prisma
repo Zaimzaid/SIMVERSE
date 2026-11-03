@@ -66,6 +66,7 @@ model User {
   foundingMoves FoundingDistrictMove[]
   foundingVisit FoundingVisit?
   vascoinAccount VascoinAccount?
+  civilizationChallengeAttempts CivilizationChallengeAttempt[]
   landPlanningGrants FoundingLandPlanningGrant[]
   landPlansCreated FoundingLandPlan[]
   developmentStaffGrants FoundingDevelopmentStaffGrant[]
@@ -2772,4 +2773,23 @@ model FictionalPlanetSteward {
   notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+
+// KAVANDRO K3 / Civilization Phase 5 — one server-scored, anonymous-rank
+// fictional daily planning puzzle. No link to land, district budgets or Vascoin.
+model CivilizationChallengeAttempt {
+  id String @id @default(cuid())
+  userId String
+  dayKey String // UTC YYYY-MM-DD. Unique per user/day on the database.
+  scenarioId String
+  selectedIdsJson String
+  budgetUsed Int
+  score Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayKey])
+  @@index([dayKey, score])
 }
