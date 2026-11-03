@@ -83,6 +83,9 @@ describe("Phase 5 saved challenge results and abuse boundaries", () => {
       await expect(submitDailyCivilizationChallenge(user.id, input, tuesday))
         .rejects.toBeInstanceOf(ValidationError);
     }
+    await expect(submitDailyCivilizationChallenge(user.id, {
+      selectedIds: [puzzle.choices[0]!.id], dayKey: "2026-11-02",
+    }, tuesday)).rejects.toBeInstanceOf(ConflictError);
     expect(await prisma.civilizationChallengeAttempt.count()).toBe(0);
     expect(await prisma.auditLog.count({ where: { action: "civilization.challenge_completed" } })).toBe(0);
   });

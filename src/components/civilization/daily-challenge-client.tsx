@@ -31,7 +31,7 @@ export function DailyChallengeClient({ initial }: Props) {
     setError(null);
     const response = await apiFetch<DailyChallengeOverview>("/api/civilization/challenge", {
       method: "POST",
-      body: JSON.stringify({ selectedIds }),
+      body: JSON.stringify({ selectedIds, dayKey: challenge.dayKey }),
     });
     setSaving(false);
     if (response.error || !response.data) {

@@ -10,6 +10,7 @@ import { recordAudit } from "./audit-service";
 
 const submissionSchema = z.object({
   selectedIds: z.array(z.string().min(1).max(64)).min(1).max(3),
+  dayKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 }).strict();
 
 export async function getMyDailyCivilizationChallenge(
@@ -55,8 +56,11 @@ export async function getMyDailyCivilizationChallenge(
 export async function submitDailyCivilizationChallenge(
   userId: string, input: unknown, now: Date = new Date(),
 ): Promise<DailyChallengeOverview> {
-  const { selectedIds } = parseOrThrow(submissionSchema, input);
+  const { selectedIds, dayKey } = parseOrThrow(submissionSchema, input);
   const challenge = dailyChallenge(now);
+  if (dayKey && dayKey !== challenge.dayKey) {
+    throw new ConflictError("The daily challenge changed. Refresh this page before submitting.");
+  }
   const result = evaluateDailyChallenge(challenge, selectedIds);
   try {
     await prisma.$transaction(async (tx) => {
