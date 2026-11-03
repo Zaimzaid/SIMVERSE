@@ -6,6 +6,8 @@ import { listMyClubEventReviewQueue } from "@/server/services/district-club-even
 import { DistrictClubModerationClient } from "@/components/civilization/district-club-moderation-client";
 import { DistrictClubEventModerationClient } from "@/components/civilization/district-club-event-moderation-client";
 import { getMyClubSafetyQueue } from "@/server/services/district-club-safety-service";
+import { listMyClubInterestModeration } from "@/server/services/district-club-interest-service";
+import { DistrictClubInterestModerationClient } from "@/components/civilization/district-club-interest-moderation-client";
 import { DistrictClubSafetyModerationClient } from "@/components/civilization/district-club-safety-moderation-client";
 
 export const metadata: Metadata = {
@@ -15,9 +17,9 @@ export const metadata: Metadata = {
 
 export default async function DistrictClubModerationPage() {
   const user = await requireUser();
-  const [queue, eventQueue, safetyQueue] = await Promise.all([
+  const [queue, eventQueue, safetyQueue, interestQueue] = await Promise.all([
     listMyClubModerationQueue(user.id), listMyClubEventReviewQueue(user.id),
-    getMyClubSafetyQueue(user.id),
+    getMyClubSafetyQueue(user.id), listMyClubInterestModeration(user.id),
   ]);
   return <main className="mx-auto max-w-4xl space-y-6">
     <Link href="/profile/civilization/club" className="text-sm font-semibold text-accent hover:underline">
@@ -27,5 +29,6 @@ export default async function DistrictClubModerationPage() {
     <DistrictClubModerationClient initial={queue} />
     <DistrictClubEventModerationClient initial={eventQueue} />
     <DistrictClubSafetyModerationClient initial={safetyQueue} />
+    <DistrictClubInterestModerationClient initial={interestQueue} />
   </main>;
 }

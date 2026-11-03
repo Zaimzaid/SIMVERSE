@@ -5,6 +5,7 @@ import { getMyDistrictClubHome } from "@/server/services/district-club-service";
 import { DistrictClubClient } from "@/components/civilization/district-club-client";
 import { DistrictClubDirectoryClient } from "@/components/civilization/district-club-directory-client";
 import { DistrictClubEventsClient } from "@/components/civilization/district-club-events-client";
+import { DistrictClubInterestClient } from "@/components/civilization/district-club-interest-client";
 import { DistrictClubAlertSettingsClient } from "@/components/civilization/district-club-alert-settings-client";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default async function DistrictClubPage() {
     <DistrictClubClient home={home} />
     {home.active && <DistrictClubDirectoryClient />}
     {home.active && <DistrictClubEventsClient />}
+    {home.active && <DistrictClubInterestClient />}
     {home.active && <DistrictClubAlertSettingsClient />}
     <p className="text-xs leading-6 text-secondary">
       <Link href="/profile/civilization/club/safety" className="font-semibold text-accent hover:underline">Safety & appeals</Link>
