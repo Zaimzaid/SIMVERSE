@@ -25,6 +25,43 @@ export type DailyChallenge = {
   notice: string;
 };
 
+/** Scores are private; this view contains only the requesting user's past results. */
+export type ChallengeProgress = {
+  lastSevenDays: { dayKey: string; score: number | null }[];
+  completedLastSevenDays: number;
+  bestScoreLastSevenDays: number | null;
+  activeStreakLastSevenDays: number;
+};
+
+export function summarizeChallengeWeek(
+  entries: ReadonlyArray<{ dayKey: string; score: number }>,
+  now: Date,
+): ChallengeProgress {
+  const day = utcChallengeDay(now);
+  const midnight = Date.parse(day + "T00:00:00.000Z");
+  const ownScores = new Map(entries.map((entry) => [entry.dayKey, entry.score]));
+  const lastSevenDays = Array.from({ length: 7 }, (_, i) => {
+    const dayKey = new Date(midnight - (6 - i) * 86400000).toISOString().slice(0, 10);
+    return { dayKey, score: ownScores.get(dayKey) ?? null };
+  });
+  const completed = lastSevenDays.filter((entry) => entry.score !== null);
+  // A streak is still active before today's submission if yesterday was played.
+  const latestIndex = lastSevenDays[6]!.score !== null ? 6 : 5;
+  let streak = 0;
+  for (let index = latestIndex; index >= 0; index--) {
+    if (lastSevenDays[index]!.score === null) break;
+    streak++;
+  }
+  return {
+    lastSevenDays,
+    completedLastSevenDays: completed.length,
+    bestScoreLastSevenDays: completed.length
+      ? Math.max(...completed.map((entry) => entry.score!))
+      : null,
+    activeStreakLastSevenDays: streak,
+  };
+}
+
 export type DailyChallengeOverview = {
   challenge: DailyChallenge;
   attempt: null | {
@@ -35,6 +72,7 @@ export type DailyChallengeOverview = {
   };
   participantCount: number;
   topScores: number[];
+  progress: ChallengeProgress;
   myRank: number | null;
   vascoinGranted: false;
   officialDistrictImpact: false;

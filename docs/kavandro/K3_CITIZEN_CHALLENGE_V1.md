@@ -9,6 +9,7 @@
 - Server-side exhaustive scoring against the best budget-legal combination; category diversity adds a small bonus. The client cannot submit its own score, user ID, currency amount or day.
 - Persisted challenge attempts with a database uniqueness constraint (user + UTC day), one result per day, and an atomic audit record.
 - Anonymous daily top-ten score board, participant count and personal rank. No display names, email addresses or foreign user's attempts are exposed.
+- Private seven-day history showing the citizen’s own daily scores, recent streak and best score (window-limited); no currency issued for streaks.
 - Accessible responsive 2D interface with a live budget calculation and explicit preview/real-world separation.
 - Pure scoring tests, database tests for duplicate submissions, invalid/forged input, next-day rollover, anonymity, cross-user isolation and no currency changes.
 - A dedicated PR CI workflow for generated Prisma client, TypeScript, lint, tests and production build on a disposable database.

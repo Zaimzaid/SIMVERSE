@@ -135,6 +135,30 @@ export function DailyChallengeClient({ initial }: Props) {
         )}
       </section>
 
+      <section aria-label="Your recent challenge progress"
+        className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="text-lg font-semibold text-foreground">Your last seven days</h2>
+        <p className="mt-2 text-sm text-secondary">
+          Your own scores only. You have completed {overview.progress.completedLastSevenDays} of 7 days.
+          {" "}Your recent streak is {overview.progress.activeStreakLastSevenDays} day(s)
+          within this seven-day window.
+        </p>
+        <p className="mt-2 text-sm font-semibold text-accent">
+          Best score this week: {overview.progress.bestScoreLastSevenDays === null
+            ? "No result yet" : String(overview.progress.bestScoreLastSevenDays) + "/100"}
+        </p>
+        <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          {overview.progress.lastSevenDays.map((day) => (
+            <li key={day.dayKey} className="rounded-xl border border-border bg-background p-3 text-center">
+              <p className="text-xs text-secondary">{day.dayKey.slice(5)}</p>
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {day.score === null ? "Not played" : String(day.score) + "/100"}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section aria-label="Anonymous daily leaderboard"
         className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <h2 className="text-lg font-semibold text-foreground">Today's anonymous scores</h2>

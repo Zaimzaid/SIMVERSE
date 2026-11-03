@@ -3,7 +3,8 @@ import { z } from "zod";
 import { ConflictError } from "@/lib/errors";
 import { parseOrThrow } from "@/lib/validation";
 import {
-  dailyChallenge, evaluateDailyChallenge, type DailyChallengeOverview,
+  dailyChallenge, evaluateDailyChallenge, summarizeChallengeWeek,
+  utcChallengeDay, type DailyChallengeOverview,
 } from "@/lib/civilization/daily-challenge";
 import { prisma } from "@/server/db/client";
 import { recordAudit } from "./audit-service";
@@ -19,7 +20,8 @@ export async function getMyDailyCivilizationChallenge(
 ): Promise<DailyChallengeOverview> {
   const challenge = dailyChallenge(now);
   const dayKey = challenge.dayKey;
-  const [attempt, top, participantCount] = await Promise.all([
+  const earliest = utcChallengeDay(new Date(Date.parse(dayKey + "T00:00:00.000Z") - 6 * 86400000));
+  const [attempt, top, participantCount, history] = await Promise.all([
     prisma.civilizationChallengeAttempt.findUnique({
       where: { userId_dayKey: { userId, dayKey } },
     }),
@@ -30,6 +32,12 @@ export async function getMyDailyCivilizationChallenge(
       take: 10,
     }),
     prisma.civilizationChallengeAttempt.count({ where: { dayKey } }),
+    prisma.civilizationChallengeAttempt.findMany({
+      where: { userId, dayKey: { gte: earliest, lte: dayKey } },
+      select: { dayKey: true, score: true },
+      orderBy: { dayKey: "asc" },
+      take: 7,
+    }),
   ]);
   const myRank = attempt
     ? 1 + await prisma.civilizationChallengeAttempt.count({
@@ -47,6 +55,7 @@ export async function getMyDailyCivilizationChallenge(
     participantCount,
     // Only anonymous score values are exposed; never disclose private user IDs.
     topScores: top.map((entry) => entry.score),
+    progress: summarizeChallengeWeek(history, now),
     myRank,
     vascoinGranted: false,
     officialDistrictImpact: false,

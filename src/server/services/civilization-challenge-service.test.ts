@@ -26,6 +26,8 @@ describe("Phase 5 saved challenge results and abuse boundaries", () => {
     const state = await getMyDailyCivilizationChallenge(user.id, tuesday);
     expect(state.attempt).toBeNull();
     expect(state.participantCount).toBe(0);
+    expect(state.progress.completedLastSevenDays).toBe(0);
+    expect(state.progress.activeStreakLastSevenDays).toBe(0);
     expect(state.vascoinGranted).toBe(false);
     expect(state.officialDistrictImpact).toBe(false);
     expect(await prisma.fictionalCountry.count()).toBe(0);
@@ -41,6 +43,8 @@ describe("Phase 5 saved challenge results and abuse boundaries", () => {
     expect(result.attempt?.score).toBeGreaterThan(0);
     expect(result.myRank).toBe(1);
     expect(result.participantCount).toBe(1);
+    expect(result.progress.completedLastSevenDays).toBe(1);
+    expect(result.progress.bestScoreLastSevenDays).toBe(result.attempt?.score);
     await expect(submitDailyCivilizationChallenge(user.id, { selectedIds: ids }, tuesday))
       .rejects.toBeInstanceOf(ConflictError);
     expect(await prisma.civilizationChallengeAttempt.count()).toBe(1);
@@ -61,6 +65,8 @@ describe("Phase 5 saved challenge results and abuse boundaries", () => {
     expect(viewB.attempt).toBeNull();
     expect(viewB.participantCount).toBe(1);
     expect(viewB.topScores).toHaveLength(1);
+    expect(viewB.progress.completedLastSevenDays).toBe(0);
+    expect(viewB.progress.lastSevenDays.every((day) => day.score === null)).toBe(true);
     expect(JSON.stringify(viewB)).not.toContain(a.id);
     const bState = await submitDailyCivilizationChallenge(b.id, {
       selectedIds: [aState.challenge.choices[1]!.id],
