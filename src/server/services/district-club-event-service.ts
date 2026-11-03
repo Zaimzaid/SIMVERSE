@@ -200,6 +200,24 @@ export async function reviewDistrictClubEvent(userId: string, payload: unknown) 
 export async function setMyDistrictClubEventRsvp(userId: string, payload: unknown) {
   const input = parseOrThrow(clubEventRsvpSchema, payload);
   return prisma.$transaction(async tx => {
+    // A member must always be able to withdraw a previously stored RSVP,
+    // even after a mute, Club suspension or residence/citizenship revocation.
+    // This changes only the caller's own row, and never exposes the event.
+    if (input.rsvpAction === "LEAVE") {
+      const eventToLeave = await tx.districtClubEvent.findUnique({
+        where: { id: input.eventId }, select: { id: true, districtId: true },
+      });
+      if (!eventToLeave) throw new NotFoundError("This event is unavailable.");
+      await tx.districtClubEventRsvp.deleteMany({
+        where: { eventId: eventToLeave.id, userId },
+      });
+      await recordAudit({
+        action: "club.event_rsvp_changed", actorUserId: userId,
+        entityType: "DistrictClubEvent", entityId: eventToLeave.id,
+        metadata: { districtId: eventToLeave.districtId, action: "LEAVE" },
+      }, tx);
+      return { eventId: eventToLeave.id, attending: false };
+    }
     const district = await approvedHome(userId, tx);
     await ensureClubCanPost(userId, district.id, tx);
     const event = await tx.districtClubEvent.findUnique({ where: { id: input.eventId } });

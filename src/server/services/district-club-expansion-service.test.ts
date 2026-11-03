@@ -265,6 +265,26 @@ describe("K4.8 district-only interest groups and independent report review", () 
 });
 
 describe("K4.9 and K4.11 weekly event series and moderation dashboard", () => {
+  it("allows voluntary RSVP withdrawal even after a Club mute or ban", async () => {
+    const { country, a } = await setup();
+    const organizer = await resident(country.id, a.id, "Organizer");
+    const attendee = await resident(country.id, a.id, "Attendee");
+    const mod = await moderator(country.id, a.id, "Moderator");
+    const event = await submitDistrictClubEvent(organizer.id, eventInput());
+    await reviewDistrictClubEvent(mod.id, { eventId: event.id, action: "PUBLISH" });
+    await setMyDistrictClubEventRsvp(attendee.id, { eventId: event.id, rsvpAction: "JOIN" });
+    await issueClubSanction(mod.id, {
+      targetUserId: attendee.id, kind: "BAN", durationHours: 12,
+      reason: "Repeated unwanted interactions in the Club.",
+    });
+    const withdrawn = await setMyDistrictClubEventRsvp(attendee.id, {
+      eventId: event.id, rsvpAction: "LEAVE",
+    });
+    expect(withdrawn.attending).toBe(false);
+    expect(await prisma.districtClubEventRsvp.count({
+      where: { eventId: event.id, userId: attendee.id },
+    })).toBe(0);
+  });
   it("allows bounded weekly events with independent review and participant caps", async () => {
     const { country, a } = await setup();
     const author = await resident(country.id, a.id, "Organizer");
