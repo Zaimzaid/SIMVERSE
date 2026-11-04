@@ -2,6 +2,8 @@
 
 This console is a **platform-wide** internal administration layer, separate from workspace ownership and district stewardship. It is not a simulation or mock dashboard.
 
+For active authorized platform staff, **Administration** appears in KAVANDRO top navigation, mobile navigation and the account menu. The `/admin` dashboard and `/admin/access` TOTP verification now share the normal signed-in platform layout and the existing user session. No second account is needed. Regular workspace admins do not inherit platform staff access. One-time `/admin/invite` acceptance remains outside the staff-only layout so new invitees can register first.
+
 ## What is implemented
 
 - `/admin`: live counts of registered users, unexpired login sessions, workspaces, active admins, audit records and pending admin invitations.

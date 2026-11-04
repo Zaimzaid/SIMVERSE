@@ -10,6 +10,7 @@ import { areaForPath, visibleAreas } from "@/lib/platform-navigation";
 
 interface SidebarNavProps {
   permissions: Permission[];
+  isPlatformStaff: boolean;
   onNavigate?: () => void;
   withHeader?: boolean;
   /** Desktop shows the active area, mobile drawer shows every area. */
@@ -17,15 +18,15 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({
-  permissions, onNavigate, withHeader = false, mode = "all",
+  permissions, isPlatformStaff, onNavigate, withHeader = false, mode = "all",
 }: SidebarNavProps) {
   const pathname = usePathname();
-  const areas = visibleAreas(permissions, "citizen");
+  const areas = visibleAreas(permissions, "citizen", isPlatformStaff);
   const active = areaForPath(pathname);
   // Advanced creator areas remain navigable when explicitly opened.
   const shown = mode === "context"
     ? (areas.some((area) => area.id === active.id)
-      ? areas : visibleAreas(permissions, "all")).filter((area) => area.id === active.id)
+      ? areas : visibleAreas(permissions, "all", isPlatformStaff)).filter((area) => area.id === active.id)
     : areas;
   // A role can see some pages but not the requested area's links.
   const groups = shown.length ? shown : areas.slice(0, 1);

@@ -1,6 +1,6 @@
 import {
   Compass, Hammer, House, Layers3, UserRound, WalletCards, MessagesSquare,
-  Store,
+  Store, ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
@@ -49,20 +49,25 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
     id: "identity", label: "My Life", description: "Your player identity and documents",
     icon: UserRound, routes: ["/profile", "/profile/civilization", "/profile/civilization/challenge", "/profile/civilization/club", "/profile/documents", "/profile/travel"],
   },
+  {
+    id: "administration", label: "Administration", description: "Restricted platform monitoring and staff access",
+    icon: ShieldCheck, routes: ["/admin"],
+  },
 ] as const;
 
 function matches(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function canSeeNavItem(item: NavItem, permissions: readonly Permission[]): boolean {
+export function canSeeNavItem(item: NavItem, permissions: readonly Permission[], isPlatformStaff = false): boolean {
+  if (item.platformStaffOnly && !isPlatformStaff) return false;
   return !item.permission || permissions.includes(item.permission);
 }
 
-export function visibleAreaItems(area: PlatformArea, permissions: readonly Permission[]): NavItem[] {
+export function visibleAreaItems(area: PlatformArea, permissions: readonly Permission[], isPlatformStaff = false): NavItem[] {
   return area.routes
     .map((href) => NAV_ITEMS.find((item) => item.href === href))
-    .filter((item): item is NavItem => Boolean(item) && canSeeNavItem(item!, permissions));
+    .filter((item): item is NavItem => Boolean(item) && canSeeNavItem(item!, permissions, isPlatformStaff));
 }
 
 /** Citizen-first navigation is a presentation choice, NOT an authorization role.
@@ -73,17 +78,18 @@ export const CITIZEN_ROUTES = new Set([
   "/dashboard", "/settings", "/world", "/planet", "/social",
   "/profile", "/profile/civilization", "/profile/civilization/challenge",
   "/profile/civilization/club", "/profile/documents", "/profile/travel",
-  "/anything-wars",
+  "/anything-wars", "/admin",
 ]);
 
 export function visibleAreas(
   permissions: readonly Permission[],
   surface: NavigationSurface = "all",
+  isPlatformStaff = false,
 ) {
   return PLATFORM_AREAS
     .map((area) => ({
       ...area,
-      items: visibleAreaItems(area, permissions).filter(
+      items: visibleAreaItems(area, permissions, isPlatformStaff).filter(
         (item) => surface === "all" || CITIZEN_ROUTES.has(item.href),
       ),
     }))

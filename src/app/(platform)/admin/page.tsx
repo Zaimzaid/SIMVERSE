@@ -26,8 +26,8 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
  if(!staff?.active||!isAdminRole(staff.role))notFound();
  if(!user.twoFactorEnabledAt||!await isAdminStepupValid(user.id))redirect("/admin/access");
  const sections=allowedAdminSections(staff.role,readDeniedAdminSections(staff.deniedSections));
- if(!sections.length)return <main className="mx-auto max-w-xl space-y-4 p-8"><h1 className="text-2xl font-bold">No dashboard sections assigned</h1>
-  <p className="text-secondary">Ask the platform owner to grant your account access.</p><Link className="text-accent underline" href="/dashboard">Return to platform</Link></main>;
+ if(!sections.length)return <div className="mx-auto max-w-xl space-y-4 p-8"><h1 className="text-2xl font-bold">No dashboard sections assigned</h1>
+  <p className="text-secondary">Ask the platform owner to grant your account access.</p><Link className="text-accent underline" href="/dashboard">Return to platform</Link></div>;
  const params=await searchParams;
  const view:AdminSection=sections.includes(params.view as AdminSection) ? (params.view as AdminSection) : (sections[0] ?? "overview");
  const page=Math.max(0,Math.min(1000,Number.parseInt(params.page??"0",10)||0));
@@ -45,7 +45,7 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
  const total=paged?.total??0;
  const activePage=paged?.page??0;
  const perPage=paged?.limit??30;
- return <main className="mx-auto max-w-[1440px] space-y-7 px-4 py-7 sm:px-8">
+ return <div className="mx-auto max-w-[1440px] space-y-7 px-4 py-7 sm:px-8">
   <header className="flex flex-wrap items-start justify-between gap-5 rounded-3xl border border-border bg-surface p-6">
    <div className="space-y-2"><Link className="inline-flex items-center gap-2 text-xs font-semibold text-accent hover:underline" href="/dashboard">
     <ArrowLeft className="size-4"/> KAVANDRO</Link>
@@ -190,5 +190,5 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
    </div>
   </div>:null}
   <footer className="border-t border-border py-4 text-xs text-muted">Platform access is separately authorized and revalidated for every restricted server request.</footer>
- </main>;
+ </div>;
 }
