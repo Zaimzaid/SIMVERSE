@@ -83,7 +83,7 @@ export function PlayerTravelCenter({ initial }: { initial: TravelInfo }) {
     </div>
     <section className="rounded-2xl border border-border bg-surface p-5">
       <h2 className="flex items-center gap-2 text-lg font-semibold"><Compass className="size-5 text-accent"/>Check my virtual travel eligibility</h2>
-      <p className="mt-1 text-sm text-secondary">Select countries. SIMVERSE checks approved citizenship, unexpired virtual passports, residency and destination route rules.</p>
+      <p className="mt-1 text-sm text-secondary">Select countries. KAVANDRO checks approved citizenship, unexpired virtual passports, residency and destination route rules.</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div><label className="mb-1 block text-xs font-semibold text-secondary" htmlFor="travel-origin">Virtual travel origin</label>
           <select className={inputClass} id="travel-origin" value={originCountryId}
@@ -120,17 +120,17 @@ export function PlayerTravelCenter({ initial }: { initial: TravelInfo }) {
             onChange={(e) => setPurpose(e.target.value)} className={inputClass}/>
           <button type="button" disabled={busy} onClick={() => void apply()}
             className="rounded-lg border border-accent/50 bg-accent-soft px-3 py-2 text-sm font-semibold text-accent disabled:opacity-50">
-            Apply for a SIMVERSE virtual entry visa
+            Apply for a KAVANDRO virtual entry visa
           </button>
         </div> : null}
         {current.verdict.status === "UNAVAILABLE" ? <p className="mt-3 text-xs text-warning">
-          A SIMVERSE operator must configure and activate this fictional country route first. The player cannot activate routes.
+          A KAVANDRO operator must configure and activate this fictional country route first. The player cannot activate routes.
         </p> : null}
       </div> : null}
     </section>
 
     <section className="rounded-2xl border border-border bg-surface p-5">
-      <h2 className="flex items-center gap-2 text-lg font-semibold"><TicketCheck className="size-5 text-accent"/>My SIMVERSE entry visa applications</h2>
+      <h2 className="flex items-center gap-2 text-lg font-semibold"><TicketCheck className="size-5 text-accent"/>My KAVANDRO entry visa applications</h2>
       {!visas.length ? <p className="mt-3 text-sm text-secondary">No virtual entry visa applications have been submitted.</p> :
         <div className="mt-4 grid gap-3 sm:grid-cols-2">{visas.map((visa) => <article key={visa.id} className="rounded-xl border border-border bg-background p-4">
           <h3 className="font-semibold">{visa.originCountry.name} → {visa.destinationCountry.name}</h3>

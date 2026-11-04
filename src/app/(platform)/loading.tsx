@@ -1,5 +1,4 @@
-import { LoadingState } from "@/components/ui/loading-state";
-
+import { BrandSplash } from "@/components/brand/brand-splash";
 export default function PlatformLoading() {
-  return <LoadingState label="Loading your workspace…" />;
+  return <BrandSplash label="Opening your civilization…" />;
 }

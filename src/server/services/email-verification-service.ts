@@ -10,8 +10,8 @@ export function mailConfigured() {return Boolean(process.env.RESEND_API_KEY && p
 async function sendMail(email:string,link:string){
  const response=await fetch("https://api.resend.com/emails",{
   method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${process.env.RESEND_API_KEY}`},
-  body:JSON.stringify({from:process.env.SIMVERSE_INVITE_FROM,to:[email],subject:"Verify your SIMVERSE email",
-   text:`Verify your SIMVERSE email by opening this single-use link (valid for 24 hours): ${link}\nIf you did not register, ignore this message.`}),
+  body:JSON.stringify({from:process.env.SIMVERSE_INVITE_FROM,to:[email],subject:"Verify your KAVANDRO email",
+   text:`Verify your KAVANDRO email by opening this single-use link (valid for 24 hours): ${link}\nIf you did not register, ignore this message.`}),
   signal:AbortSignal.timeout(10000),
  });
  if(!response.ok)throw new ConflictError("Could not send verification email. Please try again.");

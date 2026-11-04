@@ -51,7 +51,7 @@ export function SidebarNav({
           </div>
         </div>
       )}
-      <nav aria-label={mode === "context" ? "Section navigation" : "All SIMVERSE navigation"}
+      <nav aria-label={mode === "context" ? "Section navigation" : "All KAVANDRO navigation"}
         className="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5">
         {groups.map((group) => (
           <div key={group.id}>

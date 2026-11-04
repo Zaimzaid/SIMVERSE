@@ -36,7 +36,7 @@ export function PeerCallDock({
   const after = useRef(new Date(Date.now() - 12000).toISOString());
   const seen = useRef(new Set<string>());
   const busy = useRef(false);
-  const name = (id: string) => friends.find(f => f.id === id)?.name ?? "SIMVERSE friend";
+  const name = (id: string) => friends.find(f => f.id === id)?.name ?? "KAVANDRO friend";
 
   async function post(receiverId: string, callId: string, kind: Signal["kind"], payload: unknown) {
     const r = await apiFetch("/api/social/calls", {
@@ -194,7 +194,7 @@ export function PeerCallDock({
     setCameraOn(next);
   }
   const peerId = incoming?.peer ?? call.current?.peer;
-  const peerName = peerId ? name(peerId) : "SIMVERSE friend";
+  const peerName = peerId ? name(peerId) : "KAVANDRO friend";
   const visible = active || Boolean(incoming);
 
   return <>
@@ -205,7 +205,7 @@ export function PeerCallDock({
     <div className={`fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-6 ${visible ? "" : "pointer-events-none invisible"}`}
       aria-hidden={!visible}>
       <div className="absolute inset-0 bg-[#020917]/90 backdrop-blur-xl" />
-      <section role="dialog" aria-modal={visible} aria-label="SIMVERSE call"
+      <section role="dialog" aria-modal={visible} aria-label="KAVANDRO call"
         className="relative flex h-[min(90dvh,820px)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-slate-700 bg-[#0b1524] text-white shadow-2xl">
         <header className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
           <span className="grid size-10 place-items-center rounded-full bg-cyan-700/30"><Video className="size-5 text-cyan-300" /></span>

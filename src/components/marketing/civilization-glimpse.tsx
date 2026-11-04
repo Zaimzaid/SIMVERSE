@@ -38,7 +38,7 @@ export function CivilizationGlimpse() {
   const Icon = moment.icon;
 
   return (
-    <section aria-label="Discover the SIMVERSE idea"
+    <section aria-label="Discover the KAVANDRO idea"
       className="w-full rounded-3xl border border-border/80 bg-background/90 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-7">
       <div className="flex items-center justify-between gap-4">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary">A glimpse of what is coming</p>

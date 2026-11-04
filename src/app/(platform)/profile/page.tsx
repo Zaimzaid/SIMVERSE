@@ -8,7 +8,7 @@ import { getMyCreatorPortfolio } from "@/server/services/profile-portfolio-servi
 import { listSocial } from "@/server/services/social-service";
 import { ProfileIdentityPanel } from "@/components/player/profile-identity-panel";
 
-export const metadata: Metadata = { title: "My Profile | SIMVERSE" };
+export const metadata: Metadata = { title: "My Profile | KAVANDRO" };
 const sections = [
   { label: "My Identity", detail: "Who you are and what others can see", href: "#identity", icon: IdCard },
   { label: "My Civilization", detail: "Founding country preference and district interest", href: "/profile/civilization", icon: Shield },

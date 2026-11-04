@@ -3,7 +3,7 @@ import { documentDisplayStatus, type VirtualDocumentKind } from "@/lib/player-id
 
 /**
  * Read-only OWNER-ONLY credentials. Visuals deliberately use original
- * SIMVERSE world styling, not any government seal, flag, MRZ or real ID form.
+ * KAVANDRO world styling, not any government seal, flag, MRZ or real ID form.
  * Rendering here never creates, renews, approves or validates a credential.
  */
 export interface VirtualCredentialApplicant {
@@ -61,7 +61,7 @@ function PlayerPortrait({ applicant }: { applicant: VirtualCredentialApplicant }
     {applicant.avatarUrl ? (
       // Player avatar is the owner's existing profile URL; the system does not use any real government photo.
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={applicant.avatarUrl} alt={`${applicant.displayName}'s SIMVERSE avatar`} className="h-full w-full object-cover" />
+      <img src={applicant.avatarUrl} alt={`${applicant.displayName}'s KAVANDRO avatar`} className="h-full w-full object-cover" />
     ) : initials}
   </div>;
 }
@@ -79,7 +79,7 @@ function Fact({ label, value, contrast = "dark" }: {
   </div>;
 }
 
-/** Every completed SIMVERSE profile gets a permanent player ID, but a
+/** Every completed KAVANDRO profile gets a permanent player ID, but a
  * three-year card display window is independent of that permanent number.
  * This is not a country citizenship credential or a reviewer-issued passport.
  */
@@ -91,9 +91,9 @@ function PlayerIdCard({ applicant }: { applicant: VirtualCredentialApplicant }) 
     <div className="pointer-events-none absolute -right-14 -top-10 size-44 rounded-full border-[28px] border-white/[0.07]" aria-hidden />
     <div className="relative flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-200">SIMVERSE · PLAYER NETWORK</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-200">KAVANDRO · PLAYER NETWORK</p>
         <h3 className="mt-1 font-display text-lg font-semibold text-white">Virtual Player ID Card</h3>
-        <p className="mt-1 text-xs text-white/70">Your SIMVERSE identity · No citizenship implied</p>
+        <p className="mt-1 text-xs text-white/70">Your KAVANDRO identity · No citizenship implied</p>
       </div>
       <Status status={status} />
     </div>
@@ -112,7 +112,7 @@ function PlayerIdCard({ applicant }: { applicant: VirtualCredentialApplicant }) 
     <p className="relative mt-4 rounded-lg bg-black/25 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-white/85">
       Fictional player card · Not legal identification
     </p>
-    <p className="relative mt-2 text-[10px] text-white/65">The visual card may expire, but your permanent SIMVERSE player number never changes. Renewal is not yet supported.</p>
+    <p className="relative mt-2 text-[10px] text-white/65">The visual card may expire, but your permanent KAVANDRO player number never changes. Renewal is not yet supported.</p>
   </article>;
 }
 
@@ -135,7 +135,7 @@ function IdentityCard({ application, applicant }: {
         <div className="pointer-events-none absolute -bottom-28 right-6 size-56 rounded-full border-[28px] border-cyan-200/[0.07]" aria-hidden />
         <div className="relative flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-cyan-100">SIMVERSE WORLD</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-cyan-100">KAVANDRO WORLD</p>
             <h3 className="mt-1 font-display text-base font-semibold text-white sm:text-lg">
               {credentialLabels[kind]}
             </h3>
@@ -147,7 +147,7 @@ function IdentityCard({ application, applicant }: {
           <PlayerPortrait applicant={applicant} />
           <dl className="grid min-w-0 flex-1 grid-cols-1 gap-3">
             <Fact contrast="light" label="Player name" value={applicant.displayName} />
-            <Fact contrast="light" label="SIMVERSE ID" value={applicant.simverseId} />
+            <Fact contrast="light" label="KAVANDRO ID" value={applicant.simverseId} />
             <Fact contrast="light" label="Username" value={applicant.username ? `@${applicant.username}` : "Not set"} />
           </dl>
         </div>
@@ -163,7 +163,7 @@ function IdentityCard({ application, applicant }: {
           VIRTUAL GAME CREDENTIAL · NOT GOVERNMENT IDENTIFICATION
         </div>
       </div>
-      <p className="mt-2 px-2 text-xs text-muted">Issued only after an independent SIMVERSE review. Card validity is separate from citizenship status.</p>
+      <p className="mt-2 px-2 text-xs text-muted">Issued only after an independent KAVANDRO review. Card validity is separate from citizenship status.</p>
     </article>
   );
 }
@@ -185,7 +185,7 @@ function PassportBooklet({ application, applicant }: {
           ${international ? "bg-gradient-to-br from-[#14284c] via-[#0c5475] to-[#102443]" :
           "bg-gradient-to-br from-[#40254e] via-[#604078] to-[#2f1e4a]"}`}>
           <div className="absolute inset-y-0 left-1.5 w-1 rounded-full bg-black/25" aria-hidden />
-          <p className="text-[10px] font-bold uppercase tracking-[0.27em] text-white/75">SIMVERSE WORLD</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.27em] text-white/75">KAVANDRO WORLD</p>
           <div className="flex flex-col items-center gap-3">
             <span className="flex size-20 items-center justify-center rounded-full border-2 border-[#c5e6e4]/70 bg-white/10">
               <Stamp className="size-11 text-[#c5e6e4]" aria-hidden />
@@ -196,7 +196,7 @@ function PassportBooklet({ application, applicant }: {
               </p>
               <p className="font-display text-xl font-bold uppercase tracking-[0.22em]">Virtual Passport</p>
             </div>
-            <p className="text-xs text-white/80">{application.country.name} · SIMVERSE</p>
+            <p className="text-xs text-white/80">{application.country.name} · KAVANDRO</p>
           </div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
             FICTIONAL TRAVEL BOOKLET
@@ -206,7 +206,7 @@ function PassportBooklet({ application, applicant }: {
         <div className="min-w-0 bg-[#f3f1e7] p-5 text-slate-900 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-300 pb-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.19em] text-slate-600">SIMVERSE · DIGITAL RECORD</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.19em] text-slate-600">KAVANDRO · DIGITAL RECORD</p>
               <h3 className="mt-1 text-base font-semibold text-slate-900">Passport details</h3>
             </div>
             <span className={`rounded-full border px-2 py-1 text-[10px] font-bold uppercase
@@ -219,12 +219,12 @@ function PassportBooklet({ application, applicant }: {
             <div className="flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-300 bg-slate-300 font-bold text-slate-700">
               {applicant.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={applicant.avatarUrl} alt={`${applicant.displayName}'s SIMVERSE avatar`} className="h-full w-full object-cover" />
+                <img src={applicant.avatarUrl} alt={`${applicant.displayName}'s KAVANDRO avatar`} className="h-full w-full object-cover" />
               ) : applicant.displayName.trim().slice(0, 2).toUpperCase()}
             </div>
             <dl className="grid min-w-0 flex-1 gap-3">
               <Fact label="Player name" value={applicant.displayName} />
-              <Fact label="SIMVERSE ID" value={applicant.simverseId} />
+              <Fact label="KAVANDRO ID" value={applicant.simverseId} />
               <Fact label="Username" value={applicant.username ? `@${applicant.username}` : "Not set"} />
             </dl>
           </div>
@@ -262,7 +262,7 @@ export function VirtualCredentialGallery({ applications, applicant }: {
               Virtual ID cards & passports
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-secondary">
-              Once an authorized SIMVERSE reviewer approves your application, your credential appears here as a virtual card or passport booklet.
+              Once an authorized KAVANDRO reviewer approves your application, your credential appears here as a virtual card or passport booklet.
               Issue and expiry dates come from your approved document record.
             </p>
           </div>
@@ -276,7 +276,7 @@ export function VirtualCredentialGallery({ applications, applicant }: {
           </div>
         ) : (
           <p className="mt-4 rounded-xl border border-dashed border-border-strong bg-background px-4 py-3 text-sm text-secondary">
-            Complete your SIMVERSE username to display your permanent Player ID as a virtual card.
+            Complete your KAVANDRO username to display your permanent Player ID as a virtual card.
           </p>
         )}
         <div className="mt-6">

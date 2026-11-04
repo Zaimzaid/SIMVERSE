@@ -58,7 +58,7 @@ export function PlayerEconomyCenter({ initial }: { initial: MyEconomyData }) {
       setData(next);
       router.refresh();
       toast({
-        variant: "success", title: "SIMVERSE career established",
+        variant: "success", title: "KAVANDRO career established",
         description: "Your single, nonredeemable starter-credit grant was recorded.",
       });
     }
@@ -91,7 +91,7 @@ export function PlayerEconomyCenter({ initial }: { initial: MyEconomyData }) {
     <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-secondary">
       <p className="flex items-start gap-2 font-semibold text-amber-200">
         <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-        SIMVERSE economic identity is part of a fictional world. No real money, financial account or trading rights exist here.
+        KAVANDRO economic identity is part of a fictional world. No real money, financial account or trading rights exist here.
       </p>
       <p className="mt-2 text-xs">{data.notice}</p>
     </div>
@@ -119,7 +119,7 @@ export function PlayerEconomyCenter({ initial }: { initial: MyEconomyData }) {
       <section className="rounded-2xl border border-border bg-surface p-5">
         <div className="flex items-center gap-2 text-accent">
           <Wallet className="size-5" aria-hidden />
-          <p className="text-xs font-semibold uppercase tracking-widest">My SIMVERSE wallet</p>
+          <p className="text-xs font-semibold uppercase tracking-widest">My KAVANDRO wallet</p>
         </div>
         <p className="mt-3 text-3xl font-semibold tabular-nums">{balance} <span className="text-base text-secondary">SVC</span></p>
         <p className="mt-2 text-xs text-secondary">
@@ -131,7 +131,7 @@ export function PlayerEconomyCenter({ initial }: { initial: MyEconomyData }) {
 
     {!data.profession ? <section className="rounded-2xl border border-border bg-surface p-5">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
-        <GraduationCap className="size-5 text-accent" aria-hidden /> Choose one SIMVERSE profession
+        <GraduationCap className="size-5 text-accent" aria-hidden /> Choose one KAVANDRO profession
       </h2>
       <p className="mt-1 text-sm text-secondary">Starting credits are fixed by the profession policy and can only be awarded once per player.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -212,7 +212,7 @@ export function PlayerEconomyCenter({ initial }: { initial: MyEconomyData }) {
     </section>
 
     <section className="rounded-2xl border border-border bg-surface p-5">
-      <h2 className="text-lg font-semibold">SIMVERSE credit ledger</h2>
+      <h2 className="text-lg font-semibold">KAVANDRO credit ledger</h2>
       <p className="mt-1 text-sm text-secondary">A read-only history of controlled fictional credit allocations.</p>
       {!data.wallet.entries.length ? <p className="mt-4 text-sm text-muted">No wallet transactions recorded.</p> :
         <div className="mt-4 divide-y divide-border">

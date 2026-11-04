@@ -8,7 +8,7 @@ import { PlayerDocumentCenter } from "@/components/player/player-document-center
 import { DualCitizenshipPreview } from "@/components/player/dual-citizenship-preview";
 import { PageHeader } from "@/components/ui/page-header";
 
-export const metadata: Metadata = { title: "Virtual Citizenship & Documents | SIMVERSE" };
+export const metadata: Metadata = { title: "Virtual Citizenship & Documents | KAVANDRO" };
 
 export default async function MyVirtualDocumentsPage() {
   const user = await requireUser();
@@ -18,7 +18,7 @@ export default async function MyVirtualDocumentsPage() {
   return <div className="mx-auto max-w-5xl space-y-6">
     <div className="simverse-page-scene simverse-page-scene--documents">
       <PageHeader icon={FileBadge2} title="Citizenship & Virtual Documents"
-        description="Manage fictional SIMVERSE citizenship, domestic and international travel-document applications." />
+        description="Manage fictional KAVANDRO citizenship, domestic and international travel-document applications." />
     </div>
     <div className="flex flex-wrap gap-3">
       <Link href="/profile" className="inline-block text-sm font-semibold text-accent hover:underline">← Back to my player identity</Link>

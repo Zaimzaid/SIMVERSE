@@ -12,6 +12,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { AuthCard, FormError } from "./auth-card";
+import { BrandSplash } from "@/components/brand/brand-splash";
 
 export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: string }) {
   const router = useRouter();
@@ -22,6 +23,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +55,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
       : next && next.startsWith("/") && !next.startsWith("//")
         ? next
         : "/dashboard";
+    setRedirecting(true);
     router.replace(target);
     router.refresh();
   }
@@ -60,12 +63,14 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
   async function verifySecondFactor(e:React.FormEvent){
     e.preventDefault();setSubmitting(true);setFormError(null);
     const {error}=await apiFetch("/api/auth/verify-2fa",{method:"POST",body:JSON.stringify({challenge,code})});
-    setSubmitting(false);
-    if(error){setFormError(error.message);return;}
+    if(error){setSubmitting(false);setFormError(error.message);return;}
+    setRedirecting(true);
     const target=earthIntent?`/earth/restore?intent=${encodeURIComponent(earthIntent)}`:next&&next.startsWith("/")&&!next.startsWith("//")?next:"/dashboard";
     router.replace(target);router.refresh();
   }
   return (
+    <>
+    {(submitting || redirecting) && <BrandSplash overlay label={redirecting ? "Opening your KAVANDRO world…" : challenge ? "Verifying your sign-in…" : "Signing you in securely…"} />}
     <AuthCard
       title="Welcome back"
       subtitle={challenge?"Enter your authenticator or recovery code.":"Log in to continue your KAVANDRO journey."}
@@ -123,5 +128,6 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
         </Button>
       </form>}
     </AuthCard>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import { getMyVascoinOverview } from "@/server/services/vascoin-service";
 import { VascoinWalletClient } from "@/components/civilization/vascoin-wallet-client";
 
 export const metadata: Metadata = {
-  title: "My Vascoin Wallet | SIMVERSE",
+  title: "My Vascoin Wallet | KAVANDRO",
   robots: { index: false, follow: false },
 };
 

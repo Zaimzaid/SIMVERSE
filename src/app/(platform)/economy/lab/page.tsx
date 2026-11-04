@@ -5,7 +5,7 @@ import { EconomyLabPanel } from "@/components/economy/economy-lab-panel";
 import { requirePlatformContext } from "@/server/context";
 import { getEconomyLab, listEconomyLabs } from "@/server/services/economy-lab-service";
 
-export const metadata: Metadata = { title: "Economy Lab | SIMVERSE" };
+export const metadata: Metadata = { title: "Economy Lab | KAVANDRO" };
 export default async function EconomyLabPage() {
   const ctx = await requirePlatformContext();
   const labs = await listEconomyLabs(ctx.user.id, ctx.workspace.id);

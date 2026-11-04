@@ -27,8 +27,8 @@ export type VirtualDocumentsInitial = {
 };
 const kinds = [
   ["CITIZENSHIP", "Virtual citizenship"],
-  ["NATIONAL_PASSPORT", "National SIMVERSE passport"],
-  ["INTERNATIONAL_PASSPORT", "International SIMVERSE passport"],
+  ["NATIONAL_PASSPORT", "National KAVANDRO passport"],
+  ["INTERNATIONAL_PASSPORT", "International KAVANDRO passport"],
   ["RESIDENCY", "Virtual residency permit"],
 ] as const;
 const field = "w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-accent";
@@ -71,7 +71,7 @@ export function PlayerDocumentCenter({
     if (data?.application) {
       setApplications((rows) => [data.application, ...rows]);
       setStatement("");
-      toast({ variant: "success", title: "Application submitted", description: "Awaiting authorized SIMVERSE review." });
+      toast({ variant: "success", title: "Application submitted", description: "Awaiting authorized KAVANDRO review." });
       router.refresh();
     }
   }
@@ -117,7 +117,7 @@ export function PlayerDocumentCenter({
             className="w-full rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-background disabled:cursor-not-allowed disabled:opacity-50">
             {submitting ? "Submitting…" : existing ? "Already applied for this type and country" : eligible ? "Submit for review" : "Requirements not met"}
           </button>
-          {!username && <p className="text-xs text-secondary">You need a SIMVERSE username. <Link className="text-accent underline" href="/profile">Complete your identity</Link>.</p>}
+          {!username && <p className="text-xs text-secondary">You need a KAVANDRO username. <Link className="text-accent underline" href="/profile">Complete your identity</Link>.</p>}
         </form>
 
         <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
@@ -125,7 +125,7 @@ export function PlayerDocumentCenter({
           {initial.citizenships.length ? initial.citizenships.map((c) => (
             <div key={c.id} className="rounded-xl border border-border bg-background p-3">
               <p className="font-medium">{c.country.name}</p>
-              <p className="text-xs text-secondary">{c.status === "ACTIVE" ? "Approved SIMVERSE virtual citizenship" : c.status.replaceAll("_"," ")}</p>
+              <p className="text-xs text-secondary">{c.status === "ACTIVE" ? "Approved KAVANDRO virtual citizenship" : c.status.replaceAll("_"," ")}</p>
             </div>
           )) : <p className="text-sm text-secondary">No virtual citizenship has been approved. Selecting a home country doesn't grant citizenship.</p>}
           <p className="pt-2 text-xs text-muted">Residency and passports require separate applications. No real nationality or immigration status is represented.</p>
@@ -146,7 +146,7 @@ export function PlayerDocumentCenter({
                 View your issued virtual credential ↑
               </a>}
               {app.status === "APPROVED" && !app.document && <p className="mt-3 text-xs text-amber-600 dark:text-amber-300">
-                Historical approval without a credential record. An authorized SIMVERSE operator must issue a dated record.
+                Historical approval without a credential record. An authorized KAVANDRO operator must issue a dated record.
               </p>}
             </div>)}
           </div>

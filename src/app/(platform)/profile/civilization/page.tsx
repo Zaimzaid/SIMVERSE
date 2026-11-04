@@ -191,7 +191,7 @@ export default async function MyCivilizationPage() {
           Identity, citizenship and residence are separate
         </h2>
         <p className="mt-3 text-sm leading-7 text-secondary">
-          Your existing SIMVERSE identity remains permanent. Official fictional
+          Your existing KAVANDRO identity remains permanent. Official fictional
           citizenship requires its own reviewed process, while residence requires
           an active, approved district. A preferred nationality or pilot interest
           is neither of those things. Your current profile visibility is 

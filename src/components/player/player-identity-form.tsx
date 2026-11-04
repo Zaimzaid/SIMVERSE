@@ -96,14 +96,14 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
             <img src={identity.bannerUrl} alt="" className="h-full w-full object-cover" />
           ) : null}
           <div className="absolute bottom-3 right-4 rounded-lg bg-black/45 px-2.5 py-1 text-xs text-white">
-            SIMVERSE PLAYER IDENTITY
+            KAVANDRO PLAYER IDENTITY
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-4 p-5">
           <Avatar name={identity.displayName} src={identity.avatarUrl} size="lg" className="ring-4 ring-surface" />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-xl font-semibold text-foreground">{identity.displayName}</h2>
-            <p className="text-sm text-secondary">{identity.username ? `@${identity.username}` : "Choose your SIMVERSE username"}</p>
+            <p className="text-sm text-secondary">{identity.username ? `@${identity.username}` : "Choose your KAVANDRO username"}</p>
             <p className="mt-1 text-xs text-muted">{identity.experienceMode.toLowerCase()} · {identity.profileVisibility.toLowerCase()} profile</p>
           </div>
           {identity.username && identity.profileVisibility === "PUBLIC" ? (
@@ -115,10 +115,10 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
         </div>
       </div>
 
-      <section className="rounded-2xl border border-border bg-surface p-5" aria-label="SIMVERSE identity credentials">
+      <section className="rounded-2xl border border-border bg-surface p-5" aria-label="KAVANDRO identity credentials">
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-5 text-accent" aria-hidden />
-          <h2 className="font-semibold">SIMVERSE Identity Number</h2>
+          <h2 className="font-semibold">KAVANDRO Identity Number</h2>
         </div>
         <p className="mt-1 text-sm text-secondary">Permanent in-world identifier. This is not a national identification number or real government document.</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -136,7 +136,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
           </Link>
         ) : (
           <p className="mt-3 text-xs text-muted">
-            Once you save a SIMVERSE username, your player number will also appear on a virtual ID card in My Documents.
+            Once you save a KAVANDRO username, your player number will also appear on a virtual ID card in My Documents.
           </p>
         )}
       </section>
@@ -144,7 +144,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
       <form onSubmit={save} className="space-y-5">
         <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="flex items-center gap-2 text-base font-semibold"><UserRound className="size-4 text-accent" /> Public identity and customization</h2>
-          <p className="mt-1 text-sm text-secondary">Choose how your player and creator identity appears across SIMVERSE.</p>
+          <p className="mt-1 text-sm text-secondary">Choose how your player and creator identity appears across KAVANDRO.</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="identity-username" className={labelClass}>Unique username</label>
@@ -163,7 +163,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
               {errors.creatorName ? <p className="mt-1 text-xs text-warning">{errors.creatorName}</p> : null}
             </div>
             <div>
-              <label htmlFor="identity-mode" className={labelClass}>SIMVERSE participation</label>
+              <label htmlFor="identity-mode" className={labelClass}>KAVANDRO participation</label>
               <select id="identity-mode" value={identity.experienceMode} onChange={(e) => setField("experienceMode", e.target.value)} className={inputClass}>
                 <option value="PLAYER">Player</option><option value="CREATOR">Creator</option><option value="BOTH">Player and Creator</option>
               </select>
@@ -191,7 +191,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
           <div className="mt-4">
             <label htmlFor="identity-biography" className={labelClass}>Biography</label>
             <textarea id="identity-biography" value={identity.biography} onChange={(e) => setField("biography", e.target.value)}
-              rows={4} maxLength={500} className={inputClass} placeholder="Tell people who you are in the SIMVERSE world…"/>
+              rows={4} maxLength={500} className={inputClass} placeholder="Tell people who you are in the KAVANDRO world…"/>
             <p className="mt-1 text-right text-xs text-muted">{identity.biography.length}/500</p>
           </div>
           <div className="mt-4">
@@ -202,14 +202,14 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
             </select>
             <p className="mt-2 flex items-center gap-2 text-xs text-secondary">
               {identity.profileVisibility === "PUBLIC" ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-              Your email, SIMVERSE ID and citizenship records are never shown publicly.
+              Your email, KAVANDRO ID and citizenship records are never shown publicly.
             </p>
           </div>
         </section>
 
         <section className="rounded-2xl border border-border bg-surface p-5">
           <h2 className="flex items-center gap-2 text-base font-semibold"><Globe2 className="size-4 text-accent" /> Virtual home country</h2>
-          <p className="mt-1 text-sm text-secondary">Choose where you want your SIMVERSE character to begin. This is a personal world preference, not verified nationality or citizenship.</p>
+          <p className="mt-1 text-sm text-secondary">Choose where you want your KAVANDRO character to begin. This is a personal world preference, not verified nationality or citizenship.</p>
           <div className="mt-4">
             <label htmlFor="identity-country" className={labelClass}>Country</label>
             <select id="identity-country" value={identity.homeCountryId ?? ""} onChange={(e) => setField("homeCountryId", e.target.value)}
@@ -229,7 +229,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
                 </li>)}
               </ul>
             ) : <p className="mt-2 text-sm text-secondary">No citizenship application or grant exists. Passport and residency applications will come in Phase 2.</p>}
-            <p className="mt-2 text-xs text-warning">Virtual SIMVERSE documents only. Nothing here grants travel, property or real-world government rights.</p>
+            <p className="mt-2 text-xs text-warning">Virtual KAVANDRO documents only. Nothing here grants travel, property or real-world government rights.</p>
           </div>
         </section>
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { BrandMark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 export function LoadingState({
@@ -17,7 +17,7 @@ export function LoadingState({
         className,
       )}
     >
-      <Loader2 className="size-6 animate-spin text-accent" />
+      <BrandMark className="size-8" animated />
       <span className="text-sm">{label}</span>
     </div>
   );

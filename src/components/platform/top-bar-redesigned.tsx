@@ -12,7 +12,7 @@ import { apiFetch } from "@/lib/client/api";
 import { cn } from "@/lib/utils";
 import { visibleAreas, areaForPath } from "@/lib/platform-navigation";
 import { useTheme } from "@/components/theme/theme-provider";
-import { Logo } from "@/components/brand/logo";
+import { Logo, BrandMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from "@/components/ui/dropdown";
 import { useToast } from "@/components/ui/toast";
@@ -107,6 +107,9 @@ export function TopBar({
             <Menu className="size-5" aria-hidden />
           </button>
 
+          <Link href="/dashboard" aria-label="KAVANDRO dashboard" className="inline-flex items-center sm:hidden">
+            <BrandMark className="size-8" />
+          </Link>
           <Logo href="/dashboard" size="sm" className="hidden sm:inline-flex" />
 
           <div className="hidden h-7 w-px bg-border sm:block" aria-hidden />
@@ -136,7 +139,7 @@ export function TopBar({
           </Dropdown>
 
           <button type="button" onClick={() => setSearchOpen(true)}
-            aria-label="Search SIMVERSE navigation"
+            aria-label="Search KAVANDRO navigation"
             className="ml-auto inline-flex h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-2.5 text-muted transition hover:border-accent/40 hover:text-foreground md:ml-3 md:w-full md:max-w-sm md:justify-start">
             <Search className="size-4 shrink-0" aria-hidden />
             <span className="hidden truncate text-sm md:inline">Search pages and tools</span>
@@ -178,7 +181,7 @@ export function TopBar({
           </div>
         </div>
 
-        <nav aria-label="Primary SIMVERSE areas"
+        <nav aria-label="Primary KAVANDRO areas"
           className="flex items-center gap-1 overflow-x-auto border-t border-border/80 px-3 [scrollbar-width:none] sm:px-5 xl:px-7">
           {areas.map((section) => {
             const active = section.id === area.id;
@@ -202,7 +205,7 @@ export function TopBar({
 
       <dialog ref={dialogRef} onClose={() => setSearchOpen(false)}
         onClick={(event) => { if (event.target === dialogRef.current) setSearchOpen(false); }}
-        aria-label="Search SIMVERSE pages" className="m-auto w-[min(36rem,calc(100%-2rem))] rounded-2xl border border-border bg-surface p-0 text-foreground shadow-2xl backdrop:bg-black/65">
+        aria-label="Search KAVANDRO pages" className="m-auto w-[min(36rem,calc(100%-2rem))] rounded-2xl border border-border bg-surface p-0 text-foreground shadow-2xl backdrop:bg-black/65">
         <div className="flex items-center gap-3 border-b border-border p-4">
           <Search className="size-5 shrink-0 text-accent" aria-hidden />
           <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)}

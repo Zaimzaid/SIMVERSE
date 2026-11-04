@@ -24,7 +24,7 @@ export function AppearanceSettings() {
     <Card as="section">
       <CardHeader>
         <CardTitle>Appearance</CardTitle>
-        <CardDescription>Choose how SIMVERSE looks on this device.</CardDescription>
+        <CardDescription>Choose how KAVANDRO looks on this device.</CardDescription>
       </CardHeader>
       <CardContent>
         <div

@@ -20,8 +20,8 @@ const approved = (kind: string, serial: string, status = "ISSUED",
     document: { serial, status, issuedAt, expiresAt, displayStatus: "VALID" },
   });
 
-describe("issued SIMVERSE virtual document wallet", () => {
-  it("creates a dated player card from a completed SIMVERSE profile without claiming citizenship", () => {
+describe("issued KAVANDRO virtual document wallet", () => {
+  it("creates a dated player card from a completed KAVANDRO profile without claiming citizenship", () => {
     const html = renderToStaticMarkup(
       <VirtualCredentialGallery applications={[]} applicant={applicant} />,
     );
@@ -38,7 +38,7 @@ describe("issued SIMVERSE virtual document wallet", () => {
       <VirtualCredentialGallery applications={[]} applicant={{ ...applicant, username: null }} />,
     );
     expect(html).not.toContain("Virtual Player ID Card");
-    expect(html).toContain("Complete your SIMVERSE username");
+    expect(html).toContain("Complete your KAVANDRO username");
   });
 
   it("shows a dated collectible ID card for approved citizenship with owner-only details", () => {

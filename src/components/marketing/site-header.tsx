@@ -9,7 +9,7 @@ export function SiteHeader({ authed, simple = false }: { authed: boolean; simple
     return (
       <header className="relative z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <Logo size="md" />
+          <Logo size="md" className="w-[114px] sm:w-[184px]" />
           <nav aria-label="Public navigation" className="flex items-center gap-2 sm:gap-3">
             <Link href="/world" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-secondary transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent sm:inline-flex">
               Explore
@@ -37,7 +37,7 @@ export function SiteHeader({ authed, simple = false }: { authed: boolean; simple
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Logo size="md" />
+        <Logo size="md" className="w-[114px] sm:w-[184px]" />
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-secondary md:flex">
           <Link href="/#platform" className="transition-colors hover:text-foreground">

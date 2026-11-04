@@ -53,7 +53,7 @@ export function CountryGovernanceDesk({ initial, myUserId }: {
       toast({ variant: "error", title: "Governance change refused", description: error.message });
       return;
     }
-    toast({ variant: "success", title: "SIMVERSE governance updated", description: "The action was recorded in the audit trail." });
+    toast({ variant: "success", title: "KAVANDRO governance updated", description: "The action was recorded in the audit trail." });
     await refresh();
   }
 
@@ -74,7 +74,7 @@ export function CountryGovernanceDesk({ initial, myUserId }: {
         </select>
         <label className="flex items-center gap-2 text-sm text-secondary">
           <input type="checkbox" checked={allowsDual} onChange={(event) => setAllowsDual(event.target.checked)}/>
-          Allow a second SIMVERSE virtual citizenship
+          Allow a second KAVANDRO virtual citizenship
         </label>
         <label className={labelClass} htmlFor="gov-residence">Minimum destination virtual-residence days (0–365)</label>
         <input id="gov-residence" className={selectClass} type="number" min={0} max={365} value={minResidenceDays}
@@ -88,7 +88,7 @@ export function CountryGovernanceDesk({ initial, myUserId }: {
       </section>
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-lg font-semibold">Propose bilateral virtual travel waiver</h2>
-        <p className="text-sm text-secondary">Both countries must approve the agreement independently before it can waive a SIMVERSE entry visa.</p>
+        <p className="text-sm text-secondary">Both countries must approve the agreement independently before it can waive a KAVANDRO entry visa.</p>
         <label className={labelClass} htmlFor="gov-origin">Proposing virtual country</label>
         <select id="gov-origin" className={selectClass} value={treatyOrigin}
           onChange={(event) => setTreatyOrigin(event.target.value)}>

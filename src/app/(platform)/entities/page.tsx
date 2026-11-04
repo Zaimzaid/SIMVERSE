@@ -45,7 +45,7 @@ export default async function EntitiesPage({
         <PageHeader
           icon={Boxes}
           title="Entities"
-          description="Create and manage the objects that exist inside your SIMVERSE worlds and simulations."
+          description="Create and manage the objects that exist inside your KAVANDRO worlds and simulations."
         />
         <EmptyState
           icon={Boxes}
@@ -111,7 +111,7 @@ export default async function EntitiesPage({
       <PageHeader
         icon={Boxes}
         title="Entities"
-        description="Create and manage the objects that exist inside your SIMVERSE worlds and simulations."
+        description="Create and manage the objects that exist inside your KAVANDRO worlds and simulations."
         actions={createAction}
       />
 

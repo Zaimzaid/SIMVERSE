@@ -4,7 +4,7 @@ import { requireUser } from "@/server/context";
 import { getDistrictAssembly, listMyAssemblyDistricts } from "@/server/services/district-assembly-service";
 import { DistrictAssemblyClient } from "@/components/civilization/district-assembly-client";
 
-export const metadata: Metadata = { title: "My District Assembly | SIMVERSE", robots: { index: false } };
+export const metadata: Metadata = { title: "My District Assembly | KAVANDRO", robots: { index: false } };
 export default async function DistrictAssemblyPage() {
   const user = await requireUser();
   const available = await listMyAssemblyDistricts(user.id);

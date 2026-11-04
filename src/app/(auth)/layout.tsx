@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { BRAND_NAME } from "@/lib/brand";
 
 /** Centered, cinematic shell for the login/register pages. */
 export default function AuthLayout({
@@ -14,7 +15,7 @@ export default function AuthLayout({
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <Link href="/" aria-label="SIMVERSE home">
+          <Link href="/" aria-label={`${BRAND_NAME} home`}>
             <Logo size="lg" asStatic />
           </Link>
         </div>

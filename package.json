@@ -2,7 +2,7 @@
   "name": "simverse",
   "version": "0.1.0",
   "private": true,
-  "description": "SIMVERSE — a simulation and content-creation platform (Phase 0: platform foundation).",
+  "description": "KAVANDRO — Build Your Civilization, a citizen-first virtual world and social gaming platform.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

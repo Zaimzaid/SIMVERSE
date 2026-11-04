@@ -10,6 +10,7 @@ import { Drawer } from "@/components/ui/drawer";
 import { SidebarNav } from "./sidebar-nav";
 import { ContextRail } from "./context-rail";
 import { TopBar } from "./top-bar-redesigned";
+import { BRAND_NAME } from "@/lib/brand";
 import type { ShellData } from "./types";
 
 interface PlatformShellProps extends ShellData {
@@ -79,7 +80,7 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
         <div className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-7">
           {!isFocus && (
             <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <Link href="/dashboard" className="hover:text-accent">SIMVERSE</Link>
+              <Link href="/dashboard" className="hover:text-accent">{BRAND_NAME}</Link>
               <ChevronRight className="size-3.5" aria-hidden />
               <span className="font-semibold text-secondary">{active.label}</span>
               <ChevronRight className="size-3.5" aria-hidden />
