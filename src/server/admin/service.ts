@@ -92,29 +92,57 @@ export async function exportAdminAudit(filter:AdminEventFilter){
 }
 export async function listAdminCitizens(query:string,page=0){
  await requireAdminAccess("citizens");
- const q=query.trim().slice(0,80),safe=safePage(page),limit=30;
- const where:Prisma.UserWhereInput=q?{OR:[{displayName:{contains:q}},{email:{contains:q}}]}:{};
+ const q=query.trim().slice(0,80);
+ const safe=safePage(page),limit=30;
+ const where:Prisma.UserWhereInput=q?{OR:[
+  {displayName:{contains:q}},
+  {email:{contains:q}},
+ ]}:{};
  const [total,rows]=await Promise.all([
   prisma.user.count({where}),
-  prisma.user.findMany({where,orderBy:{createdAt:"desc"},skip:safe*limit,take:limit,
-   select:{id:true,email:true,displayName:true,emailVerifiedAt:true,createdAt:true,
-    _count:{select:{memberships:true,sessions:true}}}},
+  prisma.user.findMany({
+   where,
+   orderBy:{createdAt:"desc"},
+   skip:safe*limit,
+   take:limit,
+   select:{
+    id:true,
+    email:true,
+    displayName:true,
+    emailVerifiedAt:true,
+    createdAt:true,
+    _count:{select:{memberships:true,sessions:true}},
+   },
   }),
  ]);
- return {total,page:safe,limit,query:q,rows:rows.map(row=>({...row,
-  createdAt:row.createdAt.toISOString(),emailVerifiedAt:row.emailVerifiedAt?.toISOString()??null}))};
+ return {total,page:safe,limit,query:q,rows:rows.map(row=>({
+  ...row,
+  createdAt:row.createdAt.toISOString(),
+  emailVerifiedAt:row.emailVerifiedAt?.toISOString()??null,
+ }))};
 }
 export async function listAdminWorkspaces(page=0){
  await requireAdminAccess("workspaces");
  const safe=safePage(page),limit=30;
  const [total,rows]=await Promise.all([
   prisma.workspace.count(),
-  prisma.workspace.findMany({orderBy:{createdAt:"desc"},skip:safe*limit,take:limit,
-   select:{id:true,name:true,slug:true,createdAt:true,owner:{select:{displayName:true,email:true}},
-    _count:{select:{members:true}}}},
+  prisma.workspace.findMany({
+   orderBy:{createdAt:"desc"},
+   skip:safe*limit,
+   take:limit,
+   select:{
+    id:true,
+    name:true,
+    slug:true,
+    createdAt:true,
+    owner:{select:{displayName:true,email:true}},
+    _count:{select:{members:true}},
+   },
   }),
  ]);
- return {total,page:safe,limit,rows:rows.map(row=>({...row,createdAt:row.createdAt.toISOString()}))};
+ return {total,page:safe,limit,rows:rows.map(row=>({
+  ...row,createdAt:row.createdAt.toISOString(),
+ }))};
 }
 export async function listAdminStaff(){
  await requireAdminAccess("staff");
