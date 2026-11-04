@@ -3,7 +3,7 @@ import {Prisma} from "@prisma/client";
 import {z} from "zod";
 import {AuthorizationError,ConflictError,NotFoundError,ValidationError} from "@/lib/errors";
 import {env} from "@/lib/env";
-import {allowedAdminSections,isAdminRole,mayManageAdminRole,readDeniedAdminSections,validateAdminRestrictions,type AdminRole,type AdminSection} from "@/lib/admin/permissions";
+import {isAdminRole,mayManageAdminRole,readDeniedAdminSections,validateAdminRestrictions,type AdminRole,type AdminSection} from "@/lib/admin/permissions";
 import {prisma} from "@/server/db/client";
 import {requireAdminAccess,verifyAdminTotp} from "./access";
 
