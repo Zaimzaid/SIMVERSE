@@ -35,5 +35,5 @@ export function adminAuditWhere(filter:AdminEventFilter,window:AdminAuditWindow,
  };
  if(window!=="all")clauses.push({createdAt:{gte:new Date(now.getTime()-span[window]),lte:now}});
  if(!clauses.length)return {};
- return clauses.length===1?clauses[0]:{AND:clauses};
+ return clauses.length===1?clauses[0]!:{AND:clauses};
 }
