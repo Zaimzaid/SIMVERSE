@@ -166,7 +166,7 @@ export function AfterchoiceCampaignGame() {
               </div>
               <span className="text-xs font-semibold text-secondary">{met}/4 targets met</span>
             </div>
-            <Resources values={values} initial={state.values} />
+            <Resources values={values} initial={phase === "aftermath" && latest ? latest.starting : state.values} />
             {phase !== "aftermath" && plan.activated.length > 0 && (
               <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold text-accent">
