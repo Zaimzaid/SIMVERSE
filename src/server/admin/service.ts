@@ -119,7 +119,7 @@ export async function listAdminCitizens(query:string,page=0){
  }))};
 }
 export async function listAdminWorkspaces(page=0){
- await requireAdminAccess("workspaces");
+ const access=await requireAdminAccess("workspaces");
  const safe=safePage(page),limit=30;
  const [total,rows]=await Promise.all([
   prisma.workspace.count(),
@@ -139,6 +139,7 @@ export async function listAdminWorkspaces(page=0){
  ]);
  return {total,page:safe,limit,rows:rows.map(row=>({
   ...row,createdAt:row.createdAt.toISOString(),
+  owner:access.sections.includes("citizens")?row.owner:{displayName:"Restricted",email:""},
  }))};
 }
 export async function listAdminStaff(){
