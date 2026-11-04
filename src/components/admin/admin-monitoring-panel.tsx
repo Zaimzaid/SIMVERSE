@@ -50,5 +50,29 @@ export function AdminMonitoringPanel({data}:{data:AdminMonitoring}){
    </div>)}
   </div>
   <p className="text-xs leading-5 text-muted">These numbers are monitoring signals, not confirmed incidents. Review queues do not grant authority to view private reports or moderate content. Activity charts use database counts and contain no message text.</p>
+  <h2 className="pt-3 text-lg font-bold">Country & district engagement</h2>
+  <div className="grid gap-3 md:grid-cols-2">
+   <div className="rounded-2xl border border-border bg-surface p-5">
+    <h3 className="font-semibold">Active citizenships by country</h3>
+    <p className="mb-4 text-xs text-secondary">Top eight · current approved national citizenships</p>
+    <div className="space-y-3">
+     {data.regions.topCountries.map(row=><div key={row.countryId} className="flex items-center justify-between gap-4 text-sm">
+      <span className="min-w-0 truncate">{row.country}</span><span className="font-bold tabular-nums">{row.citizens.toLocaleString()}</span>
+     </div>)}
+     {!data.regions.topCountries.length?<p className="text-sm text-muted">No approved citizenships recorded.</p>:null}
+    </div>
+   </div>
+   <div className="rounded-2xl border border-border bg-surface p-5">
+    <h3 className="font-semibold">Most active district clubs</h3>
+    <p className="mb-4 text-xs text-secondary">Top eight · all-time message counts, excluding message contents</p>
+    <div className="space-y-3">
+     {data.regions.topDistricts.map(row=><div key={row.districtId} className="flex items-center justify-between gap-4 text-sm">
+      <span className="min-w-0 truncate">{row.district} <span className="text-xs text-muted">· {row.country}</span></span>
+      <span className="font-bold tabular-nums">{row.messages.toLocaleString()}</span>
+     </div>)}
+     {!data.regions.topDistricts.length?<p className="text-sm text-muted">No district club messages recorded.</p>:null}
+    </div>
+   </div>
+  </div>
  </section>;
 }

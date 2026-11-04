@@ -53,6 +53,7 @@ Run: `npm run typecheck && npm run lint && npm run test && npm run build`.
 
 - Seven UTC-day trend snapshots show recorded audit events, registrations, district-club posts and challenge attempts without exposing private message bodies.
 - Operational review backlog shows open club reports, open assembly reports and pending proposal moderation.
+- Region summaries rank countries by active approved citizenships and district clubs by message counts; names and counts only, never private message text.
 - Security signals show failed administrator authenticator-code attempts and account 2FA disable events over the last 24 hours. These are counts, not proof of a security incident.
 - Audit history is filtered by action family and time range (24 hours, 7 days, 30 days or all). CSV export uses the same date/category filters, capped to 5,000 rows.
 - Activity monitoring is based on events already emitted by the application and database status counts; it does not capture every interaction. Trend aggregation issues separate count queries per UTC day, which should be optimized or cached before high-traffic use.

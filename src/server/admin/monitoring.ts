@@ -29,10 +29,39 @@ export async function getAdminMonitoring(now:Date=new Date()) {
   prisma.auditLog.count({where:{action:"platform_admin.code_rejected",createdAt:{gte:recent,lte:now}}}),
   prisma.auditLog.count({where:{action:"account.two_factor_disabled",createdAt:{gte:recent,lte:now}}}),
  ]);
+ const [countryVolume,districtVolume]=await Promise.all([
+  prisma.foundingPrimaryCitizenship.groupBy({
+   by:["countryId"],where:{status:"ACTIVE"},_count:{_all:true},
+   orderBy:{_count:{countryId:"desc"}},take:8,
+  }),
+  prisma.districtClubMessage.groupBy({
+   by:["districtId"],_count:{_all:true},
+   orderBy:{_count:{districtId:"desc"}},take:8,
+  }),
+ ]);
+ const [countryNames,districtNames]=await Promise.all([
+  prisma.fictionalCountry.findMany({
+   where:{id:{in:countryVolume.map(row=>row.countryId)}},select:{id:true,name:true},
+  }),
+  prisma.foundingDistrict.findMany({
+   where:{id:{in:districtVolume.map(row=>row.districtId)}},
+   select:{id:true,name:true,country:{select:{name:true}}},
+  }),
+ ]);
+ const countriesById=new Map(countryNames.map(row=>[row.id,row.name]));
+ const districtsById=new Map(districtNames.map(row=>[row.id,row]));
  return {
   generatedAt:now.toISOString(),timezone:"UTC" as const,daily,
   queue:{openClubReports,openAssemblyReports,pendingProposals},
   security:{rejectedAdminCodes24h,factorDisabled24h},
+  regions:{
+   topCountries:countryVolume.map(row=>({countryId:row.countryId,
+    country:countriesById.get(row.countryId)??"Unknown country",citizens:row._count._all})),
+   topDistricts:districtVolume.map(row=>({districtId:row.districtId,
+    district:districtsById.get(row.districtId)?.name??"Unknown district",
+    country:districtsById.get(row.districtId)?.country.name??"Unknown country",
+    messages:row._count._all})),
+  },
  };
 }
 export type AdminMonitoring=Awaited<ReturnType<typeof getAdminMonitoring>>;

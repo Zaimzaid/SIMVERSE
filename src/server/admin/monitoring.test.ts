@@ -16,6 +16,7 @@ describe("content-free admin operations monitoring",()=>{
   expect(result.daily.at(-1)?.day).toBe(now.toISOString().slice(0,10));
   expect(result.daily.reduce((sum,day)=>sum+day.events,0)).toBeGreaterThanOrEqual(1);
   expect(result.queue).toEqual({openClubReports:0,openAssemblyReports:0,pendingProposals:0});
+  expect(result.regions).toEqual({topCountries:[],topDistricts:[]});
   expect(result.security.rejectedAdminCodes24h).toBeGreaterThanOrEqual(0);
   expect(result).not.toHaveProperty("messages");
  });
