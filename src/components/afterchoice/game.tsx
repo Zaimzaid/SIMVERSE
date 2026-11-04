@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowRight, BrainCircuit, Check, ChevronRight, CircleAlert, CircleCheck,
   Eye, RotateCcw, Shield, Sparkles, Target, Trophy, X,
@@ -144,6 +145,14 @@ export function AfterchoiceGame() {
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-secondary">
             Anyone can make a decision. Can you survive its consequences?
             Build a plan, predict the challenger, and protect what matters.
+          </p>
+          <Link href="/games/afterchoice/campaign"
+            className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover">
+            Play Phase 2 · Three-Night Campaign <ArrowRight className="size-4" aria-hidden />
+          </Link>
+          <p className="mt-2 max-w-xl text-xs leading-5 text-secondary">
+            Decisions persist between nights. Forecast delayed effects, survive cascading disruptions,
+            and adapt as the challenger learns your weak points.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-secondary">
             <span className="inline-flex items-center gap-1.5"><Shield className="size-4 text-accent" /> Deterministic opponent</span>
