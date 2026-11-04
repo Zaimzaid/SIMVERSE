@@ -44,7 +44,7 @@ export default async function DashboardPage() {
       detail: "Save a founding-country preference and express interest in the proposed pilot district.",
       href: "/profile/civilization",
       icon: MapPinned,
-      marker: "Phase 3 preview",
+      marker: "Preference form available",
     },
     {
       label: "My identity",

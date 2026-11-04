@@ -7,7 +7,7 @@ export async function GET(){
   const data=await createAccountExport(user.id);
   return new Response(JSON.stringify(data,null,2),{headers:{
     "Content-Type":"application/json; charset=utf-8",
-    "Content-Disposition":'attachment; filename="simverse-account-export.json"',
+    "Content-Disposition":'attachment; filename="kavandro-account-export.json"',
     "Cache-Control":"no-store", "X-Content-Type-Options":"nosniff",
   }});
  }catch(e){return errorResponse(e);}
