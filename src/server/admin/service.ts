@@ -43,12 +43,16 @@ async function sendAdminInvitation(email:string,link:string):Promise<boolean>{
 export async function getPlatformOverview(){
  await requireAdminAccess("overview");
  const now=new Date();
- const [citizens,liveSessions,workspaces,staff,events,pendingInvites]=await Promise.all([
+ const [citizens,liveSessions,workspaces,staff,events,pendingInvites,registrations24h,clubMessages,districtProposals,developmentCases,challengeAttempts,socialMessages,simulationRuns,marketListings]=await Promise.all([
   prisma.user.count(),prisma.session.count({where:{expiresAt:{gt:now}}}),
   prisma.workspace.count(),prisma.platformAdmin.count({where:{active:true}}),
   prisma.auditLog.count(),prisma.platformAdminInvitation.count({where:{expiresAt:{gt:now}}}),
+  prisma.user.count({where:{createdAt:{gte:new Date(Date.now()-24*60*60_000)}}}),
+  prisma.districtClubMessage.count(),prisma.districtAssemblyProposal.count(),
+  prisma.foundingDevelopmentCase.count(),prisma.civilizationChallengeAttempt.count(),
+  prisma.socialMessage.count(),prisma.simulationRun.count(),prisma.marketListing.count(),
  ]);
- return {citizens,liveSessions,workspaces,staff,events,pendingInvites};
+ return {citizens,liveSessions,workspaces,staff,events,pendingInvites,registrations24h,clubMessages,districtProposals,developmentCases,challengeAttempts,socialMessages,simulationRuns,marketListings};
 }
 export const ADMIN_EVENT_FILTERS=["all","security","community","civilization","staff","content"] as const;
 export type AdminEventFilter=(typeof ADMIN_EVENT_FILTERS)[number];
