@@ -5,18 +5,21 @@ import {ArrowLeft,ArrowRight,Download,ShieldCheck} from "lucide-react";
 import {getSessionUser} from "@/server/auth/session";
 import {getPlatformStaff,isAdminStepupValid} from "@/server/admin/access";
 import {allowedAdminSections,isAdminRole,readDeniedAdminSections,ADMIN_SECTION_LABELS,type AdminSection} from "@/lib/admin/permissions";
-import {getPlatformOverview,listAdminAudit,listAdminCitizens,listAdminWorkspaces,listAdminStaff,parseAdminEventFilter,ADMIN_EVENT_FILTERS} from "@/server/admin/service";
+import {getPlatformOverview,listAdminAudit,listAdminCitizens,listAdminWorkspaces,listAdminStaff,parseAdminEventFilter,parseAdminAuditWindow,ADMIN_EVENT_FILTERS,ADMIN_AUDIT_WINDOWS} from "@/server/admin/service";
+import {getAdminMonitoring} from "@/server/admin/monitoring";
+import {AdminMonitoringPanel} from "@/components/admin/admin-monitoring-panel";
 import {AdminRefresh} from "@/components/admin/admin-refresh";
 import {AdminStaffPanel} from "@/components/admin/admin-staff-panel";
 
 export const metadata:Metadata={title:"KAVANDRO | Platform administration",robots:{index:false,follow:false}};
-function href(view:AdminSection,page=0,filter="all",q=""){
+function href(view:AdminSection,page=0,filter="all",q="",window="7d"){
  const args=new URLSearchParams({view,page:String(Math.max(0,page))});
  if(view==="activity")args.set("filter",filter);
+ if(view==="activity"||view==="security"||view==="civilization")args.set("window",window);
  if(view==="citizens"&&q)args.set("q",q);
  return "/admin?"+args.toString();
 }
-export default async function AdminPage({searchParams}:{searchParams:Promise<{view?:string;page?:string;filter?:string;q?:string}>}){
+export default async function AdminPage({searchParams}:{searchParams:Promise<{view?:string;page?:string;filter?:string;q?:string;window?:string}>}){
  const user=await getSessionUser();
  if(!user)redirect("/login?next="+encodeURIComponent("/admin"));
  const staff=await getPlatformStaff(user.id);
@@ -30,9 +33,11 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
  const page=Math.max(0,Math.min(1000,Number.parseInt(params.page??"0",10)||0));
  const filter=view==="security"?"security":view==="civilization"?"civilization":parseAdminEventFilter(params.filter);
  const q=params.q??"";
+ const window=parseAdminAuditWindow(params.window);
  const overview=view==="overview"?await getPlatformOverview():null;
+ const monitoring=view==="overview"?await getAdminMonitoring():null;
  const logs=(view==="activity"||view==="security"||view==="civilization")?
-  await listAdminAudit(filter,page,view):null;
+  await listAdminAudit(filter,page,view,window):null;
  const people=view==="citizens"?await listAdminCitizens(q,page):null;
  const organizations=view==="workspaces"?await listAdminWorkspaces(page):null;
  const team=view==="staff"?await listAdminStaff():null;
@@ -94,23 +99,30 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
     The activity log covers actions already instrumented by the app, not passive page views or every individual message.
    </p>
   </div>:null}
+  {monitoring?<AdminMonitoringPanel data={monitoring}/>:null}
   {logs?<section className="space-y-4">
    <div className="flex flex-wrap items-center justify-between gap-3"><div>
     <h2 className="text-xl font-bold">{view==="activity"?"Platform activity":view==="security"?"Security events":"Civilization events"}</h2>
     <p className="text-sm text-secondary">{total.toLocaleString()} recorded events. Newest first.</p></div>
-    {view==="activity"?<Link href={"/api/admin/activity/export?filter="+encodeURIComponent(filter)}
+    {view==="activity"?<Link href={"/api/admin/activity/export?filter="+encodeURIComponent(filter)+"&window="+encodeURIComponent(window)}
      className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-semibold">
      <Download className="size-4"/> Export CSV (up to 5,000 events)</Link>:null}
    </div>
-   {view==="activity"?<form method="get" action="/admin" className="flex flex-wrap items-end gap-2">
-    <input type="hidden" name="view" value="activity"/>
-    <label className="space-y-1 text-xs font-semibold text-secondary">Event category
+   <form method="get" action="/admin" className="flex flex-wrap items-end gap-2">
+    <input type="hidden" name="view" value={view}/>
+    {view==="activity"?<label className="space-y-1 text-xs font-semibold text-secondary">Event category
      <select name="filter" defaultValue={filter} className="block rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground">
       {ADMIN_EVENT_FILTERS.map(option=><option value={option} key={option}>{option==="all"?"All events":option}</option>)}
+     </select></label>:null}
+    <label className="space-y-1 text-xs font-semibold text-secondary">Time range
+     <select name="window" defaultValue={window} className="block rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground">
+      {ADMIN_AUDIT_WINDOWS.map(option=><option value={option} key={option}>
+       {option==="all"?"All recorded history":option==="24h"?"Last 24 hours":option==="7d"?"Last 7 days":"Last 30 days"}
+      </option>)}
      </select></label>
-    <button type="submit" className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground">Apply filter</button>
-    <Link href={href("activity")} className="rounded-lg border border-border px-4 py-2.5 text-sm">Clear filter</Link>
-   </form>:null}
+    <button type="submit" className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground">Apply filters</button>
+    <Link href={href(view)} className="rounded-lg border border-border px-4 py-2.5 text-sm">Reset</Link>
+   </form>
    <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
     <table className="w-full min-w-[650px] text-left text-sm">
      <thead className="border-b border-border text-xs uppercase text-muted"><tr>
@@ -168,9 +180,9 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
   {paged?<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
    <p className="text-xs text-muted">Showing {total===0?0:activePage*perPage+1}–{Math.min((activePage+1)*perPage,total)} of {total}</p>
    <div className="flex gap-2">
-    {activePage>0?<Link href={href(view,activePage-1,filter,q)}
+    {activePage>0?<Link href={href(view,activePage-1,filter,q,window)}
      className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm"><ArrowLeft className="size-4"/> Previous</Link>:null}
-    {(activePage+1)*perPage<total?<Link href={href(view,activePage+1,filter,q)}
+    {(activePage+1)*perPage<total?<Link href={href(view,activePage+1,filter,q,window)}
      className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm">Next <ArrowRight className="size-4"/></Link>:null}
    </div>
   </div>:null}

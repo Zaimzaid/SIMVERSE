@@ -1,5 +1,5 @@
 import {errorResponse} from "@/server/api/response";
-import {exportAdminAudit,parseAdminEventFilter} from "@/server/admin/service";
+import {exportAdminAudit,parseAdminEventFilter,parseAdminAuditWindow} from "@/server/admin/service";
 function csv(value:string|null|undefined):string{
  const source=String(value??"");
  // Prevent spreadsheet formula execution when opening exported data.
@@ -9,7 +9,8 @@ function csv(value:string|null|undefined):string{
 export async function GET(request:Request){
  try{
   const filter=parseAdminEventFilter(new URL(request.url).searchParams.get("filter")??undefined);
-  const events=await exportAdminAudit(filter);
+  const window=parseAdminAuditWindow(new URL(request.url).searchParams.get("window")??undefined);
+  const events=await exportAdminAudit(filter,window);
   const rows=[
    ["Timestamp (UTC)","Action","Actor","Actor email","Workspace","Entity type","Entity ID"],
    ...events.map(e=>[e.createdAt.toISOString(),e.action,e.actor?.displayName??"System",e.actor?.email??"",
