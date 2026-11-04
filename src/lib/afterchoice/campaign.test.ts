@@ -78,15 +78,15 @@ describe("AFTERCHOICE Phase 2 campaign engine", () => {
 
   it("honours the safeguard, and still applies cascades if vulnerability remains", () => {
     const state = startCampaign(scenario);
-    const weak = playCampaignRound(scenario, state, ["briefing"], "power");
+    const weak = playCampaignRound(scenario, state, ["repair", "food"], "power");
     const record = weak.history[0]!;
     expect(record.attacker.id).toBe("power");
     expect(record.blocked).toBe(true);
-    // Power started at 4, briefing consumed one, a -2 hit and +2 guard
-    // leave power at 3: the secondary water-pump failure still occurs.
+    // Repair diverted power; the -2 attack followed by +2 defence leaves
+    // power at 3, still below the cascade threshold.
     expect(record.cascadeTriggered).toBe(true);
     expect(record.final.c).toBe(3);
-    expect(record.final.a).toBe(3);
+    expect(record.final.a).toBe(4);
     expect(record.score).toBeGreaterThanOrEqual(0);
     expect(record.score).toBeLessThanOrEqual(100);
   });
