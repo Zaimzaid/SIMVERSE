@@ -9,7 +9,7 @@ export function VerifyEmail({token}:{token:string}){
  return <section className="w-full space-y-4 rounded-2xl border border-border bg-surface p-7">
   <h1 className="text-2xl font-bold">Verify your email</h1>
   <p className="text-sm text-secondary">Confirm this email address belongs to you before signing in.</p>
-  {done?<><p role="status" className="text-sm text-secondary">Email verified successfully.</p><Link className="text-accent underline" href="/login">Log in to SIMVERSE</Link></>:<>
+  {done?<><p role="status" className="text-sm text-secondary">Email verified successfully.</p><Link className="text-accent underline" href="/login">Log in to KAVANDRO</Link></>:<>
    <Button onClick={verify} loading={busy} disabled={!token}>Confirm my email</Button>
    {error?<p role="alert" className="text-sm text-danger">{error}</p>:null}
   </>}
