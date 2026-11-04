@@ -22,7 +22,7 @@ afterEach(async () => {
 describe("Minimal pre-login KAVANDRO preview", () => {
   it("renders a small honest preview with three accessible choices and no fake live activity", () => {
     const html = renderToStaticMarkup(<CivilizationGlimpse />);
-    expect(html).toContain("A glimpse of what is coming");
+    expect(html).toContain("Explore KAVANDRO features");
     expect(html).toContain('aria-label="Choose what to discover"');
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-pressed="false"');
@@ -30,6 +30,7 @@ describe("Minimal pre-login KAVANDRO preview", () => {
     expect(html).toContain("Connect");
     expect(html).toContain("Shape");
     expect(html).toContain("Planet preview available");
+    expect(html).toContain('href="/planet"');
     expect(html).toContain("Discover a new world");
     expect(html).not.toContain("Live district elections");
   });
@@ -43,7 +44,7 @@ describe("Minimal pre-login KAVANDRO preview", () => {
       buttons[1]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(host.textContent).toContain("Find your community");
-    expect(host.textContent).toContain("District communities in development");
+    expect(host.textContent).toContain("Friends & messaging available");
     expect(buttons[1]?.getAttribute("aria-pressed")).toBe("true");
     expect(buttons[0]?.getAttribute("aria-pressed")).toBe("false");
 
@@ -51,7 +52,7 @@ describe("Minimal pre-login KAVANDRO preview", () => {
       buttons[2]?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(host.textContent).toContain("Help it grow");
-    expect(host.textContent).toContain("Citizen-led development is planned");
+    expect(host.textContent).toContain("Assembly planning tools built");
     expect(buttons[2]?.getAttribute("aria-pressed")).toBe("true");
   });
 });

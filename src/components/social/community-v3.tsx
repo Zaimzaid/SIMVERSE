@@ -411,7 +411,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
               {avatar(friend.displayName, friend.avatarUrl, "size-10")}
               <div className="min-w-0 flex-1">
                 <h2 className="truncate font-semibold">{friend.displayName}</h2>
-                <p className="truncate text-xs text-secondary">@{friend.playerIdentity?.username ?? "simverse"}</p>
+                <p className="truncate text-xs text-secondary">@{friend.playerIdentity?.username ?? "player"}</p>
                 {friend.playerIdentity?.username && <Link
                   href={"/u/" + encodeURIComponent(friend.playerIdentity.username)}
                   className="mt-1 inline-block text-xs font-semibold text-accent hover:underline">View profile</Link>}
@@ -473,7 +473,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
           </div>
         </section> : <div className="hidden min-h-[650px] flex-1 flex-col items-center justify-center bg-background/35 px-6 py-14 text-center lg:flex">
           <div className="mb-7 grid size-24 place-items-center rounded-[1.75rem] border border-accent/20 bg-accent-soft text-accent shadow-sm"><MessageCircle className="size-11" strokeWidth={1.6}/></div>
-          <h2 className="max-w-lg text-2xl font-bold tracking-tight xl:text-3xl">{social.friends.length ? "Pick up where you left off" : "Welcome to your SIMVERSE community"}</h2>
+          <h2 className="max-w-lg text-2xl font-bold tracking-tight xl:text-3xl">{social.friends.length ? "Pick up where you left off" : "Welcome to your KAVANDRO community"}</h2>
           <p className="mt-4 max-w-md text-base leading-7 text-secondary">{social.friends.length
             ? "Choose a conversation on the left to catch up with your friends."
             : "Get to know other players, build friendships and start conversations at your own pace."}</p>
@@ -507,7 +507,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
                 {avatar(f.other.displayName, f.other.avatarUrl)}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{f.other.displayName}</span>
-                  <span className="block truncate text-xs text-secondary">@{f.other.playerIdentity?.username ?? "simverse"}</span>
+                  <span className="block truncate text-xs text-secondary">@{f.other.playerIdentity?.username ?? "player"}</span>
                 </span>
                 <Counter value={unreadMap.get(f.other.id) ?? 0} />
               </button>
@@ -520,7 +520,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
           </div>
           {!social.friends.length && <div className="mx-auto flex max-w-lg flex-col items-center rounded-2xl border border-border bg-surface-elevated/45 px-5 py-9 text-center sm:px-8 sm:py-12">
             <div className="mb-5 grid size-16 place-items-center rounded-2xl border border-accent/20 bg-accent-soft text-accent"><Users className="size-8"/></div>
-            <h3 className="text-xl font-semibold">Meet your first SIMVERSE friend</h3>
+            <h3 className="text-xl font-semibold">Meet your first KAVANDRO friend</h3>
             <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">Search for someone by their public username, send a request and start messaging when they accept.</p>
             <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
               <button type="button" onClick={() => selectSection("find")}
@@ -544,7 +544,7 @@ export function CommunityV3({ initial, userId, initialPeerId = null }: { initial
 
         {section === "find" && <div className="mx-auto max-w-2xl space-y-5 p-5 sm:p-8">
           <h2 className="text-lg font-semibold">Find a player</h2>
-          <p className="text-sm text-secondary">Enter an exact public SIMVERSE username to connect. If you don’t know it, ask the player to share their username first.</p>
+          <p className="text-sm text-secondary">Enter an exact public KAVANDRO username to connect. If you don’t know it, ask the player to share their username first.</p>
           <form onSubmit={event => void lookup(event)} className="flex gap-2">
             <input aria-label="Search public username" value={search} onChange={e => { setSearch(e.target.value); setSearchPerformed(false); }}
               placeholder="Enter username" className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm" />

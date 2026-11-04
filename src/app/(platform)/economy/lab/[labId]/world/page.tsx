@@ -6,8 +6,8 @@ import { getEconomyLab } from "@/server/services/economy-lab-service";
 import { EconomyWorldShowcase } from "@/components/economy/economy-world-showcase";
 
 export const metadata: Metadata = {
-  title: "Living Town 3D | SIMVERSE Economy Lab",
-  description: "Walk through a small illustrative 3D economy connected to saved SIMVERSE town data.",
+  title: "Living Town 3D | KAVANDRO Economy Lab",
+  description: "Walk through a small illustrative 3D economy connected to saved KAVANDRO town data.",
 };
 export default async function EconomyWorldPage({
   params,

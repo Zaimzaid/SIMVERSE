@@ -26,7 +26,7 @@ export default async function StudioPage() {
       <PageHeader
         icon={Clapperboard}
         eyebrow="Creator / Media"
-        title="SIMVERSE Studio"
+        title="KAVANDRO Studio"
         description="Turn completed simulations into editable, versioned stories without changing what happened."
       />
 
@@ -48,7 +48,7 @@ export default async function StudioPage() {
         <Card as="section" className="overflow-hidden border-accent/25 bg-gradient-to-br from-accent-soft via-surface to-purple/10">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="size-5 text-accent" />Create from a completed Run</CardTitle>
-            <p className="max-w-3xl text-sm text-secondary">SIMVERSE selects a bounded set of saved highlights, preserves the authoritative result, and opens a draft storyboard you can shape.</p>
+            <p className="max-w-3xl text-sm text-secondary">KAVANDRO selects a bounded set of saved highlights, preserves the authoritative result, and opens a draft storyboard you can shape.</p>
           </CardHeader>
           <CardContent><StudioCreatePanel sources={sources} /></CardContent>
         </Card>

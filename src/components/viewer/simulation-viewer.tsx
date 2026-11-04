@@ -263,15 +263,15 @@ export function SimulationViewer(props: Props) {
   return <div className="flex min-h-dvh flex-col gap-2 bg-[#030814] p-2 sm:p-4">
     <div className="flex flex-wrap items-center justify-between gap-3 px-1">
       <Link href={resultsHref} className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white"><ArrowLeft className="size-4" />Exit Viewer</Link>
-      <span className="text-xs font-semibold uppercase tracking-[.22em] text-accent">SIMVERSE / Visual Replay</span>
+      <span className="text-xs font-semibold uppercase tracking-[.22em] text-accent">KAVANDRO / Visual Replay</span>
     </div>
     <div ref={stageRef} className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#080f1d] shadow-[0_24px_80px_-30px_rgba(0,0,0,.8)] fullscreen:justify-center">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3 sm:px-6">
-        <div className="min-w-0"><h1 className="truncate font-display text-lg font-bold text-white sm:text-xl">{title}</h1><p className="text-xs text-[#9eb3ca]">SIMVERSE Arena · {scene.length > 2 ? "Free for all" : "Duel"} · Historical replay</p></div>
+        <div className="min-w-0"><h1 className="truncate font-display text-lg font-bold text-white sm:text-xl">{title}</h1><p className="text-xs text-[#9eb3ca]">KAVANDRO Arena · {scene.length > 2 ? "Free for all" : "Duel"} · Historical replay</p></div>
         <span className="rounded-full border border-[#318da8]/40 bg-[#0d2b3a] px-3 py-1 text-xs font-bold text-[#9eeaf8]">{completion ? resultLabel : frame ? `TICK ${frame.tick}` : "LOADING"}</span>
       </div>
       <div className="relative min-h-[280px] w-full flex-1 fullscreen:min-h-0">
-        <canvas ref={canvasRef} role="img" aria-label="Real-time 3D SIMVERSE Battle arena replaying saved simulation events" className="absolute inset-0 h-full w-full" />
+        <canvas ref={canvasRef} role="img" aria-label="Real-time 3D KAVANDRO Battle arena replaying saved simulation events" className="absolute inset-0 h-full w-full" />
         <div className={`pointer-events-none absolute left-2 right-2 top-2 z-10 grid gap-2 ${scene.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`} aria-label="Participant health">
           {scene.map((entity) => {
             const state = frame?.participants[entity.id];
@@ -293,7 +293,7 @@ export function SimulationViewer(props: Props) {
           })}
         </div>
         {frame && frame.timeMs < (timelineRef.current?.introMs ?? 0) && !phase && !error ? <div className="pointer-events-none absolute inset-0 grid place-content-center bg-[#050b19]/65 p-6 text-center text-white">
-          <p className="text-xs font-bold uppercase tracking-[.3em] text-cyan-300">SIMVERSE / BATTLE</p>
+          <p className="text-xs font-bold uppercase tracking-[.3em] text-cyan-300">KAVANDRO / BATTLE</p>
           {scene.length === 2 ? <><div className="mx-auto mt-4 flex items-center justify-center gap-4">
             {scene.map((entity, index) => <span key={entity.id} className="contents">
               {index === 1 ? <span className="font-display text-xl font-black text-cyan-300 sm:text-3xl">VS</span> : null}

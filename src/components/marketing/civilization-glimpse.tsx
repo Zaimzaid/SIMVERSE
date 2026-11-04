@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Compass, MessageCircle, Sprout } from "lucide-react";
 
-// This widget explains the planned experience. It is not simulated activity,
-// and never implies that fictional national/district citizenship is available.
+// Describe working navigation alongside the real founding-district activation gates.
+// This widget never fabricates citizenship, district activity or voting results.
 const moments = [
   {
     label: "Explore",
@@ -13,6 +14,8 @@ const moments = [
     title: "Discover a new world",
     detail: "Look around the fictional planet and imagine the places still to come.",
     stage: "Planet preview available",
+    href: "/planet",
+    cta: "Open planet preview",
   },
   {
     label: "Connect",
@@ -20,7 +23,9 @@ const moments = [
     number: "02",
     title: "Find your community",
     detail: "Meet people and, when districts open, join the conversations shaping them.",
-    stage: "District communities in development",
+    stage: "Friends & messaging available · District Club needs approved residency",
+    href: "/social",
+    cta: "Open community",
   },
   {
     label: "Shape",
@@ -28,7 +33,9 @@ const moments = [
     number: "03",
     title: "Help it grow",
     detail: "Suggest ideas, discuss plans and help decide what your community should develop next.",
-    stage: "Citizen-led development is planned",
+    stage: "Assembly planning tools built · District approval required",
+    href: "/profile/civilization/assembly",
+    cta: "See Assembly tools",
   },
 ] as const;
 
@@ -41,8 +48,8 @@ export function CivilizationGlimpse() {
     <section aria-label="Discover the KAVANDRO idea"
       className="w-full rounded-3xl border border-border/80 bg-background/90 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-7">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary">A glimpse of what is coming</p>
-        <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-secondary">Early preview</span>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary">Explore KAVANDRO features</p>
+        <span className="shrink-0 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-secondary">Early access</span>
       </div>
       <div className="mt-5 grid grid-cols-3 gap-2" role="group" aria-label="Choose what to discover">
         {moments.map((item, index) => {
@@ -72,6 +79,10 @@ export function CivilizationGlimpse() {
         <span className="size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
         {moment.stage}
       </p>
+      <Link href={moment.href}
+        className="mt-4 inline-flex items-center rounded-xl border border-accent/35 px-4 py-2.5 text-sm font-semibold text-accent hover:bg-accent-soft">
+        {moment.cta}
+      </Link>
     </section>
   );
 }

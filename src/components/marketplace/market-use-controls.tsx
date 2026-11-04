@@ -46,7 +46,7 @@ export function MarketUseControls({
   }
 
   return <section className="space-y-3 rounded-xl border border-border bg-background p-4">
-    <h3 className="text-sm font-semibold">Use this model in SIMVERSE</h3>
+    <h3 className="text-sm font-semibold">Use this model in KAVANDRO</h3>
     <p className="text-xs text-muted">Choose an Entity to change its appearance, or attach the asset to a World definition. Other users need their own rights to access a private model.</p>
     <div className="grid gap-3 lg:grid-cols-2">
       <div className="space-y-2">

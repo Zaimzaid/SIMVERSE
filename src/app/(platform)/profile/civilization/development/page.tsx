@@ -6,7 +6,7 @@ import {
 } from "@/server/services/founding-development-service";
 
 export const metadata: Metadata = {
-  title: "District Development | SIMVERSE",
+  title: "District Development | KAVANDRO",
   robots: { index: false, follow: false },
 };
 
@@ -49,7 +49,7 @@ export default async function MyDistrictDevelopmentPage() {
         <p className="mt-3 text-sm leading-7 text-secondary">
           Approved geography, active district residence and a shortlisted community proposal
           are required for real district progress reporting. The cards below are illustrative
-          examples, not actual SIMVERSE projects or construction commitments.
+          examples, not actual KAVANDRO projects or construction commitments.
         </p>
       </section>
       <div className="grid gap-4 sm:grid-cols-3" aria-label="Example development journey">

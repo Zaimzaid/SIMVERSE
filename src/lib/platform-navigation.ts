@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import type { Permission } from "@/lib/permissions";
 import { NAV_ITEMS, type NavItem } from "@/lib/nav";
+import { BRAND_NAME } from "@/lib/brand";
 
 export interface PlatformArea {
   id: string;
@@ -46,7 +47,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "identity", label: "My Life", description: "Your player identity and documents",
-    icon: UserRound, routes: ["/profile", "/profile/civilization", "/profile/documents", "/profile/travel"],
+    icon: UserRound, routes: ["/profile", "/profile/civilization", "/profile/civilization/challenge", "/profile/civilization/club", "/profile/documents", "/profile/travel"],
   },
 ] as const;
 
@@ -70,7 +71,8 @@ export function visibleAreaItems(area: PlatformArea, permissions: readonly Permi
 export type NavigationSurface = "all" | "citizen";
 export const CITIZEN_ROUTES = new Set([
   "/dashboard", "/settings", "/world", "/planet", "/social",
-  "/profile", "/profile/civilization", "/profile/documents", "/profile/travel",
+  "/profile", "/profile/civilization", "/profile/civilization/challenge",
+  "/profile/civilization/club", "/profile/documents", "/profile/travel",
   "/anything-wars", "/games/afterchoice",
 ]);
 
@@ -103,5 +105,5 @@ export function navLabelForPath(pathname: string): string {
   const match = NAV_ITEMS
     .filter((item) => matches(pathname, item.href))
     .sort((a, b) => b.href.length - a.href.length)[0];
-  return match?.label ?? "SIMVERSE";
+  return match?.label ?? BRAND_NAME;
 }

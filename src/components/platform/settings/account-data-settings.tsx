@@ -23,7 +23,7 @@ export function AccountDataSettings(){
  <CardContent className="space-y-5">
   <div className="space-y-2"><p className="text-sm font-medium">Export your account snapshot</p>
    <p className="text-xs text-secondary">Includes profile, memberships, authored project summaries, messages and connections. This is not a complete workspace backup.</p>
-   <a href="/api/account/export" download="simverse-account-export.json" className="inline-flex rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-surface-hover">Download JSON export</a>
+   <a href="/api/account/export" download="kavandro-account-export.json" className="inline-flex rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-surface-hover">Download JSON export</a>
   </div>
   <div className="space-y-3 border-t border-border pt-4">
    <p className="text-sm font-medium">Request account deletion</p>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight, Compass, FileBadge2, Globe2, MapPinned,
   MessageCircle, ShieldCheck, Sparkles, Swords, Users,
-  WalletCards, Puzzle, BrainCircuit,
+  WalletCards, Puzzle, Landmark, BrainCircuit,
 } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       detail: "Save a founding-country preference and express interest in the proposed pilot district.",
       href: "/profile/civilization",
       icon: MapPinned,
-      marker: "Phase 3 preview",
+      marker: "Preference form available",
     },
     {
       label: "My identity",
@@ -85,21 +85,39 @@ export default async function DashboardPage() {
       : []),
   ];
 
-  const upcoming = [
+  // These pages and services exist. Some are restricted until an official
+  // founding country, district, residence, or staff grant is activated.
+  // Don't describe implemented tools as "Planned" or pretend they're live.
+  const civilizationTools = [
     {
-      icon: MapPinned,
-      title: "My District",
-      detail: "A citizen-led district, assembly and undeveloped territory will appear here once activated.",
+      icon: Users, title: "District Assembly", href: "/profile/civilization/assembly",
+      status: "Built · District required",
+      detail: "Open the proposals and advisory-vote interface. Membership requires an approved active district.",
     },
     {
-      icon: MessageCircle,
-      title: "Build Our World",
-      detail: "Suggest developments, discuss locations and take part in reviewed district decisions.",
+      icon: WalletCards, title: "Vascoin Wallet", href: "/profile/civilization/vascoin",
+      status: "Built · Eligibility applies",
+      detail: "View virtual wallet and daily check-in controls. Credits require the relevant platform and district conditions.",
     },
     {
-      icon: WalletCards,
-      title: "Vascoin & Treasury",
-      detail: "Future in-world rewards and voluntary contributions to approved community projects.",
+      icon: MessageCircle, title: "District Club", href: "/profile/civilization/club",
+      status: "Built · District required",
+      detail: "District chat, interest groups, community events and safety tools; access is restricted to eligible residents.",
+    },
+    {
+      icon: MapPinned, title: "Land & Zoning", href: "/profile/civilization/land",
+      status: "Built · Planner access",
+      detail: "Open the schematic planning tool. Editing requires an authorized planner; these are not owned parcels.",
+    },
+    {
+      icon: Landmark, title: "District Development", href: "/profile/civilization/development",
+      status: "Built · District required",
+      detail: "Follow district proposals and feasibility reviews when an approved district and projects exist.",
+    },
+    {
+      icon: Puzzle, title: "Daily Citizen Challenge", href: "/profile/civilization/challenge",
+      status: "Playable now",
+      detail: "Play the daily non-3D civic strategy puzzle with an anonymous scoreboard.",
     },
   ];
 
@@ -119,8 +137,8 @@ export default async function DashboardPage() {
               and follow the journey toward communities that will shape their own districts.
             </p>
             <p className="mt-3 max-w-xl text-xs text-secondary">
-              Citizen-led districts, construction, Vascoin and their competitions are in development,
-              not yet active gameplay.
+              The civilization tools below are developed. Community governance, currency activity and
+              land planning remain gated until the necessary districts and permissions are activated.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -161,27 +179,32 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section aria-labelledby="citizen-upcoming-heading">
+      <section aria-labelledby="citizen-tools-heading">
         <div className="mb-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">Development roadmap</p>
-          <h2 id="citizen-upcoming-heading" className="mt-1 font-display text-xl font-semibold text-foreground">
-            What's coming to your civilization
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-accent">Implemented features</p>
+          <h2 id="citizen-tools-heading" className="mt-1 font-display text-xl font-semibold text-foreground">
+            Civilization tools you can open
           </h2>
+          <p className="mt-2 max-w-3xl text-sm text-secondary">
+            These pages are developed, but some actions require a published founding
+            country, approved district, active citizenship or staff permission.
+            You can inspect the page and its eligibility message without seeing a misleading "Planned" label.
+          </p>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          {upcoming.map(({ icon: Icon, title, detail }) => (
-            <div key={title} className="rounded-2xl border border-border bg-surface p-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {civilizationTools.map(({ icon: Icon, title, href, detail, status }) => (
+            <Link key={href} href={href}
+              className="group rounded-2xl border border-border bg-surface p-5 transition hover:border-accent/50 hover:bg-surface-hover">
               <div className="flex items-center justify-between">
-                <span className="rounded-xl border border-border bg-background/70 p-2.5 text-secondary">
+                <span className="rounded-xl border border-border bg-background/70 p-2.5 text-accent">
                   <Icon className="size-5" aria-hidden />
                 </span>
-                <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-muted">
-                  Planned
-                </span>
+                <ArrowRight className="size-4 text-muted group-hover:text-accent" aria-hidden />
               </div>
-              <h3 className="mt-4 font-semibold text-foreground">{title}</h3>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-accent">{status}</p>
+              <h3 className="mt-1 font-semibold text-foreground">{title}</h3>
               <p className="mt-1 text-sm leading-relaxed text-secondary">{detail}</p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

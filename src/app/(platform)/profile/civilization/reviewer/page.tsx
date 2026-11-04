@@ -6,7 +6,7 @@ import { getMyFoundingReviewQueue } from "@/server/services/founding-citizenship
 import { FoundingReviewQueue } from "@/components/player/founding-review-queue";
 
 export const metadata: Metadata = {
-  title: "Restricted Founding Citizenship Review | SIMVERSE",
+  title: "Restricted Founding Citizenship Review | KAVANDRO",
   robots: { index: false, follow: false },
 };
 

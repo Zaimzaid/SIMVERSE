@@ -96,7 +96,7 @@ export function EarthQuickNavigation({
           data-earth-quick-menu="expanded">
           <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
             <div>
-              <p className="text-sm font-semibold text-foreground">Explore SIMVERSE Earth</p>
+              <p className="text-sm font-semibold text-foreground">Explore KAVANDRO Earth</p>
               <p className="text-xs text-muted">Jump to places without repeated zooming</p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close Earth navigation"

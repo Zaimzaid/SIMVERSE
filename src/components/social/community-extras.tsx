@@ -54,7 +54,7 @@ export function CommunityExtras({userId,friends,view,onUnreadChange}: {userId:st
       <h2 className="flex items-center gap-2 text-lg font-semibold"><Users className="size-5 text-accent"/> Group messaging</h2>
       <p className="text-xs text-secondary">Invite accepted friends. Only players who accept invitations can open a group.</p>
       <label className="block text-xs text-secondary">New group name
-        <input className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm" maxLength={65} placeholder="SIMVERSE builders"
+        <input className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm" maxLength={65} placeholder="KAVANDRO builders"
           value={title} onChange={e=>setTitle(e.target.value)} /></label>
       <div className="flex flex-wrap gap-2">{friends.map(f=><label key={f.other.id} className="rounded-lg border border-border px-3 py-2 text-xs">
         <input type="checkbox" checked={invitees.includes(f.other.id)} onChange={e=>setInvitees(v=>e.target.checked?[...v,f.other.id]:v.filter(x=>x!==f.other.id))} className="mr-2"/>

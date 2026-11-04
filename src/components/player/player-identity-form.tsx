@@ -31,12 +31,14 @@ interface Props {
   initial: EditablePlayerIdentity;
   countries: Array<{ id: string; name: string; isoAlpha2: string | null }>;
   onSaved?: (identity: EditablePlayerIdentity) => void;
+  /** Hide the second banner/avatar when editing inside the main profile panel. */
+  hideProfilePreview?: boolean;
 }
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-accent";
 const labelClass = "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-secondary";
 
-export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
+export function PlayerIdentityForm({ initial, countries, onSaved, hideProfilePreview = false }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const [identity, setIdentity] = useState(initial);
@@ -88,7 +90,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
 
   return (
     <div className="space-y-5">
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+      {!hideProfilePreview && <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <div className="relative h-36 bg-gradient-to-r from-[#122d52] via-[#0c747f] to-[#166d81] sm:h-44">
           {identity.bannerUrl ? (
             // External display URLs are owner supplied; no server uploads yet.
@@ -113,7 +115,7 @@ export function PlayerIdentityForm({ initial, countries, onSaved }: Props) {
             </Link>
           ) : null}
         </div>
-      </div>
+      </div>}
 
       <section className="rounded-2xl border border-border bg-surface p-5" aria-label="KAVANDRO identity credentials">
         <div className="flex items-center gap-2">

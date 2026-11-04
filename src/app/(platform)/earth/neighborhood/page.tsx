@@ -3,7 +3,7 @@ import { requirePlatformContext } from "@/server/context";
 import { NeighborhoodShowcase } from "@/components/earth/neighborhood-showcase";
 
 export const metadata: Metadata = {
-  title: "Marina Junction | SIMVERSE Earth 3D Proof",
+  title: "Marina Junction | KAVANDRO Earth 3D Proof",
   description: "A walkable fictional Lagos-inspired 3D neighborhood visual prototype.",
 };
 

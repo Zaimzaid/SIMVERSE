@@ -26,7 +26,7 @@ export default async function MarketplaceLibrary(){
    <header className="flex flex-wrap items-end justify-between gap-3">
      <div><p className="text-sm text-muted">Marketplace / My Library</p>
        <h1 className="mt-2 text-3xl font-bold">My acquired assets</h1>
-       <p className="mt-2 max-w-2xl text-sm text-muted">Your licensed items, ready for private previews and compatible SIMVERSE projects. Licenses do not grant resale rights.</p>
+       <p className="mt-2 max-w-2xl text-sm text-muted">Your licensed items, ready for private previews and compatible KAVANDRO projects. Licenses do not grant resale rights.</p>
      </div>
      <Link href="/marketplace" className="rounded-xl border border-border px-4 py-2 text-sm">Discover items</Link>
    </header>
