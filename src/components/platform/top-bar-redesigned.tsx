@@ -12,7 +12,7 @@ import { apiFetch } from "@/lib/client/api";
 import { cn } from "@/lib/utils";
 import { visibleAreas, areaForPath } from "@/lib/platform-navigation";
 import { useTheme } from "@/components/theme/theme-provider";
-import { Logo } from "@/components/brand/logo";
+import { Logo, BrandMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from "@/components/ui/dropdown";
 import { useToast } from "@/components/ui/toast";
@@ -107,6 +107,9 @@ export function TopBar({
             <Menu className="size-5" aria-hidden />
           </button>
 
+          <Link href="/dashboard" aria-label="KAVANDRO dashboard" className="inline-flex items-center sm:hidden">
+            <BrandMark className="size-8" />
+          </Link>
           <Logo href="/dashboard" size="sm" className="hidden sm:inline-flex" />
 
           <div className="hidden h-7 w-px bg-border sm:block" aria-hidden />

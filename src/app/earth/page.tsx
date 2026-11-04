@@ -9,7 +9,7 @@ import { getPublicEarthOverview } from "@/server/services/earth-public-service";
 
 export const metadata: Metadata = {
   title: "Explore Earth",
-  description: "Explore the real world through SIMVERSE's interactive 3D Earth experience.",
+  description: "Explore the real world through KAVANDRO's interactive 3D Earth experience.",
 };
 
 export default async function EarthPage({
@@ -38,14 +38,14 @@ export default async function EarthPage({
             <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]">
               <div>
                 <Badge variant="accent">
-                  <CircleDot className="size-3" />SIMVERSE Earth · Live foundation
+                  <CircleDot className="size-3" />KAVANDRO Earth · Live foundation
                 </Badge>
                 <h1 className="mt-5 max-w-4xl font-display text-4xl font-bold leading-[1.03] text-foreground sm:text-6xl lg:text-7xl">
                   The real world,
                   <span className="text-gradient block">ready to explore.</span>
                 </h1>
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-secondary sm:text-lg">
-                  Rotate a real geographic globe, discover verified SIMVERSE coverage, and carry your chosen destination securely into the protected Earth explorer.
+                  Rotate a real geographic globe, discover verified KAVANDRO coverage, and carry your chosen destination securely into the protected Earth explorer.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">

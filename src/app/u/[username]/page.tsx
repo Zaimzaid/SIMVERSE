@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const player = await getViewablePlayerProfile(username, viewer?.id ?? null);
   const publiclyListed = Boolean(player && await getPublicPlayerProfile(username));
   return {
-    title: player ? "@" + player.username + " | SIMVERSE" : "Player profile | SIMVERSE",
+    title: player ? "@" + player.username + " | KAVANDRO" : "Player profile | KAVANDRO",
     robots: { index: publiclyListed, follow: publiclyListed },
   };
 }
@@ -61,7 +61,7 @@ export default async function PublicPlayerPage({ params }: Props) {
           </div>
           {own && <Link href="/profile" className="rounded-xl border border-border px-4 py-2 text-sm">Edit my profile</Link>}
         </div>
-        <p className="whitespace-pre-wrap text-sm text-secondary">{player.biography || "SIMVERSE player"}</p>
+        <p className="whitespace-pre-wrap text-sm text-secondary">{player.biography || "KAVANDRO player"}</p>
         <div className="flex flex-wrap gap-2 text-sm text-secondary">
           <span className="rounded-lg border border-border px-3 py-2">{player.experienceMode === "BOTH" ? "Player & Creator" : player.experienceMode === "PLAYER" ? "Player" : "Creator"}</span>
           {player.virtualHomeCountry && <span className="flex items-center gap-2 rounded-lg border border-border px-3 py-2"><Globe2 className="size-4"/> Virtual home: {player.virtualHomeCountry}</span>}
@@ -73,7 +73,7 @@ export default async function PublicPlayerPage({ params }: Props) {
           {works.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2">{works.map((work) =>
             <Link key={work.publicId} href={"/s/" + work.publicId} className="rounded-xl border border-border bg-background p-4 text-sm hover:border-accent">
               <p className="font-semibold">{work.titleOverride || work.artifact.type + " story"}</p>
-              <p className="mt-1 text-xs text-secondary">Published SIMVERSE media · View story</p>
+              <p className="mt-1 text-xs text-secondary">Published KAVANDRO media · View story</p>
             </Link>)}</div> : <p className="mt-3 text-sm text-secondary">No publicly shared creations yet.</p>}
         </section>
         <p className="flex items-start gap-2 rounded-xl border border-border bg-background p-3 text-xs text-muted">
