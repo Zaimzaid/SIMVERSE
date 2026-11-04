@@ -4,7 +4,7 @@ import { ArrowUpRight, Clapperboard, LockKeyhole, Share2 } from "lucide-react";
 import { requireUser } from "@/server/context";
 import { getMyCreatorPortfolio } from "@/server/services/profile-portfolio-service";
 
-export const metadata: Metadata = { title: "My Creations | SIMVERSE" };
+export const metadata: Metadata = { title: "My Creations | KAVANDRO" };
 export default async function MyCreationsPage() {
   const user = await requireUser();
   const portfolio = await getMyCreatorPortfolio(user.id);

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Boxes, Compass, Heart, Package, Search, ShieldCheck, Sparkles, Store } from "lucide-react";
 import { publicCatalog } from "@/server/services/marketplace-service";
 import { MarketplaceAction } from "@/components/marketplace/marketplace-controls";
-export const metadata={title:"SIMVERSE Marketplace"};
+export const metadata={title:"KAVANDRO Marketplace"};
 const sections=[{value:"",label:"All items"},{value:"CHARACTERS",label:"Characters"},{value:"CREATURES",label:"Animals"},{value:"VEHICLES",label:"Vehicles"},{value:"BUILDINGS",label:"Buildings"},{value:"ANIMATION",label:"Animations"},{value:"ENVIRONMENTS",label:"Worlds"}];
 export default async function MarketplaceHome({searchParams}:{searchParams:Promise<{q?:string;category?:string;page?:string}>}){
   const p=await searchParams;
@@ -11,7 +11,7 @@ export default async function MarketplaceHome({searchParams}:{searchParams:Promi
   return <main className="mx-auto max-w-7xl space-y-8 pb-16">
     <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-indigo-900 via-slate-900 to-violet-950 p-6 text-white sm:p-10">
       <div className="pointer-events-none absolute -right-14 -top-16 size-72 rounded-full bg-violet-400/15 blur-3xl" />
-      <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.22em] text-indigo-200"><Sparkles className="size-4"/>SIMVERSE · Marketplace</p>
+      <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.22em] text-indigo-200"><Sparkles className="size-4"/>KAVANDRO · Marketplace</p>
       <h1 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-5xl">Discover assets.<br/>Bring your universe to life.</h1>
       <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Browse original 3D resources, discover independent creators, and collect compatible assets for your next experience.</p>
       <div className="mt-7 flex flex-wrap gap-3">

@@ -178,7 +178,7 @@ export function TopBar({
           </div>
         </div>
 
-        <nav aria-label="Primary SIMVERSE areas"
+        <nav aria-label="Primary KAVANDRO areas"
           className="flex items-center gap-1 overflow-x-auto border-t border-border/80 px-3 [scrollbar-width:none] sm:px-5 xl:px-7">
           {areas.map((section) => {
             const active = section.id === area.id;
@@ -202,7 +202,7 @@ export function TopBar({
 
       <dialog ref={dialogRef} onClose={() => setSearchOpen(false)}
         onClick={(event) => { if (event.target === dialogRef.current) setSearchOpen(false); }}
-        aria-label="Search SIMVERSE pages" className="m-auto w-[min(36rem,calc(100%-2rem))] rounded-2xl border border-border bg-surface p-0 text-foreground shadow-2xl backdrop:bg-black/65">
+        aria-label="Search KAVANDRO pages" className="m-auto w-[min(36rem,calc(100%-2rem))] rounded-2xl border border-border bg-surface p-0 text-foreground shadow-2xl backdrop:bg-black/65">
         <div className="flex items-center gap-3 border-b border-border p-4">
           <Search className="size-5 shrink-0 text-accent" aria-hidden />
           <input ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)}

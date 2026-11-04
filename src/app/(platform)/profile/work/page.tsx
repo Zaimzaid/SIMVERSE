@@ -7,7 +7,7 @@ import { getOrientationInfo } from "@/server/services/player-training-business-s
 import { PageHeader } from "@/components/ui/page-header";
 import { PlayerWorkCenter } from "@/components/player/player-work-center";
 
-export const metadata: Metadata = { title: "Qualifications & Employment | SIMVERSE" };
+export const metadata: Metadata = { title: "Qualifications & Employment | KAVANDRO" };
 export default async function PlayerWorkPage() {
   const user = await requireUser();
   const [work, orientation] = await Promise.all([
