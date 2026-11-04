@@ -24,7 +24,7 @@ export default async function MarketProduct({params}:{params:Promise<{listingId:
           <h2 className="font-semibold">What you receive</h2>
           <p className="flex items-center gap-2"><FileCheck2 className="size-4"/> A license to asset version {item.sourceVersion}</p>
           <p className="flex items-center gap-2"><ShieldCheck className="size-4"/> {item.licenseType==="PERSONAL"?"Personal-use license":"Commercial-use license"} · not transferable</p>
-          <p className="text-muted">A 3D model is not automatically animated or playable. Compatibility must be validated in the target SIMVERSE experience.</p>
+          <p className="text-muted">A 3D model is not automatically animated or playable. Compatibility must be validated in the target KAVANDRO experience.</p>
         </div>
       </section>
     </div>
