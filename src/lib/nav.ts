@@ -23,6 +23,7 @@ import {
   Users,
   MessagesSquare,
   MessageCircle,
+  ShieldCheck,
   Puzzle,
   Store,
   WandSparkles,
@@ -37,6 +38,8 @@ export interface NavItem {
   exact?: boolean;
   /** If set, the item is only shown to roles holding this permission. */
   permission?: Permission;
+  /** Separate platform administration grant; never inferred from workspace role. */
+  platformStaffOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -98,6 +101,12 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Animation Studio", href: "/animation", icon: WandSparkles, permission: "media.view" },
       { label: "Templates", href: "/templates", icon: LayoutTemplate, permission: "project.view" },
       { label: "Analytics", href: "/analytics", icon: BarChart3, permission: "analytics.view" },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { label: "Admin Dashboard", href: "/admin", icon: ShieldCheck, platformStaffOnly: true },
     ],
   },
   {

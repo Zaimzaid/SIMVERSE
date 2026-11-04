@@ -21,4 +21,6 @@ export interface ShellData {
   workspaces: ShellWorkspace[];
   role: WorkspaceRole;
   permissions: Permission[];
+  /** An active platform staff grant, separate from ordinary workspace roles. */
+  isPlatformStaff: boolean;
 }

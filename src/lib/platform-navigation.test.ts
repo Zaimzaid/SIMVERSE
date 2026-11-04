@@ -19,6 +19,7 @@ describe("KAVANDRO workspace navigation", () => {
       expect(unique.has(item.href)).toBe(true);
     }
     expect(visibleAreas(full).length).toBe(8);
+    expect(visibleAreas(full, "all", true).length).toBe(9);
   });
 
   it("shows only permitted links, never by itself changes server authorization", () => {
@@ -27,6 +28,11 @@ describe("KAVANDRO workspace navigation", () => {
     expect(publicLinks.flatMap((area) => area.items).some((item) => item.href === "/create")).toBe(false);
     expect(publicLinks.flatMap((area) => area.items).some((item) => item.href === "/projects")).toBe(false);
     expect(canSeeNavItem(NAV_ITEMS.find((item) => item.href === "/create")!, [])).toBe(false);
+    const adminItem = NAV_ITEMS.find((item) => item.href === "/admin")!;
+    expect(canSeeNavItem(adminItem, full)).toBe(false);
+    expect(canSeeNavItem(adminItem, [], true)).toBe(true);
+    expect(visibleAreas(full, "citizen").flatMap((area) => area.items.map((item) => item.href))).not.toContain("/admin");
+    expect(visibleAreas([], "citizen", true).flatMap((area) => area.items.map((item) => item.href))).toContain("/admin");
     expect(visibleAreaItems(PLATFORM_AREAS.find((area) => area.id === "build")!, full)
       .map((item) => item.href)).toContain("/create");
   });
@@ -50,6 +56,9 @@ describe("KAVANDRO workspace navigation", () => {
 
   it("resolves nested player and economy pages correctly rather than dumping them into Home", () => {
     expect(areaForPath("/dashboard").id).toBe("home");
+    expect(areaForPath("/admin").id).toBe("administration");
+    expect(areaForPath("/admin/access").id).toBe("administration");
+    expect(navLabelForPath("/admin/access")).toBe("Admin Dashboard");
     expect(areaForPath("/profile").id).toBe("identity");
     expect(areaForPath("/social").id).toBe("community");
     expect(areaForPath("/animation").id).toBe("build");
