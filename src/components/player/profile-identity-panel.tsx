@@ -26,7 +26,7 @@ export function ProfileIdentityPanel({ initial, countries }: {
       <div className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
         <Avatar name={profile.displayName} src={profile.avatarUrl} size="lg" className="ring-4 ring-surface"/>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent">My SIMVERSE Profile</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">My KAVANDRO Profile</p>
           <h1 id="profile-identity-heading" className="truncate text-2xl font-semibold sm:text-3xl">{profile.displayName}</h1>
           <p className="text-sm text-secondary">{profile.username ? "@" + profile.username : "Choose your username to get started"}</p>
           {profile.biography && <p className="mt-1 max-w-xl whitespace-pre-wrap text-sm text-secondary">{profile.biography}</p>}
@@ -46,10 +46,10 @@ export function ProfileIdentityPanel({ initial, countries }: {
       <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold">{hasProfile ? "Edit your details" : "Complete your player profile"}</h2>
-          <p className="text-sm text-secondary">Your details will appear above after you save.</p>
+          <p className="text-sm text-secondary">Edit your details here; your profile header stays visible above.</p>
         </div>
       </div>
-      <PlayerIdentityForm initial={profile} countries={countries} onSaved={(saved) => {
+      <PlayerIdentityForm initial={profile} countries={countries} hideProfilePreview onSaved={(saved) => {
         setProfile(saved);
         if (saved.username) setEditing(false);
       }}/>
