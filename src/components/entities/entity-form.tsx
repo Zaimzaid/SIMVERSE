@@ -258,7 +258,7 @@ export function EntityForm({ mode, initialDefinitions, tagSuggestions, initial }
               htmlFor="entity-custom-category"
               required
               error={errors.category}
-              hint="Name your own kind of entity — anything can live in a SIMVERSE world."
+              hint="Name your own kind of entity — anything can live in a KAVANDRO world."
             >
               <Input
                 id="entity-custom-category"

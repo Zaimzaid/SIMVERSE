@@ -745,7 +745,7 @@ export function GeographyExplorer({
               onOpenDetails={() => setDetailsOpen(true)}
             />
             <div className="hidden min-w-0 md:block">
-              <p className="text-sm font-semibold text-foreground">SIMVERSE Earth Map</p>
+              <p className="text-sm font-semibold text-foreground">KAVANDRO Earth Map</p>
               <p className="text-xs text-muted">{selected?.name ?? "Explore countries and regions"}</p>
             </div>
           </div>
@@ -889,7 +889,7 @@ export function GeographyExplorer({
               <Grid3X3 className="size-5 text-warning" aria-hidden />
             </div>
             <p className="mt-2 rounded-lg bg-warning-soft p-2 text-xs text-warning">
-              SIMVERSE virtual plots grant no rights in real-world land. Zone geometry is platform policy data, not an official or cadastral boundary.
+              KAVANDRO virtual plots grant no rights in real-world land. Zone geometry is platform policy data, not an official or cadastral boundary.
             </p>
             {zones.length ? (
               <div className="mt-3 space-y-2">

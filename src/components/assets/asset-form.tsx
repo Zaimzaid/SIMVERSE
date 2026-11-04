@@ -115,7 +115,7 @@ export function AssetForm({ mode, initial, entities, assets }: Props) {
       <Field className="md:col-span-2" label="Description" htmlFor="asset-description" error={errors.description}><Textarea id="asset-description" value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
       {mode === "edit" ? <Field className="md:col-span-2" label="Version note" htmlFor="change-note"><Input id="change-note" value={changeNote} onChange={(e) => setChangeNote(e.target.value)} placeholder="What changed in this version?" /></Field> : null}
     </CardContent></Card>
-    <Card><CardHeader><CardTitle>Provenance and license</CardTitle><CardDescription>Record where this work came from and how SIMVERSE may use it.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
+    <Card><CardHeader><CardTitle>Provenance and license</CardTitle><CardDescription>Record where this work came from and how KAVANDRO may use it.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
       <Field label="Source kind"><Select value={provenanceKind} onChange={(e) => setProvenanceKind(e.target.value as typeof provenanceKind)}>{["ORIGINAL","IMPORTED","GENERATED","LICENSED","DERIVED"].map((item) => <option key={item}>{item}</option>)}</Select></Field>
       <Field label="Source name" error={errors["provenance.sourceName"]}><Input value={sourceName} onChange={(e) => setSourceName(e.target.value)} /></Field>
       <Field label="Source URL" error={errors["provenance.sourceUrl"]}><Input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} placeholder="https://…" /></Field>
@@ -129,7 +129,7 @@ export function AssetForm({ mode, initial, entities, assets }: Props) {
       <Field label="Attribution" error={errors["licenseInfo.attribution"]}><Input value={attribution} onChange={(e) => setAttribution(e.target.value)} /></Field>
       <Field className="md:col-span-2" label="Usage restrictions"><Textarea value={restrictions} onChange={(e) => setRestrictions(e.target.value)} /></Field>
     </CardContent></Card>
-    <Card><CardHeader><CardTitle>Storage and technical specification</CardTitle><CardDescription>References identify externally stored binaries. SIMVERSE stores metadata only.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
+    <Card><CardHeader><CardTitle>Storage and technical specification</CardTitle><CardDescription>References identify externally stored binaries. KAVANDRO stores metadata only.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
       <Field label="External storage reference" error={errors.externalReference}><Input value={externalReference} onChange={(e) => setExternalReference(e.target.value)} placeholder="/assets/… or https://…" /></Field>
       <Field label="Thumbnail or preview reference" error={errors.thumbnailReference}><Input value={thumbnailReference} onChange={(e) => setThumbnailReference(e.target.value)} /></Field>
       <Field className="md:col-span-2" label="Technical metadata (JSON)" error={errors.technicalMetadata}><Textarea rows={5} value={technicalMetadata} onChange={(e) => setTechnicalMetadata(e.target.value)} /></Field>

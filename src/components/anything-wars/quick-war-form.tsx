@@ -120,7 +120,7 @@ export function QuickWarForm({ initialMode }: { initialMode: AnythingWarsEventMo
           <div>
             <div className="flex items-center gap-2 text-accent"><Sparkles className="size-4" /><span className="text-xs font-semibold uppercase tracking-[0.14em]">Ready when you are</span></div>
             <p className="mt-2 text-lg font-semibold text-foreground">{participants.length >= 2 ? `${participants.length} competitors · ${QUICK_MODES.find((item) => item.id === mode)?.label}` : "Choose two competitors to start"}</p>
-            <p className="mt-1 max-w-xl text-sm text-secondary">SIMVERSE will use balanced working rules, organize the event, choose a fresh seed, and save the real result automatically.</p>
+            <p className="mt-1 max-w-xl text-sm text-secondary">KAVANDRO will use balanced working rules, organize the event, choose a fresh seed, and save the real result automatically.</p>
             {issue && participants.length > 0 ? <p className="mt-2 text-xs font-medium text-warning">{issue}</p> : null}
           </div>
           <Button size="lg" onClick={() => void start()} loading={starting} disabled={Boolean(issue)} className="w-full sm:w-auto">
