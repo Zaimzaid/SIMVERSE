@@ -30,7 +30,8 @@ describe("single KAVANDRO owner profile", () => {
     const html = renderToStaticMarkup(<ProfileIdentityPanel initial={base} countries={[]} />);
     expect(html).toContain("My KAVANDRO Profile");
     expect(html).not.toContain("My SIMVERSE Profile");
-    expect((html.match(/Citizen Example/g) ?? [])).toHaveLength(1);
+    // Avatar alt text may repeat the name; the actual profile header must not.
+    expect((html.match(/<h1\b/g) ?? [])).toHaveLength(1);
     expect(html).toContain('data-hide-duplicate-profile="true"');
     expect(html).toContain("Complete your player profile");
   });
