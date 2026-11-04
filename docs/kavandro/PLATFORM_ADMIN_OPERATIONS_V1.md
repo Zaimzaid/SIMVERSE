@@ -56,6 +56,7 @@ Run: `npm run typecheck && npm run lint && npm run test && npm run build`.
 - Region summaries rank countries by active approved citizenships and district clubs by message counts; names and counts only, never private message text.
 - Security signals show failed administrator authenticator-code attempts and account 2FA disable events over the last 24 hours. These are counts, not proof of a security incident.
 - Audit history is filtered by action family and time range (24 hours, 7 days, 30 days or all). CSV export uses the same date/category filters, capped to 5,000 rows.
+- General activity views and CSV exports **enforce section denials on the server**, not merely in the navigation. Without a security, staff or civilization section grant, corresponding event families are omitted. Actor identity, workspace names and CSV entity identifiers are redacted if the related directory is denied.
 - Activity monitoring is based on events already emitted by the application and database status counts; it does not capture every interaction. Trend aggregation issues separate count queries per UTC day, which should be optimized or cached before high-traffic use.
 - Open moderation counts are visibility-only. This change does **not** grant extra power to read private report content, remove accounts, moderate messages or alter finances.
 
