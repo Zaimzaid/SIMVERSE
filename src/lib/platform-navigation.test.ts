@@ -10,7 +10,7 @@ const full = Array.from(new Set(
   NAV_ITEMS.flatMap((item) => item.permission ? [item.permission] : []),
 )) as Permission[];
 
-describe("SIMVERSE workspace navigation redesign", () => {
+describe("KAVANDRO workspace navigation", () => {
   it("assigns every original navigation link to one top-level area", () => {
     const routes = PLATFORM_AREAS.flatMap((area) => [...area.routes]);
     const unique = new Set(routes);
@@ -37,6 +37,8 @@ describe("SIMVERSE workspace navigation redesign", () => {
     expect(citizenLinks).toContain("/planet");
     expect(citizenLinks).toContain("/social");
     expect(citizenLinks).toContain("/profile");
+    expect(citizenLinks).toContain("/profile/civilization/club");
+    expect(citizenLinks).toContain("/profile/civilization/challenge");
     expect(citizenLinks).not.toContain("/create");
     expect(citizenLinks).not.toContain("/projects");
     expect(citizenLinks).not.toContain("/earth/geography");
@@ -60,5 +62,8 @@ describe("SIMVERSE workspace navigation redesign", () => {
     expect(areaForPath("/earth/geography").id).toBe("discover");
     expect(areaForPath("/assets/new").id).toBe("build");
     expect(navLabelForPath("/profile/documents/review")).toBe("My Documents");
+    expect(navLabelForPath("/profile/civilization/club/safety")).toBe("District Club");
+    expect(navLabelForPath("/profile/civilization/challenge")).toBe("Daily Citizen Challenge");
+    expect(navLabelForPath("/unlisted-player-page")).toBe("KAVANDRO");
   });
 });
