@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { BadgeCheck, BriefcaseBusiness, GraduationCap, ShieldAlert, Users } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/client/api";
-import { KAVANDRO_PROFESSIONS } from "@/lib/player-identity/economy";
+import { SIMVERSE_PROFESSIONS } from "@/lib/player-identity/economy";
 
 type B = { id: string; name: string; status: string; sector: string; reviewNote: string | null };
 type Application = { id: string; status: string; statement: string; createdAt: string | Date;
@@ -135,7 +135,7 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
         <label className="text-xs text-secondary">Profession
           <select className={`mt-1 ${input}`} value={newJob.professionCode}
             onChange={(e) => setNewJob({ ...newJob, professionCode: e.target.value })}>
-            {KAVANDRO_PROFESSIONS.map((p) => <option key={p.code} value={p.code}>{p.label}</option>)}
+            {SIMVERSE_PROFESSIONS.map((p) => <option key={p.code} value={p.code}>{p.label}</option>)}
           </select>
         </label>
         <label className="text-xs text-secondary sm:col-span-2">Job title
