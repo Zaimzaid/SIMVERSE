@@ -6,6 +6,7 @@ import { CLUB_EVENT_CATEGORIES } from "@/lib/civilization/district-club-event-co
 
 type ClubEvent = {
   id: string; title: string; description: string; category: string;
+  capacity: number; occurrence: number; occurrencesTotal: number;
   startsAt: string; endsAt: string; organizerDisplayName: string;
   status: string; reviewedAt: string | null; attendanceCount: number; myRsvp: boolean; mine: boolean;
 };
@@ -31,6 +32,8 @@ export function DistrictClubEventsClient() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("SOCIAL");
+  const [capacity, setCapacity] = useState(100);
+  const [repeatWeeks, setRepeatWeeks] = useState(1);
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
 
@@ -83,7 +86,7 @@ export function DistrictClubEventsClient() {
     const response = await apiFetch<{ status: string }>("/api/civilization/club/events", {
       method: "POST",
       body: JSON.stringify({
-        action: "PROPOSE", title, description, category,
+        action: "PROPOSE", title, description, category, capacity, repeatWeeks,
         startsAt: start.toISOString(), endsAt: end.toISOString(),
       }),
     });
@@ -92,7 +95,7 @@ export function DistrictClubEventsClient() {
       setError(response.error?.message ?? "The proposed event could not be sent.");
       return;
     }
-    setTitle(""); setDescription(""); setStartsAt(""); setEndsAt("");
+    setTitle(""); setDescription(""); setStartsAt(""); setEndsAt(""); setRepeatWeeks(1);
     setNotice("Your event proposal is pending an independent club moderator review.");
     await load();
   }
@@ -151,6 +154,24 @@ export function DistrictClubEventsClient() {
           className="mt-1 w-full rounded-xl border border-border bg-surface p-3 text-sm text-foreground" />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
+        <label htmlFor="club-event-capacity" className="text-sm font-semibold text-foreground">
+          Participant limit
+          <input id="club-event-capacity" type="number" min={2} max={200} value={capacity}
+            onChange={e => setCapacity(Number(e.target.value))}
+            className="mt-1 w-full rounded-xl border border-border bg-surface p-3 text-sm text-foreground" />
+        </label>
+        <label htmlFor="club-event-repeat" className="text-sm font-semibold text-foreground">
+          Weekly occurrences
+          <select id="club-event-repeat" value={repeatWeeks}
+            onChange={e => setRepeatWeeks(Number(e.target.value))}
+            className="mt-1 w-full rounded-xl border border-border bg-surface p-3 text-sm text-foreground">
+            <option value={1}>Once</option>
+            <option value={2}>Two weekly sessions</option>
+            <option value={3}>Three weekly sessions</option>
+          </select>
+        </label>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="club-event-start" className="text-sm font-semibold text-foreground">
             Start (your local time)
@@ -201,6 +222,9 @@ export function DistrictClubEventsClient() {
                 {event.status === "PUBLISHED" ? "Approved" : "Pending review"}
               </span>
             </div>
+            {event.occurrencesTotal > 1 && <p className="mt-2 text-xs font-semibold text-accent">
+              Weekly session {event.occurrence} of {event.occurrencesTotal}
+            </p>}
             <p className="mt-2 text-xs text-secondary">{event.category.replaceAll("_", " ")}
               {" · Hosted by "}{event.organizerDisplayName}</p>
             <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-secondary">{event.description}</p>
@@ -208,7 +232,7 @@ export function DistrictClubEventsClient() {
               {dateLabel(event.startsAt)} — {dateLabel(event.endsAt)}
             </p>
             {event.status === "PUBLISHED" && <div className="mt-3 flex flex-wrap items-center gap-3">
-              <span className="text-xs text-secondary">{event.attendanceCount} attending</span>
+              <span className="text-xs text-secondary">{event.attendanceCount}/{event.capacity} attending</span>
               <button type="button" disabled={busy !== null}
                 onClick={() => void rsvp(event.id, event.myRsvp ? "LEAVE" : "JOIN")}
                 className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-accent disabled:opacity-50">

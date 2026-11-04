@@ -2,11 +2,28 @@ name: KAVANDRO K4 District Club verification
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, feature/kavandro-k4-district-social-club-20261103]
     paths:
       - "src/lib/civilization/district-club-contract.ts"
       - "src/server/services/district-club-service*"
       - "src/server/services/district-club-event-service*"
+      - "src/server/services/district-club-expansion-service.test.ts"
+      - "src/server/services/district-club-interest-service.ts"
+      - "src/server/services/district-club-operations-service.ts"
+      - "src/server/services/district-club-alert-service.ts"
+      - "src/lib/civilization/district-club-interest-contract.ts"
+      - "src/lib/civilization/district-club-alert-contract.ts"
+      - "src/app/api/civilization/club/groups/**"
+      - "src/app/api/civilization/club/alerts/**"
+      - "src/app/api/civilization/club/live/**"
+      - "src/app/api/civilization/club/operations/**"
+      - "src/components/civilization/district-club-interest*"
+      - "src/components/civilization/district-club-safety*"
+      - "src/components/civilization/district-club-operations*"
+      - "src/components/civilization/district-club-steward*"
+      - "src/server/services/district-club-safety-service*"
+      - "src/lib/civilization/district-club-safety-contract.ts"
+      - "src/app/api/civilization/club/safety/**"
       - "src/server/services/district-club-activity-service.ts"
       - "src/lib/civilization/district-club-activity-contract.ts"
       - "src/app/api/civilization/club/activity/route.ts"

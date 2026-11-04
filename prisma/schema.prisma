@@ -73,12 +73,22 @@ model User {
   developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
   developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
   developmentUpdatesWritten FoundingDevelopmentUpdate[]
+  clubNotificationPreference DistrictClubNotificationPreference?
   clubDirectoryPreference DistrictClubDirectoryPreference?
+  clubInterestGroupsOwned DistrictClubInterestGroup[] @relation("ClubInterestOwner")
+  clubInterestMemberships DistrictClubInterestMembership[]
+  clubInterestMessages DistrictClubInterestMessage[]
+  clubInterestReports DistrictClubInterestReport[] @relation("ClubInterestReportAuthor")
   clubEventsOrganized DistrictClubEvent[] @relation("ClubEventOrganizer")
   clubEventsReviewed DistrictClubEvent[] @relation("ClubEventReviewer")
   clubEventRsvps DistrictClubEventRsvp[]
   clubReadCursors DistrictClubReadCursor[]
   clubMessages DistrictClubMessage[] @relation("ClubMessageAuthor")
+  clubSanctionsReceived DistrictClubSanction[] @relation("ClubSanctionTarget")
+  clubSanctionsIssued DistrictClubSanction[] @relation("ClubSanctionIssuer")
+  clubSanctionsRevoked DistrictClubSanction[] @relation("ClubSanctionRevoker")
+  clubAppealsWritten DistrictClubAppeal[] @relation("ClubAppealAuthor")
+  clubAppealsReviewed DistrictClubAppeal[] @relation("ClubAppealReviewer")
   clubModeratorGrants DistrictClubModeratorGrant[]
   clubReportsSent DistrictClubReport[] @relation("ClubReportReporter")
   clubReportsReviewed DistrictClubReport[] @relation("ClubReportReviewer")
@@ -335,11 +345,14 @@ model FoundingDistrict {
   movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
   visits FoundingVisit[]
   assemblyProposals DistrictAssemblyProposal[]
+  clubNotificationPreferences DistrictClubNotificationPreference[]
   clubReadCursors DistrictClubReadCursor[]
+  clubInterestGroups DistrictClubInterestGroup[]
   clubEvents DistrictClubEvent[]
   clubMessages DistrictClubMessage[]
   clubDirectoryPreferences DistrictClubDirectoryPreference[]
   clubModerators DistrictClubModeratorGrant[]
+  clubSanctions DistrictClubSanction[]
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
   vascoinTreasury VascoinAccount?
@@ -2829,6 +2842,7 @@ model DistrictClubMessage {
   authorUserId String
   room String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS
   body String
+  mediaUrl String?
   status String @default("VISIBLE") // VISIBLE | HIDDEN
   createdAt DateTime @default(now())
   district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
@@ -2881,6 +2895,10 @@ model DistrictClubEvent {
   title String
   description String
   category String // SOCIAL | GAMES | LEARNING | COMMUNITY
+  capacity Int @default(100)
+  seriesId String?
+  occurrence Int @default(1)
+  occurrencesTotal Int @default(1)
   startsAt DateTime
   endsAt DateTime
   status String @default("PENDING_REVIEW") // PENDING_REVIEW | PUBLISHED | REJECTED | CANCELLED
@@ -2921,4 +2939,117 @@ model DistrictClubReadCursor {
   district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
   @@id([userId, districtId, channel])
   @@index([districtId, channel])
+}
+
+
+// K4.4 — independent, bounded Club sanctions with auditable appeal workflow.
+model DistrictClubSanction {
+  id String @id @default(cuid())
+  districtId String
+  targetUserId String
+  issuedByUserId String
+  kind String // MUTE | BAN
+  reason String
+  status String @default("ACTIVE") // ACTIVE | REVOKED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+  revokedByUserId String?
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  target User @relation("ClubSanctionTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  issuer User @relation("ClubSanctionIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
+  revoker User? @relation("ClubSanctionRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  appeal DistrictClubAppeal?
+  @@index([districtId, targetUserId, status, expiresAt])
+  @@index([issuedByUserId, createdAt])
+}
+
+model DistrictClubAppeal {
+  id String @id @default(cuid())
+  sanctionId String @unique
+  authorUserId String
+  reason String
+  status String @default("OPEN") // OPEN | UPHELD | OVERTURNED
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  decisionReason String?
+  createdAt DateTime @default(now())
+  sanction DistrictClubSanction @relation(fields: [sanctionId], references: [id], onDelete: Restrict)
+  author User @relation("ClubAppealAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ClubAppealReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  @@index([status, createdAt])
+}
+
+
+// K4.6 — in-app Club notification preferences. Quiet hours in UTC.
+// Provider-based push/email delivery is intentionally disabled until configured.
+model DistrictClubNotificationPreference {
+  userId String @id
+  districtId String
+  chatAlerts Boolean @default(true)
+  eventAlerts Boolean @default(true)
+  quietStartHourUtc Int?
+  quietEndHourUtc Int?
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@index([districtId])
+}
+
+
+// K4.8 — opt-in interest circles scoped to one approved district.
+model DistrictClubInterestGroup {
+  id String @id @default(cuid())
+  districtId String
+  createdByUserId String
+  title String
+  description String
+  status String @default("ACTIVE") // ACTIVE | CLOSED
+  createdAt DateTime @default(now())
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  creator User @relation("ClubInterestOwner", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  members DistrictClubInterestMembership[]
+  messages DistrictClubInterestMessage[]
+  @@index([districtId, status, createdAt])
+  @@index([createdByUserId, createdAt])
+}
+
+model DistrictClubInterestMembership {
+  groupId String
+  userId String
+  status String @default("ACTIVE") // ACTIVE | LEFT
+  joinedAt DateTime @default(now())
+  group DistrictClubInterestGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  @@id([groupId, userId])
+  @@index([userId, status])
+}
+
+model DistrictClubInterestMessage {
+  id String @id @default(cuid())
+  groupId String
+  authorUserId String
+  body String
+  status String @default("VISIBLE") // VISIBLE | HIDDEN
+  createdAt DateTime @default(now())
+  group DistrictClubInterestGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  author User @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  reports DistrictClubInterestReport[]
+  @@index([groupId, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model DistrictClubInterestReport {
+  id String @id @default(cuid())
+  messageId String
+  reporterUserId String
+  reason String
+  status String @default("OPEN") // OPEN | RESOLVED
+  createdAt DateTime @default(now())
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  message DistrictClubInterestMessage @relation(fields: [messageId], references: [id], onDelete: Restrict)
+  reporter User @relation("ClubInterestReportAuthor", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  @@unique([messageId, reporterUserId])
+  @@index([status, createdAt])
 }

@@ -8,9 +8,21 @@ export const DISTRICT_CLUB_ROOMS = [
 ] as const;
 
 export const districtClubRoomSchema = z.enum(["GENERAL", "INTRODUCTIONS", "ACTIVITIES", "INTERESTS"]);
+const mediaUrlSchema = z.string().url().max(2048).refine(value => {
+  try {
+    const u = new URL(value);
+    return u.protocol === "https:" && !u.username && !u.password &&
+      !/^(localhost|127\.|0\.0\.0\.0|10\.|192\.168\.|169\.254\.|\[::1\])/i.test(u.hostname) &&
+      /\.(png|jpg|jpeg|gif|webp|mp4|webm)$/i.test(u.pathname);
+  } catch { return false; }
+}, "Use a public HTTPS media URL ending with png, jpg, gif, webp, mp4 or webm.");
+
 export const districtClubMessageSchema = z.strictObject({
   room: districtClubRoomSchema,
-  body: z.string().trim().min(2).max(650),
+  body: z.string().trim().max(650).default(""),
+  mediaUrl: mediaUrlSchema.optional(),
+}).refine(value => value.body.length >= 2 || Boolean(value.mediaUrl), {
+  message: "Write at least two characters or attach a valid HTTPS media link.",
 });
 export const districtClubReportSchema = z.strictObject({
   messageId: z.string().regex(/^[a-z0-9]{20,40}$/i),
