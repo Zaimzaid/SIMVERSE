@@ -95,7 +95,7 @@ export function ExperienceForm({ mode, initial, assets, entities, worlds }: Prop
 
   return <form onSubmit={submit} className="space-y-6">
     <Card><CardHeader><CardTitle>1. Identity and direction</CardTitle><CardDescription>Profiles describe presentation only. Core events, ordering, state and results remain authoritative.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
-      <Field label="Original SIMVERSE preset"><Select defaultValue="" onChange={(event) => applyPreset(event.target.value)}><option value="">Custom / current definition</option>{EXPERIENCE_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}</Select></Field>
+      <Field label="Original KAVANDRO preset"><Select defaultValue="" onChange={(event) => applyPreset(event.target.value)}><option value="">Custom / current definition</option>{EXPERIENCE_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}</Select></Field>
       <Field label="Name" required error={errors.name}><Input value={name} onChange={(event) => setName(event.target.value)} /></Field>
       <Field label="Status" error={errors.status}><Select value={status} onChange={(event) => setStatus(event.target.value as typeof status)}>{editableStatuses.map((item) => <option key={item} value={item}>{EXPERIENCE_PROFILE_STATUS_LABELS[item]}</option>)}</Select></Field>
       <Field label="Profile type"><Select value={definition.preset} onChange={(event) => setDefinition((current) => ({ ...current, preset: event.target.value as ExperienceDefinitionV1["preset"] }))}>{["CINEMATIC","COMPETITIVE","BROADCAST","MINIMAL","DRAMATIC","DOCUMENTARY","CUSTOM"].map((item) => <option key={item}>{pretty(item)}</option>)}</Select></Field>

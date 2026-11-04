@@ -414,7 +414,7 @@ export function VideoStudio({ canEdit }: { canEdit: boolean }) {
                   className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border-strong px-6 py-12 text-center text-secondary hover:border-accent hover:text-foreground">
                   <FileVideo className="size-10 text-accent" />
                   <span className="font-medium">Choose a video or drop one here</span>
-                  <span className="text-xs text-muted">The video stays on your device; it is not uploaded to SIMVERSE.</span>
+                  <span className="text-xs text-muted">The video stays on your device; it is not uploaded to KAVANDRO.</span>
                 </button>
               ) : (
                 <canvas ref={canvasRef} width={size.width} height={size.height}

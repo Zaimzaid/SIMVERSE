@@ -12,7 +12,7 @@ const RATIO_FRAME: Record<string, string> = {
 };
 
 /**
- * Standalone public presentation of a shared SIMVERSE result. Every creator- and
+ * Standalone public presentation of a shared KAVANDRO result. Every creator- and
  * Run-derived string is rendered as React text (auto-escaped) — never HTML. The
  * hero reuses the public render endpoint (preview === export). No platform shell.
  */
@@ -25,7 +25,7 @@ export function PublicShareView({ share, publicId }: { share: PublicMediaShareV1
       <div className="aurora" aria-hidden />
       <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-4 sm:px-6">
         <header className="flex items-center justify-between gap-4 py-5">
-          <Link href="/" className="font-display text-lg font-extrabold tracking-[0.12em] text-foreground">SIMVERSE</Link>
+          <Link href="/" className="font-display text-lg font-extrabold tracking-[0.12em] text-foreground">KAVANDRO</Link>
           <Link href="/" className={buttonClasses({ variant: "secondary", size: "sm" })}>
             Create your own<ArrowRight className="size-4" />
           </Link>
@@ -114,7 +114,7 @@ export function PublicShareView({ share, publicId }: { share: PublicMediaShareV1
         </main>
 
         <footer className="border-t border-border py-8 text-center">
-          <p className="text-sm text-secondary">Created in <span className="font-semibold text-foreground">SIMVERSE</span></p>
+          <p className="text-sm text-secondary">Created in <span className="font-semibold text-foreground">KAVANDRO</span></p>
           <Link href="/" className="mt-3 inline-flex text-sm text-accent hover:underline">Build and share your own simulation →</Link>
         </footer>
       </div>
