@@ -15,6 +15,7 @@ describe("platform admin step-up ticket",()=>{
   const future=makeAdminStepupTicket("user","session",now+70*60_000);
   expect(validAdminStepupTicket(future,"user","session",now)).toBe(false);
   const good=makeAdminStepupTicket("user","session",now+30_000);
-  expect(validAdminStepupTicket(good.slice(0,-1)+"0","user","session",now)).toBe(false);
+  const tampered=good.slice(0,-1)+(good.endsWith("0")?"1":"0");
+  expect(validAdminStepupTicket(tampered,"user","session",now)).toBe(false);
  });
 });
