@@ -83,7 +83,7 @@ export function AfterchoiceGame() {
   const countMet = TRACKS.filter((key) => preview[key] >= scenario.targets[key]).length;
   const selectedGuard = scenario.safeguards.find((item) => item.id === guardId);
   const displayedValues = result?.final ?? preview;
-  const completedCount = Object.keys(bestScores).filter((key) => bestScores[key] > 0).length;
+  const completedCount = Object.keys(bestScores).filter((key) => (bestScores[key] ?? 0) > 0).length;
 
   useEffect(() => {
     try {
