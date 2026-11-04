@@ -31,7 +31,7 @@ export const PLATFORM_AREAS: readonly PlatformArea[] = [
   },
   {
     id: "simulations", label: "Play & Simulate", description: "Launch interactive experiences",
-    icon: Layers3, routes: ["/games/afterchoice", "/simulations", "/anything-wars", "/tournaments"],
+    icon: Layers3, routes: ["/simulations", "/anything-wars", "/tournaments"],
   },
   {
     id: "economy", label: "Economy", description: "Businesses and virtual careers",
@@ -78,7 +78,7 @@ export const CITIZEN_ROUTES = new Set([
   "/dashboard", "/settings", "/world", "/planet", "/social",
   "/profile", "/profile/civilization", "/profile/civilization/challenge",
   "/profile/civilization/club", "/profile/documents", "/profile/travel",
-  "/anything-wars", "/games/afterchoice", "/admin",
+  "/anything-wars", "/admin",
 ]);
 
 export function visibleAreas(
