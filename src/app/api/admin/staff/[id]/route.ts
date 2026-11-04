@@ -5,6 +5,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  try{
   requireAdminSameOrigin(request);
   const {id}=await params;
-  return dataResponse(await updateAdminStaff(id,await request.json().catch(()=>({})));
+  const body=await request.json().catch(()=>({}));
+  return dataResponse(await updateAdminStaff(id,body));
  }catch(error){return errorResponse(error);}
 }
