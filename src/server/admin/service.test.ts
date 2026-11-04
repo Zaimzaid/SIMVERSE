@@ -3,9 +3,9 @@ import {prisma} from "@/server/db/client";
 import {registerUser} from "@/server/services/auth-service";
 import {resetDb} from "../../../test/helpers/db";
 
-const actor=vi.hoisted(()=>({userId:"",role:"OWNER"}));
+const actor=vi.hoisted(()=>({userId:"",role:"OWNER",sections:["overview","activity","citizens","workspaces","civilization","security","staff"]}));
 vi.mock("@/server/admin/access",()=>({
- requireAdminAccess:async()=>({user:{id:actor.userId},role:actor.role}),
+ requireAdminAccess:async()=>({user:{id:actor.userId},role:actor.role,sections:actor.sections}),
  verifyAdminTotp:async(_id:string,code:unknown)=>{
   if(code!=="123456")throw Object.assign(new Error("Incorrect authenticator code."),{status:401});
  },
