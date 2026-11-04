@@ -494,3 +494,68 @@
 @media (prefers-reduced-motion: reduce) {
   .simverse-scene-backdrop { background-attachment: scroll; }
 }
+
+
+/* Official KAVANDRO branding — shared across landing, auth and platform.
+   Dark theme uses the white reverse logo; light theme uses navy artwork. */
+.kavandro-wordmark-dark { display: block; }
+.kavandro-wordmark-light { display: none; }
+[data-theme="light"] .kavandro-wordmark-dark { display: none; }
+[data-theme="light"] .kavandro-wordmark-light { display: block; }
+
+.kavandro-brand-splash {
+  isolation: isolate;
+  background-image:
+    radial-gradient(ellipse 40% 36% at 50% 40%, rgba(74, 85, 240, 0.11), transparent 85%),
+    radial-gradient(ellipse 80% 40% at 50% 105%, rgba(131, 58, 244, 0.08), transparent 85%);
+}
+.kavandro-splash-halo {
+  background: radial-gradient(circle, rgba(84, 78, 255, 0.12) 4%, rgba(84, 78, 255, 0.04) 45%, transparent 72%);
+  animation: kavandro-breathe 3.2s ease-in-out infinite;
+}
+.kavandro-splash-orbit {
+  border: 1px solid rgba(87, 83, 248, 0.14);
+  background: conic-gradient(
+    from 0deg, transparent 0deg, transparent 250deg,
+    rgba(108, 65, 255, 0.06) 280deg, rgba(44, 139, 247, 0.85) 320deg,
+    transparent 355deg
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  animation: kavandro-orbit 3s linear infinite;
+}
+.kavandro-splash-inner {
+  border: 1px solid rgba(110, 89, 230, 0.14);
+  background: radial-gradient(circle at 35% 27%, rgba(118, 76, 225, 0.08), transparent 75%);
+  box-shadow: 0 0 35px rgba(84, 78, 255, 0.05);
+}
+.kavandro-mark-float {
+  animation: kavandro-float 3s ease-in-out infinite;
+}
+.kavandro-splash-progress {
+  animation: kavandro-sweep 1.7s ease-in-out infinite;
+}
+@keyframes kavandro-breathe {
+  0%, 100% { opacity: .55; transform: scale(.94); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+@keyframes kavandro-orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes kavandro-float {
+  0%, 100% { transform: translateY(1px); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes kavandro-sweep {
+  from { transform: translateX(-115%); }
+  to { transform: translateX(315%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kavandro-splash-halo,
+  .kavandro-splash-orbit,
+  .kavandro-mark-float,
+  .kavandro-splash-progress {
+    animation: none !important;
+    transform: none !important;
+  }
+  .kavandro-splash-progress { width: 100%; }
+}
