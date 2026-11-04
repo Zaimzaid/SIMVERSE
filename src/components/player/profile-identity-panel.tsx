@@ -30,6 +30,11 @@ export function ProfileIdentityPanel({ initial, countries }: {
           <h1 id="profile-identity-heading" className="truncate text-2xl font-semibold sm:text-3xl">{profile.displayName}</h1>
           <p className="text-sm text-secondary">{profile.username ? "@" + profile.username : "Choose your username to get started"}</p>
           {profile.biography && <p className="mt-1 max-w-xl whitespace-pre-wrap text-sm text-secondary">{profile.biography}</p>}
+          {profile.creatorName && <p className="mt-2 text-xs text-secondary">Creator: {profile.creatorName}</p>}
+          {profile.homeCountry?.name && <p className="text-xs text-secondary">Virtual home: {profile.homeCountry.name}</p>}
+          <p className="mt-1 text-xs text-secondary">
+            Visibility: {profile.profileVisibility === "PUBLIC" ? "Public" : "Private / accepted friends"}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {!editing && <button type="button" onClick={() => setEditing(true)}
@@ -53,17 +58,6 @@ export function ProfileIdentityPanel({ initial, countries }: {
         setProfile(saved);
         if (saved.username) setEditing(false);
       }}/>
-    </div> : <div className="rounded-2xl border border-border bg-surface px-5 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-semibold">Your profile details</h2>
-          <p className="mt-1 text-sm text-secondary">Your saved information is displayed above. Edit it only when you need to make changes.</p>
-          {profile.creatorName && <p className="mt-2 text-sm text-secondary">Creator: {profile.creatorName}</p>}
-          {profile.homeCountry?.name && <p className="text-sm text-secondary">Virtual home: {profile.homeCountry.name}</p>}
-          <p className="mt-1 text-sm text-secondary">Visibility: {profile.profileVisibility === "PUBLIC" ? "Public" : "Only you and accepted friends"}</p>
-        </div>
-
-      </div>
-    </div>}
+    </div> : null}
   </section>;
 }
