@@ -12,7 +12,7 @@ export default async function AdminAccessPage(){
  const staff=await getPlatformStaff(user.id);
  if(!staff?.active)notFound();
  if(user.twoFactorEnabledAt&&await isAdminStepupValid(user.id))redirect("/admin");
- return <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
+ return <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
   <section className="w-full rounded-3xl border border-border bg-surface p-7 shadow-lg">
    <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-accent-soft text-accent"><ShieldCheck className="size-6"/></div>
    <p className="text-xs font-bold uppercase tracking-widest text-accent">KAVANDRO · Restricted administration</p>
@@ -24,5 +24,5 @@ export default async function AdminAccessPage(){
    </div>:<AdminGate/>}
    <Link href="/dashboard" className="mt-6 block text-sm text-accent hover:underline">Return to KAVANDRO</Link>
   </section>
- </main>;
+ </div>;
 }
