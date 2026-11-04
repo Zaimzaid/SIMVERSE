@@ -6,7 +6,7 @@ import {env} from "@/lib/env";
 import {isAdminRole,mayManageAdminRole,readDeniedAdminSections,validateAdminRestrictions,type AdminRole,type AdminSection} from "@/lib/admin/permissions";
 import {prisma} from "@/server/db/client";
 import {requireAdminAccess,verifyAdminTotp} from "./access";
-import {adminAuditWhere,type AdminEventFilter,type AdminAuditWindow} from "./audit-filters";
+import {scopedAdminAuditWhere,type AdminEventFilter,type AdminAuditWindow} from "./audit-filters";
 export {ADMIN_EVENT_FILTERS,ADMIN_AUDIT_WINDOWS,parseAdminEventFilter,parseAdminAuditWindow} from "./audit-filters";
 
 const ROLE_INPUT=z.enum(["ADMIN","MODERATOR","ANALYST","VIEWER"]);
@@ -58,8 +58,8 @@ export async function getPlatformOverview(){
 }
 function safePage(page:number){return Number.isInteger(page)&&page>=0?Math.min(page,1000):0;}
 export async function listAdminAudit(filter:AdminEventFilter,page=0,section:AdminSection="activity",window:AdminAuditWindow="7d"){
- await requireAdminAccess(section);
- const safe=safePage(page),where=adminAuditWhere(filter,window),limit=30;
+ const access=await requireAdminAccess(section);
+ const safe=safePage(page),where=scopedAdminAuditWhere(filter,window,access.sections),limit=30;
  const [total,rows]=await Promise.all([
   prisma.auditLog.count({where}),
   prisma.auditLog.findMany({where,orderBy:[{createdAt:"desc"},{id:"desc"}],skip:safe*limit,take:limit,
@@ -67,14 +67,25 @@ export async function listAdminAudit(filter:AdminEventFilter,page=0,section:Admi
     actor:{select:{displayName:true,email:true}},workspace:{select:{name:true}}},
   }),
  ]);
- return {total,page:safe,limit,rows:rows.map(row=>({...row,createdAt:row.createdAt.toISOString()}))};
+ return {total,page:safe,limit,rows:rows.map(row=>({
+  ...row,createdAt:row.createdAt.toISOString(),
+  actor:access.sections.includes("citizens")?row.actor:(row.actor?{displayName:"Restricted",email:""}:null),
+  workspace:access.sections.includes("workspaces")?row.workspace:(row.workspace?{name:"Restricted"}:null),
+ }))};
 }
 export async function exportAdminAudit(filter:AdminEventFilter,window:AdminAuditWindow="7d"){
- await requireAdminAccess("activity");
- return prisma.auditLog.findMany({where:adminAuditWhere(filter,window),orderBy:{createdAt:"desc"},take:5000,
+ const access=await requireAdminAccess("activity");
+ const rows=await prisma.auditLog.findMany({
+  where:scopedAdminAuditWhere(filter,window,access.sections),orderBy:{createdAt:"desc"},take:5000,
   select:{id:true,action:true,createdAt:true,entityType:true,entityId:true,
    actor:{select:{displayName:true,email:true}},workspace:{select:{name:true}}},
  });
+ return rows.map(row=>({
+  ...row,
+  actor:access.sections.includes("citizens")?row.actor:(row.actor?{displayName:"Restricted",email:""}:null),
+  workspace:access.sections.includes("workspaces")?row.workspace:(row.workspace?{name:"Restricted"}:null),
+  entityId:access.sections.includes("citizens")?row.entityId:null,
+ }));
 }
 export async function listAdminCitizens(query:string,page=0){
  await requireAdminAccess("citizens");
