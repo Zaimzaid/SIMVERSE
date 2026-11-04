@@ -19,7 +19,7 @@ afterEach(async () => {
   host.remove();
 });
 
-describe("Minimal pre-login SIMVERSE preview", () => {
+describe("Minimal pre-login KAVANDRO preview", () => {
   it("renders a small honest preview with three accessible choices and no fake live activity", () => {
     const html = renderToStaticMarkup(<CivilizationGlimpse />);
     expect(html).toContain("A glimpse of what is coming");
