@@ -1,0 +1,59 @@
+name: KAVANDRO K3 daily challenge verification
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "src/lib/civilization/daily-challenge*"
+      - "src/server/services/civilization-challenge*"
+      - "src/app/api/civilization/challenge/**"
+      - "src/app/(platform)/profile/civilization/challenge/**"
+      - "src/components/civilization/daily-challenge-client.tsx"
+      - "prisma/schema.prisma"
+      - "test/helpers/db.ts"
+      - "docs/kavandro/K3_CITIZEN_CHALLENGE_V1.md"
+      - ".github/workflows/kavandro-k3-citizen-challenge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-challenge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: "file:./kavandro-k3-ci.db"
+      SESSION_SECRET: "TEST_ONLY_KAVANDRO_K3_ISOLATED_SECRET_1234567890"
+      NEXT_PUBLIC_APP_NAME: "KAVANDRO"
+      APP_URL: "http://localhost:3000"
+      AUTH_TRUST_PROXY: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Confirm isolated CI environment
+        run: |
+          test "$DATABASE_URL" = "file:./kavandro-k3-ci.db"
+          test ! -e .env
+          test ! -e .env.local
+          test ! -e kavandro-k3-ci.db
+      - name: Install
+        run: npm ci
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Typecheck
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Tests (test global setup creates disposable test.db)
+        run: npm run test
+        env:
+          NODE_ENV: test
+      - name: Production build
+        run: npm run build

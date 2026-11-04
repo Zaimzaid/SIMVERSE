@@ -45,6 +45,7 @@ export async function resetDb(): Promise<void> {
   await prisma.playerDocumentApplication.deleteMany();
   await prisma.playerDocumentReviewer.deleteMany();
   await prisma.playerCitizenship.deleteMany();
+  await prisma.civilizationChallengeAttempt.deleteMany();
   await prisma.foundingCitizenInterest.deleteMany();
   await prisma.foundingVisit.deleteMany();
   await prisma.foundingDistrictMove.deleteMany();
