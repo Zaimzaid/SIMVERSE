@@ -112,7 +112,10 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
     <input type="hidden" name="view" value={view}/>
     {view==="activity"?<label className="space-y-1 text-xs font-semibold text-secondary">Event category
      <select name="filter" defaultValue={filter} className="block rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground">
-      {ADMIN_EVENT_FILTERS.map(option=><option value={option} key={option}>{option==="all"?"All events":option}</option>)}
+      {ADMIN_EVENT_FILTERS.filter(option=>option==="all"||option==="community"||option==="content"||
+       (option==="security"&&sections.includes("security"))||
+       (option==="staff"&&sections.includes("staff"))||
+       (option==="civilization"&&sections.includes("civilization"))).map(option=><option value={option} key={option}>{option==="all"?"All events":option}</option>)}
      </select></label>:null}
     <label className="space-y-1 text-xs font-semibold text-secondary">Time range
      <select name="window" defaultValue={window} className="block rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground">
