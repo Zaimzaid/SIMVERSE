@@ -52,7 +52,14 @@ export async function verifyAdminTotp(userId:string,code:unknown):Promise<void>{
  clearAdminTotpAttempts(userId);
 }
 export async function getPlatformStaff(userId:string){
- return prisma.platformAdmin.findUnique({where:{userId}});
+ try{
+  return await prisma.platformAdmin.findUnique({where:{userId}});
+ }catch(error){
+  // Before the new admin tables are migrated, fail closed without crashing
+  // every citizen dashboard. Admin access stays disabled until db:push.
+  if(error && typeof error==="object" && "code" in error && error.code==="P2021")return null;
+  throw error;
+ }
 }
 export async function requireAdminAccess(section?:AdminSection){
  const user=await getSessionUser();
