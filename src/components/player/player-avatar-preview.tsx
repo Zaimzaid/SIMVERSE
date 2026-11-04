@@ -83,6 +83,6 @@ export function PlayerAvatarPreview({ appearance, world = false }: {
       Your avatar settings are saved. This device cannot display the 3D preview.</div></div>}
     <canvas ref={canvas} width={800} height={460} aria-label={world ? "Saved avatar in a small 3D test scene" : "3D preview of your customizable avatar"}
       className={"aspect-[40/23] w-full bg-[#192e42] " + (fallback ? "hidden" : "block")}/>
-    <p className="p-3 text-xs text-secondary">{world ? "3D persistence proof, not a live SIMVERSE world." : "Lightweight original procedural character. Imported rigs and world movement are not yet supported."}</p>
+    <p className="p-3 text-xs text-secondary">{world ? "3D persistence proof, not a live KAVANDRO world." : "Lightweight original procedural character. Imported rigs and world movement are not yet supported."}</p>
   </div>;
 }

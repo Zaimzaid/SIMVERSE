@@ -14,14 +14,14 @@ export function GoogleDriveSettings({configured,initialConnected}:{configured:bo
   if(r.data)setFile(r.data);
  }
  async function disconnect(){
-  if(!window.confirm("Disconnect Google Drive from SIMVERSE? Existing backups will remain in your Drive."))return;
+  if(!window.confirm("Disconnect Google Drive from KAVANDRO? Existing backups will remain in your Drive."))return;
   setBusy(true);setError("");const r=await apiFetch("/api/account/cloud/google",{method:"DELETE"});
   setBusy(false);if(r.error){setError(r.error.message);return;}setConnected(false);setFile(null);
  }
  return <Card as="section"><CardHeader><CardTitle>Google Drive backup</CardTitle>
- <CardDescription>Optionally connect your own Drive to save an account JSON snapshot. SIMVERSE requests permission only for files it creates.</CardDescription></CardHeader>
+ <CardDescription>Optionally connect your own Drive to save an account JSON snapshot. KAVANDRO requests permission only for files it creates.</CardDescription></CardHeader>
  <CardContent className="space-y-3">
-  {!configured?<p className="text-sm text-secondary">Google Drive connection is not configured by the SIMVERSE administrator. You can still download a JSON snapshot above.</p>:
+  {!configured?<p className="text-sm text-secondary">Google Drive connection is not configured by the KAVANDRO administrator. You can still download a JSON snapshot above.</p>:
    !connected?<a href="/api/account/cloud/google/connect" className="inline-flex rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground">Connect Google Drive</a>:
    <div className="flex flex-wrap gap-2"><Button loading={busy} onClick={()=>void backup()}>Save account snapshot to Drive</Button>
     <Button variant="secondary" loading={busy} onClick={()=>void disconnect()}>Disconnect</Button></div>}

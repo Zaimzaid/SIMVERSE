@@ -7,7 +7,7 @@ import {
 import { DevelopmentStaffClient } from "@/components/civilization/development-staff-client";
 
 export const metadata: Metadata = {
-  title: "Development Feasibility Staff | SIMVERSE",
+  title: "Development Feasibility Staff | KAVANDRO",
   robots: { index: false, follow: false },
 };
 

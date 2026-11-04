@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, ClipboardList, ShieldAlert, XCircle } from "lu
 import { buildConceptGeographyAudit } from "@/lib/planet/concept-audit";
 
 export const metadata: Metadata = {
-  title: "Geography Design Audit | SIMVERSE",
+  title: "Geography Design Audit | KAVANDRO",
   description: "A non-publishing, concept-only technical review of proposed fictional country borders.",
   robots: { index: false, follow: false },
 };

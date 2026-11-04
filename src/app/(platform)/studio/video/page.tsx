@@ -4,7 +4,7 @@ import { requirePlatformContext } from "@/server/context";
 import { PageHeader } from "@/components/ui/page-header";
 import { VideoStudio } from "@/components/media/video-studio";
 
-export const metadata: Metadata = { title: "Video Studio · SIMVERSE" };
+export const metadata: Metadata = { title: "Video Studio · KAVANDRO" };
 
 export default async function VideoStudioPage() {
   const { permissions } = await requirePlatformContext();

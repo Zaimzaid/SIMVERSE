@@ -6,7 +6,7 @@ import { loadWorldLayout } from "@/server/services/world-layout-service";
 import { NotFoundError } from "@/lib/errors";
 import { WorldLayoutStudio } from "@/components/worlds/world-layout-studio";
 
-export const metadata={title:"3D World Layout | SIMVERSE"};
+export const metadata={title:"3D World Layout | KAVANDRO"};
 export default async function WorldLayoutPage({params}:{params:Promise<{worldId:string}>}){
   const {worldId}=await params;
   const {user,workspace,permissions}=await requirePlatformContext();
@@ -18,7 +18,7 @@ export default async function WorldLayoutPage({params}:{params:Promise<{worldId:
       <ArrowLeft className="size-4"/>Back to {layout.worldName}
     </Link>
     <header>
-      <p className="flex items-center gap-2 text-sm text-muted"><MapPin className="size-4"/>SIMVERSE World Creator</p>
+      <p className="flex items-center gap-2 text-sm text-muted"><MapPin className="size-4"/>KAVANDRO World Creator</p>
       <h1 className="mt-2 text-3xl font-bold">3D World Layout</h1>
       <p className="mt-2 text-sm text-muted">Position, rotate and resize assets in a real 3D preview. Saving creates a new World version.</p>
     </header>

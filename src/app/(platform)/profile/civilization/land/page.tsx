@@ -7,7 +7,7 @@ import {
 import { LandPlanningBoard } from "@/components/civilization/land-planning-board";
 
 export const metadata: Metadata = {
-  title: "District Land Planning | SIMVERSE",
+  title: "District Land Planning | KAVANDRO",
   robots: { index: false, follow: false },
 };
 
