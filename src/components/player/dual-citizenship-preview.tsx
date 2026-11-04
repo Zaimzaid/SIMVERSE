@@ -60,7 +60,7 @@ export function DualCitizenshipPreview({ countries }: { countries: Country[] }) 
           </p>)}
           <p className="mt-3 text-xs text-muted">{result.notice}</p>
           {result.assessment.eligible ? <Link href="/profile/documents" className="mt-3 inline-block text-sm text-accent hover:underline">
-            Start or review your SIMVERSE citizenship application →
+            Start or review your KAVANDRO citizenship application →
           </Link> : null}
         </div>
       ) : null}

@@ -274,7 +274,7 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
       </label>)}
     </div>;
   }
-  return <section aria-label="SIMVERSE group conversations" className="space-y-4">
+  return <section aria-label="KAVANDRO group conversations" className="space-y-4">
     {error && <p role="alert" className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>}
     {notice && <p role="status" className="rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm">{notice}</p>}
     <div className="overflow-hidden rounded-2xl border border-border bg-surface lg:min-h-[540px] xl:grid xl:grid-cols-[minmax(205px,265px)_minmax(0,1fr)]">
@@ -308,7 +308,7 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
           <p className="text-xs leading-5 text-secondary">Bring your friends together in a private conversation. Only invited friends can join.</p>
           <label className="block text-sm font-medium">Group name
             <input required minLength={2} maxLength={65} value={title} onChange={event => setTitle(event.target.value)}
-              placeholder="e.g. SIMVERSE Builders"
+              placeholder="e.g. KAVANDRO Builders"
               className="mt-1 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-accent" />
           </label>
           <p className="text-sm font-medium">Invite friends <span className="font-normal text-secondary">(1–10)</span></p>
@@ -474,7 +474,7 @@ export function CommunityGroups({ userId, friends }: { userId: string; friends: 
           <div className="mb-5 grid size-20 place-items-center rounded-3xl bg-accent-soft text-accent"><UsersRound className="size-9" /></div>
           <h3 className="text-xl font-semibold">{groups.length ? "Bring your group together" : "Welcome to Groups"}</h3>
           <p className="mt-3 max-w-sm text-sm leading-6 text-secondary">
-            Create a private group to talk with friends, plan activities and share what you're building in SIMVERSE.
+            Create a private group to talk with friends, plan activities and share what you're building in KAVANDRO.
           </p>
           <div className="mt-6 flex flex-col items-start gap-3 text-left text-sm text-secondary">
             <span className="flex gap-2"><ShieldCheck className="size-4 text-accent" /> Invite accepted friends</span>

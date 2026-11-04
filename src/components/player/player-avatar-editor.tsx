@@ -23,7 +23,7 @@ export function PlayerAvatarEditor({ initial }: { initial: PlayerAvatarAppearanc
     });
     setSaving(false);
     if (r.error) setNotice(r.error.message);
-    else if (r.data) { setSaved(r.data.appearance); setNotice("Saved to your SIMVERSE account."); }
+    else if (r.data) { setSaved(r.data.appearance); setNotice("Saved to your KAVANDRO account."); }
   }
   return <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]">
     <PlayerAvatarPreview appearance={appearance}/>

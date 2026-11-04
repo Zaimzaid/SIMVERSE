@@ -32,7 +32,7 @@ export function BusinessReviewQueue({ initial }: { initial: PendingBusiness[] })
       return;
     }
     setQueue((items) => items.filter((item) => item.id !== id));
-    toast({ variant: "success", title: "SIMVERSE business reviewed", description: "The decision was recorded in the audit trail." });
+    toast({ variant: "success", title: "KAVANDRO business reviewed", description: "The decision was recorded in the audit trail." });
     router.refresh();
   }
   return <div className="space-y-4">

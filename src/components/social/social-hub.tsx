@@ -86,7 +86,7 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
         <p className="mt-1 text-xs text-secondary">Search exact usernames of players who have made their profiles public.</p>
         <form className="mt-4 flex gap-2" onSubmit={(e) => void lookup(e)}>
           <input className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
-            aria-label="SIMVERSE username" placeholder="username" maxLength={25} value={search} onChange={e => setSearch(e.target.value)} />
+            aria-label="KAVANDRO username" placeholder="username" maxLength={25} value={search} onChange={e => setSearch(e.target.value)} />
           <Button type="submit" size="sm"><Search className="size-4"/> Find</Button>
         </form>
         {found.length === 0 && search.trim().length > 2 && <p className="mt-3 text-xs text-muted">Only matching public profiles will be shown.</p>}
@@ -131,7 +131,7 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
           className={`mt-2 flex w-full items-center gap-3 rounded-xl border p-3 text-left hover:border-accent/60 ${selected === item.other.id ? "border-accent bg-accent-soft" : "border-border"}`}>
           <span className="grid size-9 place-items-center rounded-full bg-accent-soft text-accent"><MessageCircle className="size-4"/></span>
           <span className="min-w-0"><span className="block truncate text-sm font-semibold">{item.other.displayName}</span>
-          <span className="block truncate text-xs text-muted">{item.other.playerIdentity?.username ? `@${item.other.playerIdentity.username}` : "SIMVERSE player"}</span></span>
+          <span className="block truncate text-xs text-muted">{item.other.playerIdentity?.username ? `@${item.other.playerIdentity.username}` : "KAVANDRO player"}</span></span>
         </button>)}
       </section>
     </div>
@@ -149,7 +149,7 @@ export function SocialHub({ initial, userId }: { initial: SocialState; userId: s
       {notice && <p role="status" className="m-3 rounded-lg border border-accent/40 p-3 text-sm text-accent">{notice}</p>}
       <div aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {selected && messages.length === 0 && <p className="text-sm text-muted">No messages yet. Say hello!</p>}
-        {!selected && <div className="grid flex-1 place-items-center text-center text-sm text-muted"><div><MessageCircle className="mx-auto mb-3 size-10 text-accent"/><p>Messages stay between accepted SIMVERSE friends.</p><p className="mt-1 text-xs">Refresh to retrieve new messages; real-time delivery comes later.</p></div></div>}
+        {!selected && <div className="grid flex-1 place-items-center text-center text-sm text-muted"><div><MessageCircle className="mx-auto mb-3 size-10 text-accent"/><p>Messages stay between accepted KAVANDRO friends.</p><p className="mt-1 text-xs">Refresh to retrieve new messages; real-time delivery comes later.</p></div></div>}
         {messages.map(msg => <div key={msg.id} className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm ${msg.senderId === userId ? "self-end bg-accent text-accent-foreground" : "self-start border border-border bg-background text-foreground"}`}>
           <p className="whitespace-pre-wrap break-words">{msg.body}</p>
           {msg.mediaUrl&&<a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs underline">Open shared media</a>}

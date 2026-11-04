@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { BadgeCheck, BriefcaseBusiness, GraduationCap, ShieldAlert, Users } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { apiFetch } from "@/lib/client/api";
-import { SIMVERSE_PROFESSIONS } from "@/lib/player-identity/economy";
+import { KAVANDRO_PROFESSIONS } from "@/lib/player-identity/economy";
 
 type B = { id: string; name: string; status: string; sector: string; reviewNote: string | null };
 type Application = { id: string; status: string; statement: string; createdAt: string | Date;
@@ -59,9 +59,9 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
   async function action(url: string, body: unknown, success: string) {
     setBusy(true);
     const { error } = await apiFetch(url, { method: "POST", body: JSON.stringify(body) });
-    if (error) toast({ variant: "error", title: "SIMVERSE action refused", description: error.message });
+    if (error) toast({ variant: "error", title: "KAVANDRO action refused", description: error.message });
     else {
-      toast({ variant: "success", title: success, description: "Saved to the fictional SIMVERSE work records." });
+      toast({ variant: "success", title: success, description: "Saved to the fictional KAVANDRO work records." });
       await refresh();
     }
     setBusy(false);
@@ -81,7 +81,7 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
         <p className="mt-2 text-xs text-muted">This is an introductory in-world activity, not a verified professional qualification.</p>
       </div> : <div className="mt-3 space-y-4">
         {!questions.professionCode ? <p className="text-sm text-secondary">
-          <Link href="/profile/career" className="font-semibold text-accent underline">Choose your SIMVERSE profession</Link> before beginning.
+          <Link href="/profile/career" className="font-semibold text-accent underline">Choose your KAVANDRO profession</Link> before beginning.
         </p> : <p className="text-sm text-secondary">
           Complete the three conduct and safety questions. All answers must be correct for this pilot.
         </p>}
@@ -135,7 +135,7 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
         <label className="text-xs text-secondary">Profession
           <select className={`mt-1 ${input}`} value={newJob.professionCode}
             onChange={(e) => setNewJob({ ...newJob, professionCode: e.target.value })}>
-            {SIMVERSE_PROFESSIONS.map((p) => <option key={p.code} value={p.code}>{p.label}</option>)}
+            {KAVANDRO_PROFESSIONS.map((p) => <option key={p.code} value={p.code}>{p.label}</option>)}
           </select>
         </label>
         <label className="text-xs text-secondary sm:col-span-2">Job title
@@ -151,7 +151,7 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
     </section>
 
     <section className="rounded-2xl border border-border bg-surface p-5">
-      <h2 className={heading}>Browse SIMVERSE jobs</h2>
+      <h2 className={heading}>Browse KAVANDRO jobs</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">{data.availableJobs.map((job) => {
         const mine = data.applications.some((a) => a.job.id === job.id);
         const own = data.businesses.some((b) => b.id === job.business.id);
@@ -166,13 +166,13 @@ export function PlayerWorkCenter({ initial, initialQuestions }: {
               onChange={(e) => setStatements((s) => ({ ...s, [job.id]: e.target.value }))}/>
             <button className={`mt-2 ${btn}`} type="button" disabled={busy || (statements[job.id]?.trim().length ?? 0) < 10}
               onClick={() => void action(`/api/player-work/jobs/${job.id}/apply`,
-                { statement: statements[job.id] }, "SIMVERSE application submitted")}>Apply</button>
+                { statement: statements[job.id] }, "KAVANDRO application submitted")}>Apply</button>
           </> : <p className="mt-3 text-xs text-muted">
             {own ? "Your company's posting" : mine ? "Already applied" : "Requires matching introductory profession orientation"}
           </p>}
         </article>;
       })}
-      {!data.availableJobs.length ? <p className="text-sm text-muted">No approved SIMVERSE jobs are currently open.</p> : null}</div>
+      {!data.availableJobs.length ? <p className="text-sm text-muted">No approved KAVANDRO jobs are currently open.</p> : null}</div>
     </section>
 
     <section className="rounded-2xl border border-border bg-surface p-5">

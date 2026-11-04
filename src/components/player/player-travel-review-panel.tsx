@@ -34,13 +34,13 @@ export function PlayerTravelReviewPanel({ initial }: { initial: PendingVisa[] })
       return;
     }
     setApplications((rows) => rows.filter((row) => row.id !== id));
-    toast({ variant: "success", title: "SIMVERSE virtual travel visa reviewed", description: decision === "APPROVE" ? "Fictional entry visa issued." : "Application denied." });
+    toast({ variant: "success", title: "KAVANDRO virtual travel visa reviewed", description: decision === "APPROVE" ? "Fictional entry visa issued." : "Application denied." });
     router.refresh();
   }
   return <section className="space-y-4">
     {!applications.length && <p className="rounded-xl border border-border bg-surface p-4 text-sm text-secondary">No pending virtual visas in your authorized countries.</p>}
     {applications.map((application) => <article key={application.id} className="rounded-2xl border border-border bg-surface p-5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-accent">SIMVERSE-only entry visa</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-accent">KAVANDRO-only entry visa</p>
       <h2 className="mt-1 text-lg font-semibold">{application.originCountry.name} → {application.destinationCountry.name}</h2>
       <p className="text-sm text-secondary">{application.identity.user.displayName} (@{application.identity.username ?? "unset"})</p>
       <p className="mt-1 text-xs text-muted">Submitted {new Date(application.submittedAt).toLocaleDateString()}</p>
@@ -56,6 +56,6 @@ export function PlayerTravelReviewPanel({ initial }: { initial: PendingVisa[] })
           className="rounded-lg border border-border px-3 py-2 text-sm font-semibold disabled:opacity-50">Deny</button>
       </div>
     </article>)}
-    <p className="text-xs text-secondary">Approval requires an active country reviewer grant and current, valid SIMVERSE document prerequisites. No real visa is issued.</p>
+    <p className="text-xs text-secondary">Approval requires an active country reviewer grant and current, valid KAVANDRO document prerequisites. No real visa is issued.</p>
   </section>;
 }

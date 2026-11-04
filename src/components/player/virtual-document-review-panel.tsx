@@ -33,7 +33,7 @@ export function VirtualDocumentReviewPanel({ initial }: { initial: ReviewEntry[]
     }
     setQueue((items) => items.filter((item) => item.id !== id));
     router.refresh();
-    toast({ variant: "success", title: "Decision recorded", description: "SIMVERSE virtual application reviewed and audited." });
+    toast({ variant: "success", title: "Decision recorded", description: "KAVANDRO virtual application reviewed and audited." });
   }
   return <section className="space-y-4">
     {!queue.length && <p className="rounded-xl border border-border bg-surface p-4 text-sm text-secondary">No pending applications in your authorized virtual countries.</p>}
@@ -58,6 +58,6 @@ export function VirtualDocumentReviewPanel({ initial }: { initial: ReviewEntry[]
           className="rounded-lg border border-border px-4 py-2 text-sm font-semibold disabled:opacity-50">Deny</button>
       </div>
     </article>)}
-    <p className="text-xs text-muted">Country reviewer grants are not linked to workspace roles. You cannot review your own applications. Approvals are fictional SIMVERSE statuses only.</p>
+    <p className="text-xs text-muted">Country reviewer grants are not linked to workspace roles. You cannot review your own applications. Approvals are fictional KAVANDRO statuses only.</p>
   </section>;
 }
