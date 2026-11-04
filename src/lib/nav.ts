@@ -13,6 +13,7 @@ import {
   Sparkles,
   Settings,
   Swords,
+  BrainCircuit,
   Trophy,
   UserRound,
   FileBadge2,
@@ -65,6 +66,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Build",
     items: [
+      { label: "AFTERCHOICE", href: "/games/afterchoice", icon: BrainCircuit },
       { label: "Anything Wars", href: "/anything-wars", icon: Swords, permission: "simulation.view" },
       { label: "KAVANDRO World Explorer", href: "/world", icon: Globe2 },
       { label: "Empty planet prototype", href: "/planet", icon: Globe2 },
