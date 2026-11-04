@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight, Compass, FileBadge2, Globe2, MapPinned,
   MessageCircle, ShieldCheck, Sparkles, Swords, Users,
-  WalletCards, Puzzle, Landmark, BrainCircuit,
+  WalletCards, Puzzle, Landmark,
 } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 import { getPlatformStaff } from "@/server/admin/access";
@@ -33,13 +33,6 @@ export default async function DashboardPage() {
       href: "/planet/planning/map",
       icon: Globe2,
       marker: "Country concept atlas",
-    },
-    {
-      label: "AFTERCHOICE — Strategy Game",
-      detail: "A playable non-3D battle of decisions: solve crises, anticipate attacks, and survive the consequences.",
-      href: "/games/afterchoice",
-      icon: BrainCircuit,
-      marker: "Playable · Solo prototype",
     },
     {
       label: "Daily Citizen Challenge",
