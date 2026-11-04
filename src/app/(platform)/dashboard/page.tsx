@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight, Compass, FileBadge2, Globe2, MapPinned,
   MessageCircle, ShieldCheck, Sparkles, Swords, Users,
-  WalletCards,
+  WalletCards, Puzzle,
 } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 
@@ -33,6 +33,13 @@ export default async function DashboardPage() {
       marker: "Country concept atlas",
     },
     {
+      label: "Daily Citizen Challenge",
+      detail: "Play a non-3D daily planning puzzle and compare anonymous scores. No in-world credits or official changes.",
+      href: "/profile/civilization/challenge",
+      icon: Puzzle,
+      marker: "Playable · Fictional tokens",
+    },
+    {
       label: "My future civilization",
       detail: "Save a founding-country preference and express interest in the proposed pilot district.",
       href: "/profile/civilization",
@@ -45,6 +52,13 @@ export default async function DashboardPage() {
       href: "/profile",
       icon: FileBadge2,
       marker: "Available",
+    },
+    {
+      label: "My District Club",
+      detail: "Meet residents in friendly district chat rooms when official membership becomes active.",
+      href: "/profile/civilization/club",
+      icon: MessageCircle,
+      marker: "Residents-only · Gated",
     },
     {
       label: "Friends & messages",
