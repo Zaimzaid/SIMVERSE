@@ -62,13 +62,14 @@
   --text-secondary: #98a4bb;
   --text-muted: #616d83;
 
-  --accent: #22d3ee;
-  --accent-hover: #4fddf3;
-  --accent-strong: #06b6d4;
-  --accent-foreground: #04121a;
-  --accent-soft: rgba(34, 211, 238, 0.12);
+  /* Navy + electric blue + purple from the official KAVANDRO identity. */
+  --accent: #78a6ff;
+  --accent-hover: #9abfff;
+  --accent-strong: #3d6fed;
+  --accent-foreground: #07152e;
+  --accent-soft: rgba(72, 119, 244, 0.15);
   --blue: #3b82f6;
-  --purple: #8b5cf6;
+  --purple: #8348f5;
 
   --success: #34d399;
   --success-soft: rgba(52, 211, 153, 0.13);
@@ -79,7 +80,7 @@
   --danger-foreground: #1a0606;
   --danger-soft: rgba(248, 113, 113, 0.13);
 
-  --ring: rgba(34, 211, 238, 0.55);
+  --ring: rgba(95, 135, 255, 0.58);
   color-scheme: dark;
 }
 
@@ -96,11 +97,11 @@
   --text-secondary: #4a5670;
   --text-muted: #78839c;
 
-  --accent: #0891b2;
-  --accent-hover: #0e7490;
-  --accent-strong: #0e7490;
+  --accent: #335ed8;
+  --accent-hover: #294cc2;
+  --accent-strong: #294cc2;
   --accent-foreground: #ffffff;
-  --accent-soft: rgba(8, 145, 178, 0.1);
+  --accent-soft: rgba(51, 94, 216, 0.1);
   --blue: #2563eb;
   --purple: #7c3aed;
 
@@ -113,7 +114,7 @@
   --danger-foreground: #ffffff;
   --danger-soft: rgba(220, 38, 38, 0.1);
 
-  --ring: rgba(8, 145, 178, 0.45);
+  --ring: rgba(51, 94, 216, 0.48);
   color-scheme: light;
 }
 
