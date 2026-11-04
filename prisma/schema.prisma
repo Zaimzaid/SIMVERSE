@@ -73,6 +73,15 @@ model User {
   developmentCasesCreated FoundingDevelopmentCase[] @relation("DevelopmentCaseCreator")
   developmentCasesReviewed FoundingDevelopmentCase[] @relation("DevelopmentCaseReviewer")
   developmentUpdatesWritten FoundingDevelopmentUpdate[]
+  clubDirectoryPreference DistrictClubDirectoryPreference?
+  clubEventsOrganized DistrictClubEvent[] @relation("ClubEventOrganizer")
+  clubEventsReviewed DistrictClubEvent[] @relation("ClubEventReviewer")
+  clubEventRsvps DistrictClubEventRsvp[]
+  clubReadCursors DistrictClubReadCursor[]
+  clubMessages DistrictClubMessage[] @relation("ClubMessageAuthor")
+  clubModeratorGrants DistrictClubModeratorGrant[]
+  clubReportsSent DistrictClubReport[] @relation("ClubReportReporter")
+  clubReportsReviewed DistrictClubReport[] @relation("ClubReportReviewer")
   assemblyProposals DistrictAssemblyProposal[] @relation("AssemblyProposalAuthor")
   assemblyComments DistrictAssemblyComment[] @relation("AssemblyCommentAuthor")
   assemblyVotes DistrictAssemblyVote[]
@@ -326,6 +335,11 @@ model FoundingDistrict {
   movesTo FoundingDistrictMove[] @relation("FoundingMoveDestination")
   visits FoundingVisit[]
   assemblyProposals DistrictAssemblyProposal[]
+  clubReadCursors DistrictClubReadCursor[]
+  clubEvents DistrictClubEvent[]
+  clubMessages DistrictClubMessage[]
+  clubDirectoryPreferences DistrictClubDirectoryPreference[]
+  clubModerators DistrictClubModeratorGrant[]
   assemblyNotices DistrictAssemblyNotice[]
   assemblyModerators DistrictAssemblyModeratorGrant[]
   vascoinTreasury VascoinAccount?
@@ -2792,4 +2806,119 @@ model CivilizationChallengeAttempt {
 
   @@unique([userId, dayKey])
   @@index([dayKey, score])
+}
+
+
+// KAVANDRO K4 — Residents-only District Club social rooms.
+// Access is derived on every request from active approved fictional citizenship
+// and actual home-district residence. No speculative preferences or visit grants.
+model DistrictClubModeratorGrant {
+  userId String
+  districtId String
+  isActive Boolean @default(false)
+  createdAt DateTime @default(now())
+  moderator User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId])
+  @@index([districtId, isActive])
+}
+
+model DistrictClubMessage {
+  id String @id @default(cuid())
+  districtId String
+  authorUserId String
+  room String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS
+  body String
+  status String @default("VISIBLE") // VISIBLE | HIDDEN
+  createdAt DateTime @default(now())
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  author User @relation("ClubMessageAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  reports DistrictClubReport[]
+  @@index([districtId, room, status, createdAt])
+  @@index([authorUserId, createdAt])
+}
+
+model DistrictClubReport {
+  id String @id @default(cuid())
+  messageId String
+  reporterUserId String
+  reason String
+  status String @default("OPEN") // OPEN | RESOLVED
+  reviewedByUserId String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  message DistrictClubMessage @relation(fields: [messageId], references: [id], onDelete: Restrict)
+  reporter User @relation("ClubReportReporter", fields: [reporterUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ClubReportReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  @@unique([messageId, reporterUserId])
+  @@index([messageId, status])
+  @@index([reporterUserId, createdAt])
+}
+
+
+// KAVANDRO K4.1 — Opt-in residents-only directory.
+// A profile is visible only when both a current approved residence and a
+// matching district-scoped affirmative opt-in are present. Moving districts
+// never automatically republishes a previous opt-in in the new district.
+model DistrictClubDirectoryPreference {
+  userId String @id
+  districtId String
+  isVisible Boolean @default(false)
+  intro String @default("")
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@index([districtId, isVisible])
+}
+
+
+// KAVANDRO K4.2 — online-only district social events and private RSVP.
+// No world location, official construction, district assembly authority or currency.
+model DistrictClubEvent {
+  id String @id @default(cuid())
+  districtId String
+  organizerUserId String
+  title String
+  description String
+  category String // SOCIAL | GAMES | LEARNING | COMMUNITY
+  startsAt DateTime
+  endsAt DateTime
+  status String @default("PENDING_REVIEW") // PENDING_REVIEW | PUBLISHED | REJECTED | CANCELLED
+  reviewedByUserId String?
+  reviewReason String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  organizer User @relation("ClubEventOrganizer", fields: [organizerUserId], references: [id], onDelete: Restrict)
+  reviewer User? @relation("ClubEventReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  rsvps DistrictClubEventRsvp[]
+  @@index([districtId, status, startsAt])
+  @@index([organizerUserId, createdAt])
+}
+
+model DistrictClubEventRsvp {
+  eventId String
+  userId String
+  createdAt DateTime @default(now())
+  event DistrictClubEvent @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  @@id([eventId, userId])
+  @@index([userId, createdAt])
+}
+
+
+// KAVANDRO K4.3 — private, per-resident room/event read cursors.
+// Never a public "last seen" timestamp or surveillance of other residents.
+model DistrictClubReadCursor {
+  userId String
+  districtId String
+  channel String // GENERAL | INTRODUCTIONS | ACTIVITIES | INTERESTS | EVENTS
+  lastSeenAt DateTime
+  lastSeenId String
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  district FoundingDistrict @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  @@id([userId, districtId, channel])
+  @@index([districtId, channel])
 }

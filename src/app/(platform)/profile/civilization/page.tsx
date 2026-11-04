@@ -150,6 +150,18 @@ export default async function MyCivilizationPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold text-foreground">My District Club</h2>
+        <p className="mt-2 text-sm leading-7 text-secondary">
+          Meet approved residents and chat in friendly rooms. The Club is for social life rather than
+          official district decisions. It opens only after genuine district residence activation.
+        </p>
+        <Link href="/profile/civilization/club"
+          className="mt-4 inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-accent">
+          Open my district club
+        </Link>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <h2 className="font-display text-xl font-semibold text-foreground">My District Assembly</h2>
         <p className="mt-2 text-sm leading-7 text-secondary">
           Discuss what your community should build, submit a moderated project
