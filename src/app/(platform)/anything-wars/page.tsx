@@ -42,7 +42,7 @@ export default async function AnythingWarsPage() {
       <section className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
         <div className="aurora opacity-70" aria-hidden="true" />
         <div className="relative max-w-3xl">
-          <Badge variant="accent"><Sparkles className="size-3.5" />SIMVERSE product</Badge>
+          <Badge variant="accent"><Sparkles className="size-3.5" />KAVANDRO product</Badge>
           <h1 className="mt-4 font-display text-3xl font-semibold text-foreground sm:text-5xl">Anything Wars</h1>
           <p className="mt-3 text-lg text-secondary">Choose anything. Make them compete. Watch the story unfold.</p>
           <div className="mt-6 flex flex-wrap gap-3">

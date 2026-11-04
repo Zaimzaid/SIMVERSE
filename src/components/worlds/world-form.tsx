@@ -91,7 +91,7 @@ export function WorldForm({ mode, initial, assets, entities }: Props) {
 
   const n = (value: string) => Number(value);
   return <form onSubmit={submit} className="space-y-6">
-    <Card><CardHeader><CardTitle>1. Identity and preset</CardTitle><CardDescription>Create an engine-neutral definition or start from an original SIMVERSE preset.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
+    <Card><CardHeader><CardTitle>1. Identity and preset</CardTitle><CardDescription>Create an engine-neutral definition or start from an original KAVANDRO preset.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2">
       <Field label="Preset" htmlFor="world-preset"><Select id="world-preset" defaultValue="" onChange={(event) => applyPreset(event.target.value)}><option value="">Blank blueprint</option>{WORLD_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}</Select></Field>
       <Field label="Name" required error={errors.name}><Input value={name} onChange={(event) => setName(event.target.value)} /></Field>
       <Field label="Category" required error={errors.category}><Input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="natural-environment" /></Field>

@@ -13,6 +13,7 @@ import {
   Sparkles,
   Settings,
   Swords,
+  BrainCircuit,
   Trophy,
   UserRound,
   FileBadge2,
@@ -21,6 +22,8 @@ import {
   ClipboardList,
   Users,
   MessagesSquare,
+  MessageCircle,
+  Puzzle,
   Store,
   WandSparkles,
   type LucideIcon,
@@ -54,6 +57,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
       { label: "My Profile", href: "/profile", icon: UserRound, exact: true },
       { label: "My Civilization", href: "/profile/civilization", icon: Globe2 },
+      { label: "Daily Citizen Challenge", href: "/profile/civilization/challenge", icon: Puzzle, exact: true },
+      { label: "District Club", href: "/profile/civilization/club", icon: MessageCircle },
       { label: "Friends & Messages", href: "/social", icon: MessagesSquare, exact: true },
       { label: "My Documents", href: "/profile/documents", icon: FileBadge2, exact: true },
       { label: "Travel & Immigration", href: "/profile/travel", icon: Plane, exact: true },
@@ -65,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Build",
     items: [
+      { label: "AFTERCHOICE", href: "/games/afterchoice", icon: BrainCircuit },
       { label: "Anything Wars", href: "/anything-wars", icon: Swords, permission: "simulation.view" },
       { label: "KAVANDRO World Explorer", href: "/world", icon: Globe2 },
       { label: "Empty planet prototype", href: "/planet", icon: Globe2 },

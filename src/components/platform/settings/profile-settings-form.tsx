@@ -91,7 +91,7 @@ export function ProfileSettingsForm({
     <Card as="section">
       <CardHeader>
         <CardTitle>Profile</CardTitle>
-        <CardDescription>How you appear across SIMVERSE.</CardDescription>
+        <CardDescription>How you appear across KAVANDRO.</CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-5">

@@ -15,7 +15,7 @@ const starter=():AnimationDraft=>({
   scene:{...structuredClone(STARTER_ANIMATION.scene),mode:"3D",
     avatar:{skin:"#bc845f",outfit:"#38bfc0",hair:"#1b2835",height:1,hairstyle:"SHORT"},
     cameraFrames:[{t:0,yaw:0,pitch:12,distance:6},{t:5000,yaw:65,pitch:18,distance:5}],
-    dialogue:{text:"Welcome to SIMVERSE. Create your own world.",startMs:500,endMs:4500},
+    dialogue:{text:"Welcome to KAVANDRO. Create your own world.",startMs:500,endMs:4500},
   },
 });
 function interpolate(a:CameraFrame,b:CameraFrame,t:number):CameraFrame{

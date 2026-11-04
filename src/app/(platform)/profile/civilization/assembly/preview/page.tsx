@@ -4,7 +4,7 @@ import { requireUser } from "@/server/context";
 import { CalendarDays, CircleDot, Flag, MessageCircle, ShieldAlert, Users, Vote } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "District Assembly Design Preview | SIMVERSE",
+  title: "District Assembly Design Preview | KAVANDRO",
   robots: { index: false, follow: false },
 };
 

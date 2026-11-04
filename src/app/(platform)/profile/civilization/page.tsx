@@ -84,7 +84,7 @@ export default async function MyCivilizationPage() {
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-xl font-semibold text-foreground">Prepare a citizenship application</h2>
-          <span className="rounded-full border border-border px-3 py-1 text-sm font-semibold text-secondary">Phase 3B · Draft only</span>
+          <span className="rounded-full border border-border px-3 py-1 text-sm font-semibold text-secondary">Draft editor ready · Intake approval required</span>
         </div>
         <FoundingCitizenshipDraftForm initial={applicationDraft} suggestedCountry={interest.preferredNationSlug} />
       </section>

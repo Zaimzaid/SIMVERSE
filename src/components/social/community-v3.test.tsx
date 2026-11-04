@@ -12,7 +12,7 @@ const empty = {
   blocked: [],
 };
 
-describe("SIMVERSE welcoming messaging layout", () => {
+describe("KAVANDRO welcoming messaging layout", () => {
   it("offers a clear inbox, compact navigation, search and friendly first-use guidance", () => {
     const html = renderToStaticMarkup(<CommunityV3 initial={empty} userId="player-1" />);
     expect(html).toContain("Friends &amp; Messages");
@@ -23,7 +23,7 @@ describe("SIMVERSE welcoming messaging layout", () => {
     expect(html).toContain("All chats");
     expect(html).toContain("Unread");
     expect(html).toContain("Ready for your first chat?");
-    expect(html).toContain("Welcome to your SIMVERSE community");
+    expect(html).toContain("Welcome to your KAVANDRO community");
     expect(html).toContain("Find your first friend");
     expect(html).toContain("Send a request");
     expect(html).toContain("Start chatting");

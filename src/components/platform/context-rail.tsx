@@ -30,7 +30,7 @@ export function ContextRail({
   };
   const links = (actionRoutesByArea[active.id] ?? actionRoutesByArea.home!)
     .map((href) => NAV_ITEMS.find((item) => item.href === href))
-    .filter((item) => item && canSeeNavItem(item, permissions))
+    .filter((item) => item && item.href !== pathname && canSeeNavItem(item, permissions))
     .slice(0, 4);
 
   return (
@@ -68,11 +68,11 @@ export function ContextRail({
           </p>
           <div className="mt-4 flex flex-col gap-2">
             <Link href="/planet" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
-              <Compass className="size-4" /> Preview SIMVERSE Planet
+              <Compass className="size-4" /> Preview KAVANDRO Planet
             </Link>
-            <Link href="/profile" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
+            {!pathname.startsWith("/profile") && <Link href="/profile" className="flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-secondary hover:bg-surface-hover">
               <UserRound className="size-4" /> My profile
-            </Link>
+            </Link>}
           </div>
         </section>
       </div>

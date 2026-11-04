@@ -1053,7 +1053,7 @@ const STEP_BLURBS = [
 const ANYTHING_WARS_STEP_BLURBS = [
   "Name the event and choose the project that supplies its competitors.",
   "Choose Battle, Race, or Survival. Tournaments use their dedicated guided flow.",
-  "Search and choose existing Entities as competitors. They remain canonical SIMVERSE Entities.",
+  "Search and choose existing Entities as competitors. They remain canonical KAVANDRO Entities.",
   "Configure the existing authoritative mechanics module with friendly match controls.",
   "Optionally pin an immutable World Blueprint version as the event environment.",
   "Optionally pin an Experience Profile that directs presentation without changing outcomes.",

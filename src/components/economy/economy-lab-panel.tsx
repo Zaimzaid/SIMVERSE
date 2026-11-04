@@ -145,7 +145,7 @@ export function EconomyLabPanel({ initialLabs, initialDetail, canCreate }: {
       <section className={card}>
         <h3 className="text-lg font-semibold">Your life in this town</h3>
         <p className="mt-1 text-sm text-secondary">
-          Choosing a SIMVERSE career unlocks one starter GFC allocation from this town's treasury.
+          Choosing a KAVANDRO career unlocks one starter GFC allocation from this town's treasury.
           It never creates more total money or changes your SVC wallet.
         </p>
         {selected.joined ? <div className="mt-4 flex flex-wrap items-center gap-3">

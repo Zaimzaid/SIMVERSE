@@ -114,6 +114,7 @@ model User {
 
   ownedWorkspaces Workspace[]       @relation("WorkspaceOwner")
   memberships     WorkspaceMember[]
+  platformAdmin PlatformAdmin? @relation("PlatformAdminUser")
   sessions        Session[]
   uploadedImages UploadedImage[] @relation("UserUploadedImages")
   loginChallenges TwoFactorChallenge[]
@@ -3052,4 +3053,30 @@ model DistrictClubInterestReport {
   reporter User @relation("ClubInterestReportAuthor", fields: [reporterUserId], references: [id], onDelete: Restrict)
   @@unique([messageId, reporterUserId])
   @@index([status, createdAt])
+}
+
+// Platform-wide administration is separate from workspace membership.
+model PlatformAdmin {
+  id String @id @default(cuid())
+  userId String @unique
+  role String
+  deniedSections String @default("[]")
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation("PlatformAdminUser", fields: [userId], references: [id], onDelete: Cascade)
+  @@index([active, role])
+}
+
+model PlatformAdminInvitation {
+  id String @id @default(cuid())
+  email String
+  role String
+  deniedSections String @default("[]")
+  tokenHash String @unique
+  invitedByUserId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([email, expiresAt])
+  @@index([expiresAt])
 }

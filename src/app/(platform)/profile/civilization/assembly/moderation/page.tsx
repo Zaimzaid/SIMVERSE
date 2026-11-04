@@ -4,7 +4,7 @@ import { requireUser } from "@/server/context";
 import { listMyModeratedDistricts, getDistrictModerationQueue } from "@/server/services/district-assembly-service";
 import { DistrictModerationClient } from "@/components/civilization/district-moderation-client";
 
-export const metadata: Metadata = { title: "District Assembly Moderation | SIMVERSE", robots: { index: false } };
+export const metadata: Metadata = { title: "District Assembly Moderation | KAVANDRO", robots: { index: false } };
 export default async function DistrictModerationPage() {
   const user = await requireUser();
   const memberships = await listMyModeratedDistricts(user.id);

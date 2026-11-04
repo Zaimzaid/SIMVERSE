@@ -288,7 +288,7 @@ export function PublicEarthExplorer({
                 <Globe2 className="size-4" aria-hidden />Live Earth explorer
               </p>
               <p className="mt-1 text-xs text-secondary">
-                Natural Earth global context · cyan markers show verified SIMVERSE coverage
+                Natural Earth global context · cyan markers show verified KAVANDRO coverage
               </p>
             </div>
             <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-background/75 p-1.5 backdrop-blur-xl">
@@ -416,7 +416,7 @@ export function PublicEarthExplorer({
       <Modal
         open={Boolean(gate)}
         onClose={() => setGate(null)}
-        title={gate ? `Open ${gate.destination.name} in SIMVERSE Earth` : "Open Earth destination"}
+        title={gate ? `Open ${gate.destination.name} in KAVANDRO Earth` : "Open Earth destination"}
         description="Sign in or create an account to view protected source details and continue through the verified geographic hierarchy."
         footer={gate ? (
           <>

@@ -114,7 +114,7 @@ export function EntityVisualsEditor({ entityId, entityName, entityPortraitUrl, i
   return <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(420px,.9fr)]">
     <div className="space-y-6">
       <Card as="section">
-        <CardHeader><CardTitle>Visual source</CardTitle><CardDescription>Choose how this Entity appears. Missing or broken assets safely use a SIMVERSE fallback.</CardDescription></CardHeader>
+        <CardHeader><CardTitle>Visual source</CardTitle><CardDescription>Choose how this Entity appears. Missing or broken assets safely use a KAVANDRO fallback.</CardDescription></CardHeader>
         <CardContent className="grid gap-5 sm:grid-cols-2">
           <Field label="Source" htmlFor="visual-source" error={errors.sourceType}>
             <Select id="visual-source" value={profile.sourceType} disabled={!canEdit}
@@ -158,7 +158,7 @@ export function EntityVisualsEditor({ entityId, entityName, entityPortraitUrl, i
 
       <Card as="section">
         <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3"><div><CardTitle>Animation mapping</CardTitle><CardDescription>Map any imported clip name to the shared SIMVERSE vocabulary.</CardDescription></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><CardTitle>Animation mapping</CardTitle><CardDescription>Map any imported clip name to the shared KAVANDRO vocabulary.</CardDescription></div>
             <Button variant="secondary" size="sm" onClick={suggest} disabled={!canEdit || available.length === 0}><Sparkles className="size-4" />Suggest mappings</Button></div>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">

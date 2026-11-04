@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, BriefcaseBusiness, Clapperboard, FileBadge2, IdCard, Plane,
-  Settings2, Shield, Sparkles, UserRound, Users } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Clapperboard, FileBadge2, Plane,
+  Settings2, Shield, Sparkles, UserRound } from "lucide-react";
 import { requireUser } from "@/server/context";
 import { getMyPlayerIdentity, listPlayerHomeCountries } from "@/server/services/player-identity-service";
 import { getMyCreatorPortfolio } from "@/server/services/profile-portfolio-service";
@@ -10,10 +10,8 @@ import { ProfileIdentityPanel } from "@/components/player/profile-identity-panel
 
 export const metadata: Metadata = { title: "My Profile | KAVANDRO" };
 const sections = [
-  { label: "My Identity", detail: "Who you are and what others can see", href: "#identity", icon: IdCard },
   { label: "My Civilization", detail: "Founding country preference and district interest", href: "/profile/civilization", icon: Shield },
   { label: "My Avatar", detail: "Customize your saved 3D character", href: "/profile/avatar", icon: UserRound },
-  { label: "My Community", detail: "Friends, messages and invitations", href: "/social", icon: Users },
   { label: "My Economy", detail: "Career, credits, companies and jobs", href: "/profile/career", icon: BriefcaseBusiness },
   { label: "My Documents", detail: "Virtual ID, citizenship and travel", href: "/profile/documents", icon: FileBadge2 },
   { label: "My Creations", detail: "Your projects, worlds and published work", href: "/profile/creations", icon: Clapperboard },
@@ -41,7 +39,7 @@ export default async function MyProfilePage() {
     <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6" aria-labelledby="getting-started">
       <div className="flex items-start gap-3"><Sparkles className="mt-1 size-5 text-accent"/>
         <div className="flex-1"><h2 id="getting-started" className="text-lg font-semibold">Make your profile yours</h2>
-          <p className="text-sm text-secondary">{completed} of 3 simple setup steps completed. You can explore SIMVERSE at any time.</p></div></div>
+          <p className="text-sm text-secondary">{completed} of 3 simple setup steps completed. You can explore KAVANDRO at any time.</p></div></div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {steps.map((step) => <div key={step.label} className="flex items-center gap-2 rounded-lg bg-background px-3 py-2 text-sm">
           <span aria-hidden className={step.done ? "text-emerald-500" : "text-muted"}>{step.done ? "✓" : "○"}</span>{step.label}</div>)}
@@ -50,7 +48,7 @@ export default async function MyProfilePage() {
       {completed < steps.length && <Link href="#identity" className="mt-3 inline-block text-sm font-semibold text-accent">Open my profile →</Link>}
     </section>
     <section aria-labelledby="profile-sections">
-      <h2 id="profile-sections" className="mb-3 text-xl font-semibold">Your SIMVERSE</h2>
+      <h2 id="profile-sections" className="mb-3 text-xl font-semibold">Your KAVANDRO</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sections.map(({label,detail,href,icon:Icon}) =>
           <Link key={label} href={href} className="group flex min-h-32 flex-col justify-between rounded-2xl border border-border bg-surface p-4 transition hover:border-accent/50 hover:bg-surface-hover">
@@ -60,6 +58,6 @@ export default async function MyProfilePage() {
       </div>
       <Link href="/profile/travel" className="mt-3 inline-flex items-center gap-2 text-sm text-accent"><Plane className="size-4"/> Travel and immigration</Link>
     </section>
-    <p className="flex items-center gap-2 text-xs text-secondary"><Shield className="size-4"/>Your private email, SIMVERSE identity number and virtual document records do not appear on public profiles.</p>
+    <p className="flex items-center gap-2 text-xs text-secondary"><Shield className="size-4"/>Your private email, KAVANDRO identity number and virtual document records do not appear on public profiles.</p>
   </div>;
 }

@@ -101,7 +101,7 @@ export function NeighborhoodShowcase() {
           </Link>
           <div className="rounded-xl border border-white/15 bg-[#0a1d2c]/85 px-4 py-2 backdrop-blur-lg">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-cyan-300">
-              <Compass className="size-3.5" /> SIMVERSE EARTH — VISUAL PROOF 02
+              <Compass className="size-3.5" /> KAVANDRO EARTH — VISUAL PROOF 02
             </div>
             <h1 className="mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl">Marina Junction</h1>
             <p className="text-xs text-slate-300">Fictional Lagos-inspired neighborhood · curated plaza & showcase street</p>
@@ -150,7 +150,7 @@ export function NeighborhoodShowcase() {
               <h2 className="mt-1 text-lg font-semibold">{selection.name}</h2>
               <p className="mt-1 text-xs capitalize text-slate-300">{selection.kind} · Visual-only building</p>
               <p className="mt-2 text-[11px] leading-relaxed text-amber-200">
-                This structure is part of a fictional design proof. It is not linked to an acquired SIMVERSE plot.
+                This structure is part of a fictional design proof. It is not linked to an acquired KAVANDRO plot.
               </p>
               <button type="button" onClick={() => setSelection(null)} className="mt-3 text-xs text-cyan-300 hover:underline">
                 Dismiss details
@@ -233,7 +233,7 @@ export function NeighborhoodShowcase() {
 
       <footer className="pointer-events-none relative z-30 flex flex-wrap items-center justify-between gap-2 bg-[#061520]/90 px-4 py-2 text-[10px] text-slate-300 sm:px-6">
         <span className="flex items-center gap-1.5"><Info className="size-3.5 text-amber-300" /> Fictional scene — not a surveyed Lagos district, cadastral map, or available real-world property.</span>
-        <span className="font-mono text-cyan-200">SIMVERSE · Visual-first proof · Version 0.2 · FPS approximate</span>
+        <span className="font-mono text-cyan-200">KAVANDRO · Visual-first proof · Version 0.2 · FPS approximate</span>
       </footer>
     </main>
   );
