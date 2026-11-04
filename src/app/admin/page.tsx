@@ -74,6 +74,21 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
       <div key={label} className="rounded-2xl border border-border bg-surface p-5">{inside}</div>;
     })}
    </div>
+   <h2 className="pt-3 text-lg font-bold text-foreground">Community, civilization & gaming</h2>
+   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {([
+     ["New citizens · last 24 hours",overview.registrations24h],
+     ["District club messages",overview.clubMessages],
+     ["District assembly proposals",overview.districtProposals],
+     ["Development cases",overview.developmentCases],
+     ["Daily challenge plays",overview.challengeAttempts],
+     ["Social messages",overview.socialMessages],
+     ["Simulation runs",overview.simulationRuns],
+     ["Marketplace listings",overview.marketListings],
+    ] as const).map(([label,value])=><div key={label} className="rounded-2xl border border-border bg-surface p-5">
+     <p className="text-sm text-secondary">{label}</p><p className="mt-3 text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+    </div>)}
+   </div>
    <p className="rounded-2xl border border-border bg-surface p-5 text-sm leading-6 text-secondary">
     These are live database counts, not simulated statistics. Unexpired sessions do not necessarily indicate live presence.
     The activity log covers actions already instrumented by the app, not passive page views or every individual message.
