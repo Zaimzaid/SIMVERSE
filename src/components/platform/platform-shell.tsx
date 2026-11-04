@@ -61,16 +61,16 @@ export function PlatformShell({ children, ...shell }: PlatformShellProps) {
         </div>
         {collapsed ? (
           <nav aria-label="Collapsed navigation" className="flex flex-1 flex-col items-center gap-3 p-2 pt-5">
-            <Link href={visibleAreaItems(active, shell.permissions)[0]?.href ?? "/dashboard"} aria-label={`Open ${active.label}`}
+            <Link href={visibleAreaItems(active, shell.permissions, shell.isPlatformStaff)[0]?.href ?? "/dashboard"} aria-label={`Open ${active.label}`}
               className="inline-flex size-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
               <active.icon className="size-5" aria-hidden />
             </Link>
           </nav>
-        ) : <SidebarNav permissions={shell.permissions} mode="context" />}
+        ) : <SidebarNav permissions={shell.permissions} isPlatformStaff={shell.isPlatformStaff} mode="context" />}
       </aside>
 
       <Drawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
-        <SidebarNav permissions={shell.permissions} mode="all" withHeader
+        <SidebarNav permissions={shell.permissions} isPlatformStaff={shell.isPlatformStaff} mode="all" withHeader
           onNavigate={() => setMobileNavOpen(false)} />
       </Drawer>
 

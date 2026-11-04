@@ -1,5 +1,7 @@
 import { requirePlatformContext } from "@/server/context";
 import { PlatformShell } from "@/components/platform/platform-shell";
+import { getPlatformStaff } from "@/server/admin/access";
+import { isAdminRole } from "@/lib/admin/permissions";
 
 /**
  * Layout for all authenticated platform pages. Resolves the platform context
@@ -13,6 +15,7 @@ export default async function PlatformLayout({
   children: React.ReactNode;
 }) {
   const ctx = await requirePlatformContext();
+  const platformStaff = await getPlatformStaff(ctx.user.id);
 
   return (
     <PlatformShell
@@ -34,6 +37,7 @@ export default async function PlatformLayout({
       }))}
       role={ctx.role}
       permissions={ctx.permissions}
+      isPlatformStaff={Boolean(platformStaff?.active && isAdminRole(platformStaff.role))}
     >
       {children}
     </PlatformShell>

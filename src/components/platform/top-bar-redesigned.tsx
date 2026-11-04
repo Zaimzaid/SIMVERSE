@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight, Check, ChevronsUpDown, Command, LayoutDashboard, LogOut,
-  Menu, Moon, Plus, Search, Settings as SettingsIcon, Sun, UserRound, X,
+  Menu, Moon, Plus, Search, Settings as SettingsIcon, ShieldCheck, Sun, UserRound, X,
 } from "lucide-react";
 import { ROLE_META } from "@/lib/permissions";
 import { apiFetch } from "@/lib/client/api";
@@ -23,7 +23,7 @@ interface TopBarProps extends ShellData {
 }
 
 export function TopBar({
-  user, workspace, workspaces, role, permissions, onMenuClick,
+  user, workspace, workspaces, role, permissions, isPlatformStaff, onMenuClick,
 }: TopBarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -34,7 +34,7 @@ export function TopBar({
   const [query, setQuery] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const areas = useMemo(() => visibleAreas(permissions, "citizen"), [permissions]);
+  const areas = useMemo(() => visibleAreas(permissions, "citizen", isPlatformStaff), [permissions, isPlatformStaff]);
   const area = areaForPath(pathname);
   const canCreate = permissions.includes("project.create");
 
@@ -171,6 +171,7 @@ export function TopBar({
               <Link href="/profile"><DropdownItem><UserRound className="size-4" /> My player profile</DropdownItem></Link>
               <Link href="/settings"><DropdownItem><SettingsIcon className="size-4" /> Settings</DropdownItem></Link>
               <Link href="/dashboard"><DropdownItem><LayoutDashboard className="size-4" /> Dashboard</DropdownItem></Link>
+              {isPlatformStaff && <Link href="/admin"><DropdownItem><ShieldCheck className="size-4" /> Platform Administration</DropdownItem></Link>}
               {canCreate && <Link href="/create"><DropdownItem><Plus className="size-4" /> Creator tools (advanced)</DropdownItem></Link>}
               <DropdownSeparator />
               <DropdownItem destructive onClick={() => void handleLogout()}
@@ -234,7 +235,7 @@ export function TopBar({
           }) : <p className="p-6 text-center text-sm text-muted">No available pages match “{query}”.</p>}
         </nav>
         <div className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-muted">
-          <Command className="size-3.5" /> Search only shows tools available to your workspace role.
+          <Command className="size-3.5" /> Search shows tools permitted by your workspace role and any platform staff grant.
         </div>
       </dialog>
     </>
