@@ -136,7 +136,7 @@ export function TopBar({
           </Dropdown>
 
           <button type="button" onClick={() => setSearchOpen(true)}
-            aria-label="Search SIMVERSE navigation"
+            aria-label="Search KAVANDRO navigation"
             className="ml-auto inline-flex h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-2.5 text-muted transition hover:border-accent/40 hover:text-foreground md:ml-3 md:w-full md:max-w-sm md:justify-start">
             <Search className="size-4 shrink-0" aria-hidden />
             <span className="hidden truncate text-sm md:inline">Search pages and tools</span>

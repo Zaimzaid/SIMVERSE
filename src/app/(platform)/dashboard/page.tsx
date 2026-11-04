@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     },
     {
       label: "My identity",
-      detail: "View your existing player profile and historical SIMVERSE citizenship records.",
+      detail: "View your existing player profile and existing virtual citizenship records.",
       href: "/profile",
       icon: FileBadge2,
       marker: "Available",

@@ -12,6 +12,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { AuthCard, FormError } from "./auth-card";
+import { BrandSplash } from "@/components/brand/brand-splash";
 
 const initial = {
   displayName: "",
@@ -26,6 +27,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [verificationRequired,setVerificationRequired]=useState(false);
   const [resendMessage,setResendMessage]=useState("");
 
@@ -59,6 +61,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
     }
 
     if(data?.verificationRequired){setVerificationRequired(true);setSubmitting(false);setValues(v=>({...v,password:"",confirmPassword:""}));return;}
+    setRedirecting(true);
     router.replace(
       earthIntent
         ? `/earth/restore?intent=${encodeURIComponent(earthIntent)}`
@@ -68,6 +71,8 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
   }
 
   return (
+    <>
+    {redirecting && <BrandSplash overlay label="Opening your KAVANDRO journey…" />}
     <AuthCard
       title="Create your account"
       subtitle="Join KAVANDRO and help shape a new fictional world."
@@ -157,5 +162,6 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
         </Button>
       </form></>}
     </AuthCard>
+    </>
   );
 }
