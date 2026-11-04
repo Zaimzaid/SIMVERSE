@@ -126,6 +126,18 @@ export default async function MyCivilizationPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <h2 className="font-display text-xl font-semibold text-foreground">Daily Citizen Challenge</h2>
+        <p className="mt-2 text-sm leading-7 text-secondary">
+          Play an independent non-3D strategy puzzle, make fictional community choices and
+          compare anonymous scores. No live district development or Vascoin is awarded.
+        </p>
+        <Link href="/profile/civilization/challenge"
+          className="mt-4 inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-accent">
+          Play today's challenge
+        </Link>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
         <h2 className="font-display text-xl font-semibold text-foreground">My Vascoin Wallet</h2>
         <p className="mt-2 text-sm leading-7 text-secondary">
           Track virtual daily rewards, your own nonredeemable VC balance, and

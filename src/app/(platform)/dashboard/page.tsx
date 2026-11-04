@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight, Compass, FileBadge2, Globe2, MapPinned,
   MessageCircle, ShieldCheck, Sparkles, Swords, Users,
-  WalletCards,
+  WalletCards, Puzzle,
 } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
 
@@ -31,6 +31,13 @@ export default async function DashboardPage() {
       href: "/planet/planning/map",
       icon: Globe2,
       marker: "Country concept atlas",
+    },
+    {
+      label: "Daily Citizen Challenge",
+      detail: "Play a non-3D daily planning puzzle and compare anonymous scores. No in-world credits or official changes.",
+      href: "/profile/civilization/challenge",
+      icon: Puzzle,
+      marker: "Playable · Fictional tokens",
     },
     {
       label: "My future civilization",
