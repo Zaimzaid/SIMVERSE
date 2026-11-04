@@ -41,7 +41,7 @@ export interface Scenario {
   title: string;
   premise: string;
   objective: string;
-  trackLabels: TrackValues extends never ? never : Record<Track, string>;
+  trackLabels: Record<Track, string>;
   initial: TrackValues;
   targets: TrackValues;
   credits: number;
