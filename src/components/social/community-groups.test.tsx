@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CommunityGroups } from "./community-groups";
 
-describe("SIMVERSE private groups layout", () => {
+describe("KAVANDRO private groups layout", () => {
   it("gives new players clear creation and invitation guidance", () => {
     const html = renderToStaticMarkup(<CommunityGroups userId="player-1" friends={[]} />);
-    expect(html).toContain('aria-label="SIMVERSE group conversations"');
+    expect(html).toContain('aria-label="KAVANDRO group conversations"');
     expect(html).toContain("Your groups");
     expect(html).toContain("Create a group");
     expect(html).toContain("Welcome to Groups");
