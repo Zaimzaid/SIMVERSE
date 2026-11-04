@@ -1,5 +1,5 @@
 import {describe,it,expect} from "vitest";
-import {adminAuditWhere,parseAdminEventFilter,parseAdminAuditWindow} from "./audit-filters";
+import {adminAuditWhere,scopedAdminAuditWhere,parseAdminEventFilter,parseAdminAuditWindow} from "./audit-filters";
 
 describe("platform audit filters",()=>{
  const now=new Date("2026-11-04T12:00:00.000Z");
@@ -25,5 +25,15 @@ describe("platform audit filters",()=>{
   expect(JSON.stringify(adminAuditWhere("civilization","all",now))).toContain("development.");
   expect(JSON.stringify(adminAuditWhere("content","all",now))).toContain("simulation_run.");
   expect(JSON.stringify(adminAuditWhere("staff","all",now))).toContain("platform_admin.");
+ });
+ it("enforces section denials against the all-events query",()=>{
+  const restricted=scopedAdminAuditWhere("all","all",["overview","activity"],now);
+  const conditions=JSON.stringify(restricted);
+  expect(conditions).toContain("NOT");
+  expect(conditions).toContain("platform_admin.");
+  expect(conditions).toContain("account.");
+  expect(conditions).toContain("development.");
+  expect(scopedAdminAuditWhere("all","all",
+   ["overview","activity","security","staff","civilization"],now)).toEqual({});
  });
 });

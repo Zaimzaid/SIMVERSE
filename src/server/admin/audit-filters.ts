@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import type { AdminSection } from "@/lib/admin/permissions";
 
 /** Action families must match the actual names emitted by recordAudit. */
 export const ADMIN_EVENT_FILTERS = ["all","security","community","civilization","staff","content"] as const;
@@ -36,4 +37,17 @@ export function adminAuditWhere(filter:AdminEventFilter,window:AdminAuditWindow,
  if(window!=="all")clauses.push({createdAt:{gte:new Date(now.getTime()-span[window]),lte:now}});
  if(!clauses.length)return {};
  return clauses.length===1?clauses[0]!:{AND:clauses};
+}
+
+/** Action-level access scope; a hidden section must stay hidden in All events and exports. */
+export function scopedAdminAuditWhere(
+ filter:AdminEventFilter,window:AdminAuditWindow,sections:readonly AdminSection[],now=new Date(),
+):Prisma.AuditLogWhereInput {
+ const base=adminAuditWhere(filter,window,now);
+ const hidden:AdminEventFilter[]=[];
+ if(!sections.includes("security"))hidden.push("security");
+ if(!sections.includes("staff"))hidden.push("staff");
+ if(!sections.includes("civilization"))hidden.push("civilization");
+ const prefixes=[...new Set(hidden.flatMap(f=>actionPrefixes[f]))];
+ return prefixes.length?{AND:[base,{NOT:{OR:prefixes.map(prefix=>({action:{startsWith:prefix}}))}}]}:base;
 }
