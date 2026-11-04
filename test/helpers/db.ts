@@ -160,6 +160,8 @@ export async function resetDb(): Promise<void> {
   // Platform (Phase 0).
   await prisma.uploadedImage.deleteMany();
   await prisma.auditLog.deleteMany();
+  await prisma.platformAdminInvitation.deleteMany();
+  await prisma.platformAdmin.deleteMany();
   await prisma.cloudOauthState.deleteMany();
   await prisma.googleDriveConnection.deleteMany();
   await prisma.accountDeletionRequest.deleteMany();
