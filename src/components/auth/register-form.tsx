@@ -72,7 +72,7 @@ export function RegisterForm({ earthIntent, next }: { earthIntent?: string; next
 
   return (
     <>
-    {redirecting && <BrandSplash overlay label="Opening your KAVANDRO journey…" />}
+    {(submitting || redirecting) && <BrandSplash overlay label={redirecting ? "Opening your KAVANDRO journey…" : "Creating your KAVANDRO account…"} />}
     <AuthCard
       title="Create your account"
       subtitle="Join KAVANDRO and help shape a new fictional world."

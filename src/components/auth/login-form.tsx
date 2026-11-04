@@ -70,7 +70,7 @@ export function LoginForm({ next, earthIntent }: { next?: string; earthIntent?: 
   }
   return (
     <>
-    {redirecting && <BrandSplash overlay label="Entering your KAVANDRO world…" />}
+    {(submitting || redirecting) && <BrandSplash overlay label={redirecting ? "Opening your KAVANDRO world…" : challenge ? "Verifying your sign-in…" : "Signing you in securely…"} />}
     <AuthCard
       title="Welcome back"
       subtitle={challenge?"Enter your authenticator or recovery code.":"Log in to continue your KAVANDRO journey."}
