@@ -5,6 +5,7 @@ import {
   WalletCards, Puzzle, Landmark, BrainCircuit,
 } from "lucide-react";
 import { requirePlatformContext } from "@/server/context";
+import { getPlatformStaff } from "@/server/admin/access";
 
 /**
  * Build Your Civilization: first citizen-oriented dashboard.
@@ -16,6 +17,7 @@ import { requirePlatformContext } from "@/server/context";
 export default async function DashboardPage() {
   const ctx = await requirePlatformContext();
   const firstName = ctx.user.displayName.split(/\s+/)[0] || ctx.user.displayName;
+  const platformStaff = await getPlatformStaff(ctx.user.id);
 
   const places = [
     {
@@ -150,6 +152,10 @@ export default async function DashboardPage() {
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/75 px-4 py-3 text-sm font-semibold text-foreground hover:bg-surface-hover">
               <Users className="size-4" /> Open community
             </Link>
+            {platformStaff?.active ? <Link href="/admin/access"
+              className="inline-flex items-center gap-2 rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-accent hover:bg-surface-hover">
+              <ShieldCheck className="size-4"/> Administration
+            </Link> : null}
           </div>
         </div>
       </section>

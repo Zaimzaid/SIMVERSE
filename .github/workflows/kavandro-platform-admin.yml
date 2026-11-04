@@ -1,0 +1,50 @@
+name: KAVANDRO platform admin verification
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - "src/server/admin/**"
+      - "src/lib/admin/**"
+      - "src/components/admin/**"
+      - "src/app/admin/**"
+      - "src/app/api/admin/**"
+      - "src/app/(platform)/dashboard/page.tsx"
+      - "prisma/schema.prisma"
+      - "scripts/bootstrap-platform-admin.mjs"
+      - "test/helpers/db.ts"
+      - "docs/kavandro/PLATFORM_ADMIN_OPERATIONS_V1.md"
+      - ".github/workflows/kavandro-platform-admin.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  admin-console:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      DATABASE_URL: "file:./kavandro-admin-ci.db"
+      SESSION_SECRET: "TEST_ONLY_KAVANDRO_ADMIN_CI_SESSION_SECRET_123456"
+      NEXT_PUBLIC_APP_NAME: "KAVANDRO"
+      APP_URL: "http://localhost:3000"
+      AUTH_TRUST_PROXY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Ensure the test DB is disposable
+        run: |
+          test ! -e .env
+          test ! -e .env.local
+          test ! -e kavandro-admin-ci.db
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:push
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
