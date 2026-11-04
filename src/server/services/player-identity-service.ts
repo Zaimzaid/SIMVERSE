@@ -61,7 +61,7 @@ export async function getMyPlayerIdentity(userId: string) {
     homeCountryId: record.homeCountryId,
     homeCountry: record.homeCountry,
     citizenships: record.citizenships,
-    citizenshipNotice: "Selecting a virtual home country does not grant SIMVERSE citizenship or travel rights.",
+    citizenshipNotice: "Selecting a virtual home country does not grant KAVANDRO citizenship or travel rights.",
   };
 }
 
@@ -77,7 +77,7 @@ export async function updateMyPlayerIdentity(userId: string, payload: unknown) {
       },
       select: { id: true },
     });
-    if (!place) throw new ValidationError("Choose a supported SIMVERSE country from the catalog.", [
+    if (!place) throw new ValidationError("Choose a supported KAVANDRO country from the catalog.", [
       { path: "homeCountryId", message: "This country is not available in the active catalog." },
     ]);
   }
