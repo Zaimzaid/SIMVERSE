@@ -26,7 +26,7 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{vi
  if(!sections.length)return <main className="mx-auto max-w-xl space-y-4 p-8"><h1 className="text-2xl font-bold">No dashboard sections assigned</h1>
   <p className="text-secondary">Ask the platform owner to grant your account access.</p><Link className="text-accent underline" href="/dashboard">Return to platform</Link></main>;
  const params=await searchParams;
- const view=sections.includes(params.view as AdminSection)?params.view as AdminSection:sections[0];
+ const view:AdminSection=sections.includes(params.view as AdminSection) ? (params.view as AdminSection) : (sections[0] ?? "overview");
  const page=Math.max(0,Math.min(1000,Number.parseInt(params.page??"0",10)||0));
  const filter=view==="security"?"security":view==="civilization"?"civilization":parseAdminEventFilter(params.filter);
  const q=params.q??"";
